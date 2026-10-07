@@ -21,7 +21,7 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           chmod +x gradlew
           set -o pipefail
-          ./gradlew assembleDebug --no-daemon 2>&1 | tee build.log
+          ./gradlew assembleDebug bundleRelease --no-daemon 2>&1 | tee build.log
       - name: Report compile errors as annotations
         if: failure()
         run: |
@@ -34,11 +34,11 @@ jobs:
       - name: Publish APK to apk-build branch
         if: success()
         run: |
-          mkdir out && cp app/build/outputs/apk/debug/app-debug.apk out/Jeremy.apk
+          mkdir out && cp app/build/outputs/apk/debug/app-debug.apk out/Jeremy.apk && cp app/build/outputs/bundle/release/app-release.aab out/Jeremy-unsigned.aab
           cd out
           git init -q -b apk-build
           git config user.name "github-actions"; git config user.email "actions@github.com"
-          git add Jeremy.apk && git commit -qm "APK from ${GITHUB_SHA::7}"
+          git add Jeremy.apk Jeremy-unsigned.aab && git commit -qm "APK from ${GITHUB_SHA::7}"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" apk-build
       - name: Publish release
         if: success()

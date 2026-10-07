@@ -6,14 +6,14 @@ plugins {
 
 android {
     namespace = "com.jeremy.dashcam"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.jeremy.dashcam"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 28
-        versionName = "28.0"
+        targetSdk = 36
+        versionCode = 29
+        versionName = "1.0"
     }
 
     buildTypes {
