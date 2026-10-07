@@ -74,7 +74,7 @@ class EventExporter(private val context: Context) {
         if (showDateTime) overlays.add(TimestampOverlay(pieces, timePx))
 
         val composition = Composition.Builder(ImmutableList.of(EditedMediaItemSequence(items)))
-            .setEffects(Effects(ImmutableList.of(), ImmutableList.of(OverlayEffect(overlays.build()))))
+            .setEffects(Effects(ImmutableList.of(), ImmutableList.of<androidx.media3.common.Effect>(OverlayEffect(overlays.build()))))
             .experimentalSetForceAudioTrack(true)
             .build()
 

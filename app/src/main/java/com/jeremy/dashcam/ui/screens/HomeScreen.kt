@@ -105,9 +105,10 @@ fun HomeScreen(onShowCamera: () -> Unit, onSettings: () -> Unit) {
 private fun IdleHome(onStart: () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val btn = (minOf(maxWidth, maxHeight) * 0.62f).coerceIn(180.dp, 280.dp)
+        val fullHeight = maxHeight
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             Column(
-                Modifier.fillMaxWidth().heightIn(min = maxHeight).padding(horizontal = 24.dp, vertical = 12.dp),
+                Modifier.fillMaxWidth().heightIn(min = fullHeight).padding(horizontal = 24.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
