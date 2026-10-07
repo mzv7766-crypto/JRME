@@ -1,19 +1,14 @@
 package com.jeremy.dashcam.service
 
-import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.AccessibilityServiceInfo
-import android.content.ComponentName
 import android.content.Context
 import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
 import android.view.KeyEvent
-import android.view.accessibility.AccessibilityEvent
 import com.jeremy.dashcam.data.SettingsStore
 
 /**
- * Volume-key control while drive mode is on:
+ * Volume-key control while drive mode is on and the Jeremy screen is open:
  *   short press VOLUME UP   → start event / stop & SAVE event
  *   short press VOLUME DOWN → end the running event WITHOUT saving (if no event: normal volume down)
  *   press & hold (either)   → normal volume change, so music volume still works.
@@ -75,20 +70,4 @@ object VolumeKeyHandler {
         )
     }
 
-    fun isAccessibilityEnabled(c: Context): Boolean {
-        val flat = Settings.Secure.getString(c.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: return false
-        val me = ComponentName(c, VolumeKeyService::class.java)
-        return flat.split(':').any { ComponentName.unflattenFromString(it) == me }
-    }
-}
-
-/** Receives volume keys system-wide (also with Waze/Spotify in front). Does nothing else. */
-class VolumeKeyService : AccessibilityService() {
-    override fun onServiceConnected() {
-        serviceInfo = serviceInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS }
-    }
-
-    override fun onKeyEvent(event: KeyEvent): Boolean = VolumeKeyHandler.onKey(this, event)
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
-    override fun onInterrupt() = Unit
 }

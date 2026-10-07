@@ -36,7 +36,6 @@ import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -61,7 +60,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.jeremy.dashcam.R
-import com.jeremy.dashcam.service.VolumeKeyHandler
 import com.jeremy.dashcam.ui.components.JCard
 import com.jeremy.dashcam.ui.components.ScreenHeader
 import com.jeremy.dashcam.ui.theme.J
@@ -117,11 +115,10 @@ fun PermissionsCard() {
     val ctx = LocalContext.current
     var overlay by remember { mutableStateOf(Settings.canDrawOverlays(ctx)) }
     var battery by remember { mutableStateOf(isIgnoringBattery(ctx)) }
-    var access by remember { mutableStateOf(VolumeKeyHandler.isAccessibilityEnabled(ctx)) }
     val owner = LocalLifecycleOwner.current
     LaunchedEffect(owner) {
         owner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            overlay = Settings.canDrawOverlays(ctx); battery = isIgnoringBattery(ctx); access = VolumeKeyHandler.isAccessibilityEnabled(ctx)
+            overlay = Settings.canDrawOverlays(ctx); battery = isIgnoringBattery(ctx)
         }
     }
     JCard(Modifier.fillMaxWidth()) {
@@ -129,10 +126,7 @@ fun PermissionsCard() {
             Text(stringResource(R.string.sec_perms), color = J.Text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             PermRow(Icons.Filled.Layers, stringResource(R.string.perm_overlay), overlay) { openOverlaySettings(ctx) }
             PermRow(Icons.Filled.BatteryChargingFull, stringResource(R.string.perm_battery), battery) { requestIgnoreBattery(ctx) }
-            PermRow(Icons.Filled.VolumeUp, stringResource(R.string.perm_volume), access) {
-                ctx.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
-            if (!access) Text(stringResource(R.string.restricted_note), color = J.TextDim, fontSize = 12.sp)
+
         }
     }
 }

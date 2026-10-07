@@ -70,11 +70,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** In-app fallback when the accessibility service isn't enabled. */
+    /** Volume keys control events while Jeremy is open (no accessibility service — Play Protect blocks those). */
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
-        if (!com.jeremy.dashcam.service.VolumeKeyHandler.isAccessibilityEnabled(this) &&
-            com.jeremy.dashcam.service.VolumeKeyHandler.onKey(this, event)
-        ) return true
+        if (com.jeremy.dashcam.service.VolumeKeyHandler.onKey(this, event)) return true
         return super.dispatchKeyEvent(event)
     }
 
