@@ -19,6 +19,7 @@ enum class Trigger(val labelRes: Int) {
     FLOATING(R.string.trigger_floating),
     NOTIFICATION(R.string.trigger_notification),
     VOICE(R.string.trigger_voice),
+    VOLUME(R.string.trigger_volume),
     SHOCK(R.string.trigger_shock),
     MOTION(R.string.trigger_motion),
 }

@@ -75,6 +75,7 @@ class DashcamService : LifecycleService() {
         const val ACTION_START = "com.jeremy.dashcam.START"
         const val ACTION_STOP = "com.jeremy.dashcam.STOP"
         const val ACTION_TOGGLE_EVENT = "com.jeremy.dashcam.TOGGLE_EVENT"
+        const val ACTION_DISCARD_EVENT = "com.jeremy.dashcam.DISCARD_EVENT"
         private const val TAG = "DashcamService"
         private const val SEGMENT_MS = 5_000L
 
@@ -154,6 +155,7 @@ class DashcamService : LifecycleService() {
             ACTION_START -> if (!running) beginDrive()
             ACTION_STOP -> shutdown()
             ACTION_TOGGLE_EVENT -> if (running) toggleEvent(Trigger.NOTIFICATION)
+            ACTION_DISCARD_EVENT -> if (running) discardEvent()
             else -> if (!running) {
                 // Restarted by the system without a UI: Android does not allow re-opening the camera from
                 // the background, so make sure we don't linger in a half-alive state.
@@ -481,6 +483,26 @@ class DashcamService : LifecycleService() {
         if (!running || state.value.phase != DrivePhase.RUNNING || state.value.eventActive) return
         state.update { it.copy(eventActive = true, eventStartTime = System.currentTimeMillis(), eventTrigger = trigger) }
         if (settings.voiceFeedback) voice.speak(getString(R.string.tts_started))
+    }
+
+    /** Ends the running event WITHOUT saving a video. Recording to the rolling buffer continues. */
+    fun discardEvent() {
+        if (Looper.myLooper() != Looper.getMainLooper()) { main.post { discardEvent() }; return }
+        if (!state.value.eventActive) return
+        state.update { it.copy(eventActive = false, eventTrigger = null) }
+        pruneBuffer()
+        if (settings.voiceFeedback) voice.speak(getString(R.string.tts_discarded))
+    }
+
+    fun isDriving() = running && state.value.phase == DrivePhase.RUNNING
+    fun isEventActive() = state.value.eventActive
+
+    /** Volume-key entry point (accessibility service or in-app). Returns true if the key was used. */
+    fun onVolumeAction(up: Boolean): Boolean {
+        if (!running) return false
+        if (up) { toggleEvent(Trigger.VOLUME); return true }
+        if (state.value.eventActive) { discardEvent(); return true }
+        return false
     }
 
     /** Ends the event: closes the current segment, then joins pre-event + event segments into ONE MP4. */

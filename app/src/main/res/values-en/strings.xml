@@ -130,4 +130,13 @@
     <string name="camera_error">Camera error: %1$s</string>
     <string name="rec">REC</string>
     <string name="details">Details</string>
+    <string name="discard_event">End without saving</string>
+    <string name="tts_discarded">Event discarded</string>
+    <string name="trigger_volume">Volume button</string>
+    <string name="acc_description">Lets Jeremy use the volume keys while driving: up — start/save event, down — end without saving. Press and hold changes volume as usual. The service reads no screen content.</string>
+    <string name="volume_keys">Volume button control</string>
+    <string name="volume_keys_desc">Up — start / save event • Down — end without saving • Hold — normal volume</string>
+    <string name="perm_volume">Volume keys in background (Accessibility)</string>
+    <string name="overlay_missing">Floating button is off: \"Display over other apps\" is not allowed</string>
+    <string name="restricted_note">If the option is greyed out: Settings → Apps → Jeremy → ⋮ → \"Allow restricted settings\", then try again.</string>
 </resources>

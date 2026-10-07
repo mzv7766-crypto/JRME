@@ -31,6 +31,7 @@ data class AppSettings(
     val language: AppLanguage = AppLanguage.SYSTEM,
     val layoutDir: LayoutDir = LayoutDir.AUTO,
     val overlayPromptShown: Boolean = false,
+    val volumeKeys: Boolean = true,
 )
 
 /** Simple, synchronous settings store observable via StateFlow (shared by UI and service). */
@@ -70,6 +71,7 @@ object SettingsStore {
             language = enumOr(getString("lang", null), AppLanguage.SYSTEM),
             layoutDir = enumOr(getString("dir", null), LayoutDir.AUTO),
             overlayPromptShown = getBoolean("overlayPrompt", false),
+            volumeKeys = getBoolean("volKeys", true),
         )
     }
 
@@ -95,6 +97,7 @@ object SettingsStore {
             .putString("lang", s.language.name)
             .putString("dir", s.layoutDir.name)
             .putBoolean("overlayPrompt", s.overlayPromptShown)
+            .putBoolean("volKeys", s.volumeKeys)
             .apply()
     }
 

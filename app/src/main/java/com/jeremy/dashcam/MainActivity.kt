@@ -70,6 +70,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** In-app fallback when the accessibility service isn't enabled. */
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (!com.jeremy.dashcam.service.VolumeKeyHandler.isAccessibilityEnabled(this) &&
+            com.jeremy.dashcam.service.VolumeKeyHandler.onKey(this, event)
+        ) return true
+        return super.dispatchKeyEvent(event)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)

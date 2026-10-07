@@ -83,6 +83,7 @@ import com.jeremy.dashcam.ui.components.StatCard
 import com.jeremy.dashcam.ui.components.StatusDot
 import com.jeremy.dashcam.ui.theme.J
 import kotlinx.coroutines.delay
+import androidx.lifecycle.repeatOnLifecycle
 
 @Composable
 fun HomeScreen(onShowCamera: () -> Unit, onSettings: () -> Unit) {
@@ -186,6 +187,30 @@ private fun ActiveHome(onShowCamera: () -> Unit) {
 
         state.error?.let { Text(it, color = J.Red, fontSize = 14.sp) }
 
+        // The floating button can only exist with the overlay permission — say so clearly.
+        var overlayOk by remember { mutableStateOf(Settings.canDrawOverlays(ctx)) }
+        val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+        LaunchedEffect(owner) {
+            owner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) { overlayOk = Settings.canDrawOverlays(ctx) }
+        }
+        if (!overlayOk) {
+            JCard(Modifier.fillMaxWidth(), onClick = { openOverlaySettings(ctx) }) {
+                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Warning, null, tint = J.Amber)
+                    Spacer(Modifier.width(12.dp))
+                    Text(stringResource(R.string.overlay_missing), color = J.Text, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.perm_grant), color = J.Mint, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        if (state.eventActive) {
+            Box(
+                Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(28.dp)).border(2.dp, J.Red, RoundedCornerShape(28.dp))
+                    .clickable { DashcamController.discardEvent() },
+                contentAlignment = Alignment.Center,
+            ) { Text(stringResource(R.string.discard_event), color = J.Red, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
+        }
         if (state.eventActive || state.savingCount > 0) {
             JCard(Modifier.fillMaxWidth(), onClick = { DashcamController.toggleEvent(com.jeremy.dashcam.data.Trigger.MANUAL) }) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -164,6 +165,7 @@ fun triggerIcon(t: Trigger): Pair<ImageVector, Color> = when (t) {
     Trigger.SHOCK -> Icons.Filled.DirectionsCar to J.Red
     Trigger.MOTION -> Icons.Filled.Sensors to J.Amber
     Trigger.VOICE -> Icons.Filled.Mic to J.Mint
+    Trigger.VOLUME -> Icons.Filled.VolumeUp to J.Mint
     Trigger.FLOATING -> Icons.Filled.TouchApp to J.Mint
     Trigger.NOTIFICATION -> Icons.Filled.Notifications to J.Mint
     Trigger.MANUAL -> Icons.Filled.PanTool to J.Green

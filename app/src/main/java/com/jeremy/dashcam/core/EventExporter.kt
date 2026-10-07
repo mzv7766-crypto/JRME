@@ -13,6 +13,7 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
@@ -58,7 +59,9 @@ class EventExporter(private val context: Context) {
         val brandPx = (shortSide * 0.055f).toInt().coerceAtLeast(24)
         val timePx = (shortSide * 0.042f).toInt().coerceAtLeast(18)
 
-        val items = pieces.mapIndexed { i, p ->
+        // Effects are attached to EVERY clip (not the composition): this forces a real re-encode, so the
+        // overlays are burned into the pixels. Composition-level effects can be skipped by a pure remux.
+        val items = pieces.map { p ->
             val media = MediaItem.Builder()
                 .setUri(Uri.fromFile(p.file))
                 .apply {
@@ -66,15 +69,16 @@ class EventExporter(private val context: Context) {
                         MediaItem.ClippingConfiguration.Builder().setStartPositionMs(p.clipStartMs).build()
                     )
                 }.build()
-            EditedMediaItem.Builder(media).build()
+            val overlays = ImmutableList.builder<TextureOverlay>()
+            overlays.add(brandOverlay(brandPx))
+            if (showDateTime) overlays.add(TimestampOverlay(p.wallStartMs + p.clipStartMs, timePx))
+            val videoEffects = ImmutableList.of<Effect>(OverlayEffect(overlays.build()))
+            EditedMediaItem.Builder(media)
+                .setEffects(Effects(ImmutableList.of(), videoEffects))
+                .build()
         }
 
-        val overlays = ImmutableList.builder<TextureOverlay>()
-        overlays.add(brandOverlay(brandPx))
-        if (showDateTime) overlays.add(TimestampOverlay(pieces, timePx))
-
         val composition = Composition.Builder(ImmutableList.of(EditedMediaItemSequence(items)))
-            .setEffects(Effects(ImmutableList.of(), ImmutableList.of<androidx.media3.common.Effect>(OverlayEffect(overlays.build()))))
             .experimentalSetForceAudioTrack(true)
             .build()
 
@@ -103,7 +107,7 @@ class EventExporter(private val context: Context) {
     }
 
     private fun brandOverlay(px: Int): TextOverlay {
-        val text = SpannableString("Jeremy").apply {
+        val text = SpannableString(" Jeremy ").apply {
             span(ForegroundColorSpan(Color.WHITE)); span(StyleSpan(Typeface.BOLD)); span(AbsoluteSizeSpan(px))
             span(BackgroundColorSpan(Color.argb(70, 0, 0, 0)))
         }
@@ -114,37 +118,25 @@ class EventExporter(private val context: Context) {
         return TextOverlay.createStaticTextOverlay(text, settings)
     }
 
-    /** Dynamic overlay: maps each frame's presentation time back to the wall-clock capture time. */
-    private class TimestampOverlay(pieces: List<Piece>, private val px: Int) : TextOverlay() {
+    /**
+     * Dynamic overlay for ONE clip: the first frame it sees is the clip start, whose real capture
+     * wall-clock time is [wallStartMs]; every later frame adds its offset. So the burned time is the
+     * time the frame was filmed, not the export time.
+     */
+    private class TimestampOverlay(private val wallStartMs: Long, private val px: Int) : TextOverlay() {
         private val fmt = SimpleDateFormat("yyyy-MM-dd  HH:mm:ss", Locale.US)
-        private val starts: LongArray     // composition-relative start of each piece (us)
-        private val wallStarts: LongArray // wall clock (ms) at that start
         private var basePtsUs = Long.MIN_VALUE
         private val settings = OverlaySettings.Builder()
-            .setBackgroundFrameAnchor(-0.93f, 0.92f) // top-left of the video
-            .setOverlayFrameAnchor(-1f, 1f)
+            .setBackgroundFrameAnchor(0f, 0.90f) // top-centre of the video
+            .setOverlayFrameAnchor(0f, 1f)
             .build()
 
-        init {
-            var acc = 0L
-            starts = LongArray(pieces.size); wallStarts = LongArray(pieces.size)
-            pieces.forEachIndexed { i, p ->
-                starts[i] = acc
-                wallStarts[i] = p.wallStartMs + p.clipStartMs
-                acc += (p.durationMs - p.clipStartMs).coerceAtLeast(0) * 1000
-            }
-        }
-
         override fun getText(presentationTimeUs: Long): SpannableString {
-            // Self-calibrate: the first frame we see is the start of the composition.
-            if (basePtsUs == Long.MIN_VALUE) basePtsUs = presentationTimeUs
-            val rel = (presentationTimeUs - basePtsUs).coerceAtLeast(0)
-            var idx = 0
-            for (i in starts.indices) if (rel >= starts[i]) idx = i
-            val wall = wallStarts[idx] + (rel - starts[idx]) / 1000
-            return SpannableString(fmt.format(Date(wall))).apply {
-                span(ForegroundColorSpan(Color.WHITE)); span(AbsoluteSizeSpan(px))
-                span(BackgroundColorSpan(Color.argb(110, 0, 0, 0)))
+            if (basePtsUs == Long.MIN_VALUE || presentationTimeUs < basePtsUs) basePtsUs = presentationTimeUs
+            val wall = wallStartMs + (presentationTimeUs - basePtsUs) / 1000
+            return SpannableString(" " + fmt.format(Date(wall)) + " ").apply {
+                span(ForegroundColorSpan(Color.WHITE)); span(StyleSpan(Typeface.BOLD)); span(AbsoluteSizeSpan(px))
+                span(BackgroundColorSpan(Color.argb(120, 0, 0, 0)))
             }
         }
 

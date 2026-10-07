@@ -106,6 +106,11 @@ fun SettingsScreen() {
             }
             Text(stringResource(R.string.voice_note), color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
 
+            Section(stringResource(R.string.volume_keys)) {
+                Toggle(stringResource(R.string.volume_keys), s.volumeKeys) { v -> SettingsStore.update { it.copy(volumeKeys = v) } }
+                Text(stringResource(R.string.volume_keys_desc), color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+            }
+
             Section(stringResource(R.string.sec_storage)) {
                 Toggle(stringResource(R.string.auto_delete), s.autoDelete) { v ->
                     SettingsStore.update { it.copy(autoDelete = v) }; Thread { EventRepository.enforceStorageLimit() }.start()

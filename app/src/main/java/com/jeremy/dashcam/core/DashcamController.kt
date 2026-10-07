@@ -61,6 +61,10 @@ object DashcamController {
         DashcamService.instance?.toggleEvent(trigger)
     }
 
+    fun discardEvent() {
+        DashcamService.instance?.discardEvent()
+    }
+
     fun switchCamera() {
         DashcamService.instance?.switchCamera()
     }

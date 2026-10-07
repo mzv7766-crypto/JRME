@@ -131,4 +131,13 @@
     <string name="camera_error">שגיאת מצלמה: %1$s</string>
     <string name="rec">REC</string>
     <string name="details">פרטים</string>
+    <string name="discard_event">סיים בלי לשמור</string>
+    <string name="tts_discarded">האירוע בוטל</string>
+    <string name="trigger_volume">כפתור עוצמה</string>
+    <string name="acc_description">מאפשר ל־Jeremy להשתמש בכפתורי העוצמה בזמן נסיעה: למעלה — התחלה/שמירת אירוע, למטה — סיום בלי לשמור. לחיצה ארוכה משנה עוצמה כרגיל. השירות לא קורא תוכן מהמסך.</string>
+    <string name="volume_keys">שליטה בכפתורי עוצמה</string>
+    <string name="volume_keys_desc">למעלה — התחל / שמור אירוע • למטה — סיים בלי לשמור • לחיצה ארוכה — עוצמה רגילה</string>
+    <string name="perm_volume">כפתורי עוצמה ברקע (נגישות)</string>
+    <string name="overlay_missing">הכפתור הצף כבוי: חסרה הרשאת \"הצגה מעל אפליקציות אחרות\"</string>
+    <string name="restricted_note">אם ההגדרה אפורה: הגדרות ← אפליקציות ← Jeremy ← ⋮ ← \"אפשר הגדרות מוגבלות\", ואז הפעל שוב.</string>
 </resources>

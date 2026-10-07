@@ -77,7 +77,11 @@ object Notifications {
             c.getString(if (s.eventActive) R.string.stop_event else R.string.save_event),
             serviceIntent(c, DashcamService.ACTION_TOGGLE_EVENT, 10),
         )
-        b.addAction(R.drawable.ic_videocam, c.getString(R.string.show_camera), openAppIntent(c, "camera", req = 11))
+        if (s.eventActive) {
+            b.addAction(R.drawable.ic_close, c.getString(R.string.discard_event), serviceIntent(c, DashcamService.ACTION_DISCARD_EVENT, 13))
+        } else {
+            b.addAction(R.drawable.ic_videocam, c.getString(R.string.show_camera), openAppIntent(c, "camera", req = 11))
+        }
         b.addAction(R.drawable.ic_power, c.getString(R.string.stop_camera), serviceIntent(c, DashcamService.ACTION_STOP, 12))
         return b.build()
     }

@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
@@ -109,7 +110,8 @@ fun CameraScreen(onSettings: () -> Unit, onStartDrive: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly,
             ) {
-                RoundAction(Icons.Filled.Cameraswitch, stringResource(R.string.switch_camera), { DashcamController.switchCamera() }, size = 46.dp)
+                if (state.eventActive) DiscardAction(46.dp)
+                else RoundAction(Icons.Filled.Cameraswitch, stringResource(R.string.switch_camera), { DashcamController.switchCamera() }, size = 46.dp)
                 EventButton(state.eventActive, state.eventStartTime, now, 84.dp, onEvent)
                 RoundAction(Icons.Filled.Tune, stringResource(R.string.quick_settings), { quick = true }, size = 46.dp)
             }
@@ -133,7 +135,8 @@ fun CameraScreen(onSettings: () -> Unit, onStartDrive: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                RoundAction(Icons.Filled.Cameraswitch, stringResource(R.string.switch_camera), { DashcamController.switchCamera() })
+                if (state.eventActive) DiscardAction(52.dp)
+                else RoundAction(Icons.Filled.Cameraswitch, stringResource(R.string.switch_camera), { DashcamController.switchCamera() })
                 EventButton(state.eventActive, state.eventStartTime, now, 96.dp, onEvent)
                 RoundAction(Icons.Filled.Tune, stringResource(R.string.quick_settings), { quick = true })
             }
@@ -213,6 +216,20 @@ private fun TopInfo(s: AppSettings, eventActive: Boolean, audio: Boolean, modifi
             "${s.resolution.height}P • ${s.fps} FPS",
             leading = { Icon(if (audio) Icons.Filled.Mic else Icons.Filled.MicOff, null, tint = Color.White, modifier = Modifier.size(14.dp)) },
         )
+    }
+}
+
+/** Ends the running event without saving a video. */
+@Composable
+private fun DiscardAction(size: Dp) {
+    Column(Modifier.width(76.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            Modifier.size(size).clip(CircleShape).background(Color.Black.copy(alpha = 0.6f))
+                .border(2.dp, J.Red, CircleShape).clickable { DashcamController.discardEvent() },
+            contentAlignment = Alignment.Center,
+        ) { Icon(Icons.Filled.Close, null, tint = J.Red, modifier = Modifier.size(size * 0.5f)) }
+        Spacer(Modifier.height(4.dp))
+        Text(stringResource(R.string.discard_event), color = Color.White, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 13.sp)
     }
 }
 
