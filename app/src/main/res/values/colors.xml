@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="jeremy_bg">#FF06130D</color>
+    <color name="jeremy_green">#FF22C55E</color>
+    <color name="jeremy_mint">#FF6EF0A8</color>
+    <color name="jeremy_dark_green">#FF0B3D27</color>
+    <color name="jeremy_red">#FFE53935</color>
+    <color name="ic_launcher_background">#FF07241A</color>
+</resources>

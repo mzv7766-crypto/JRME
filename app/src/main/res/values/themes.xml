@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Jeremy" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/jeremy_bg</item>
+        <item name="android:statusBarColor">@color/jeremy_bg</item>
+        <item name="android:navigationBarColor">@color/jeremy_bg</item>
+        <item name="colorPrimary">@color/jeremy_green</item>
+        <item name="colorAccent">@color/jeremy_mint</item>
+    </style>
+</resources>
