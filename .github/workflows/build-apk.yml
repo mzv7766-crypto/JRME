@@ -25,8 +25,11 @@ jobs:
       - name: Report compile errors as annotations
         if: failure()
         run: |
-          grep -E "^e: |error:|What went wrong|Could not|FAILURE|> " build.log | head -60 | while IFS= read -r line; do
-            echo "::error::${line//$'\n'/ }"
+          grep -E "^e: |^w: .*error|error:|What went wrong|AAPT|Execution failed|Could not resolve|Unresolved|^  - " build.log | grep -v "^> Task" | sed 's#file:///home/runner/work/JRME/JRME/##' > errs.txt || true
+          split -l 8 errs.txt chunk_ || true
+          for f in $(ls chunk_* 2>/dev/null | head -10); do
+            msg=$(sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g' "$f")
+            echo "::error::$msg"
           done
       - name: Publish APK to apk-build branch
         if: success()
