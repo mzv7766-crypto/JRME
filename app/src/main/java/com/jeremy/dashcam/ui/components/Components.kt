@@ -42,7 +42,7 @@ import com.jeremy.dashcam.ui.theme.J
 
 /** Night road with green hills — the hero background used on home & splash (pure vector, no assets). */
 @Composable
-fun RoadBackdrop(modifier: Modifier = Modifier) {
+fun RoadBackdrop(modifier: Modifier = Modifier, phase: Float = 0f) {
     Canvas(modifier) {
         val w = size.width; val h = size.height
         drawRect(Brush.verticalGradient(listOf(Color(0xFF0E3A25), Color(0xFF082016), Color(0xFF041009)), endY = h))
@@ -68,13 +68,21 @@ fun RoadBackdrop(modifier: Modifier = Modifier) {
         // edge lines
         drawLine(J.Mint.copy(alpha = 0.35f), Offset(w * 0.47f, horizon + h * 0.01f), Offset(w * 0.09f, h), 2.dp.toPx())
         drawLine(J.Mint.copy(alpha = 0.35f), Offset(w * 0.53f, horizon + h * 0.01f), Offset(w * 0.91f, h), 2.dp.toPx())
-        // dashed centre line with perspective
-        var t = 0.04f
-        while (t < 1f) {
+        // dashed centre line with perspective; [phase] 0..1 moves every dash one slot toward the viewer
+        val gap = 0.11f
+        for (i in 0..10) {
+            val t = (i + phase) * gap
+            if (t >= 1f) continue
+            val t2 = (t + 0.05f).coerceAtMost(1f)
             val y0 = horizon + (h - horizon) * t * t
-            val y1 = horizon + (h - horizon) * (t + 0.05f) * (t + 0.05f)
-            drawLine(Color.White.copy(alpha = 0.55f), Offset(w / 2, y0), Offset(w / 2, y1.coerceAtMost(h)), (1f + 5f * t).dp.toPx(), StrokeCap.Round)
-            t += 0.11f
+            val y1 = horizon + (h - horizon) * t2 * t2
+            drawLine(Color.White.copy(alpha = 0.25f + 0.4f * t), Offset(w / 2, y0), Offset(w / 2, y1), (1f + 5f * t).dp.toPx(), StrokeCap.Round)
+            // reflector posts on both road edges
+            val edgeL = w * 0.47f + (w * 0.09f - w * 0.47f) * (t * t)
+            val edgeR = w * 0.53f + (w * 0.91f - w * 0.53f) * (t * t)
+            val r = (0.6f + 3.5f * t * t).dp.toPx()
+            drawCircle(J.Mint.copy(alpha = 0.3f + 0.5f * t), r, Offset(edgeL - r * 2, y0))
+            drawCircle(J.Mint.copy(alpha = 0.3f + 0.5f * t), r, Offset(edgeR + r * 2, y0))
         }
         // vignette for legibility
         drawRect(Brush.verticalGradient(listOf(Color.Transparent, J.Bg.copy(alpha = 0.85f)), startY = h * 0.55f, endY = h))
@@ -83,7 +91,7 @@ fun RoadBackdrop(modifier: Modifier = Modifier) {
 
 /** Jeremy mark: camera over a road — matches the launcher icon. */
 @Composable
-fun JeremyMark(size: Dp, modifier: Modifier = Modifier) {
+fun JeremyMark(size: Dp, modifier: Modifier = Modifier, withRoad: Boolean = true) {
     Canvas(modifier.size(size)) {
         val s = this.size.minDimension
         val stroke = s * 0.075f
@@ -101,6 +109,7 @@ fun JeremyMark(size: Dp, modifier: Modifier = Modifier) {
         drawCircle(J.Mint, s * 0.15f, c, style = Stroke(stroke))
         drawCircle(Brush.radialGradient(listOf(Color(0xFF5FE3FF), Color(0xFF0A4A5C)), center = c, radius = s * 0.11f), s * 0.11f, c)
         drawCircle(Color.White.copy(alpha = 0.8f), s * 0.03f, Offset(c.x - s * 0.04f, c.y - s * 0.04f))
+        if (!withRoad) return@Canvas
         // road
         val roadTop = bodyTop + bodyH + s * 0.06f
         val road = Path().apply {

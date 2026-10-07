@@ -98,7 +98,7 @@ private fun JeremyRoot(pendingNav: MutableStateFlow<Pair<String?, String?>?>, sh
         LayoutDir.LTR -> LayoutDirection.Ltr
     }
     var splash by rememberSaveable { mutableStateOf(showSplash) }
-    LaunchedEffect(Unit) { if (splash) { delay(1300); splash = false } }
+    LaunchedEffect(Unit) { if (splash) { delay(2600); splash = false } }
 
     CompositionLocalProvider(LocalLayoutDirection provides dir) {
         Box(Modifier.fillMaxSize()) {

@@ -1,6 +1,26 @@
 package com.jeremy.dashcam.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.lerp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -88,19 +108,66 @@ fun BottomBar(current: String?, onSelect: (String) -> Unit) {
     }
 }
 
+/**
+ * Opening animation: the Jeremy camera drives up the road toward the viewer (road dashes and
+ * reflectors stream past), then lifts to the centre while the "Jeremy" name fades in.
+ */
 @Composable
 fun SplashScreen() {
-    Box(Modifier.fillMaxSize().background(J.Bg)) {
-        RoadBackdrop(Modifier.fillMaxSize())
+    val approach = remember { Animatable(0f) }
+    val lift = remember { Animatable(0f) }
+    val title = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        approach.animateTo(1f, tween(1500, easing = FastOutSlowInEasing))
+        launch { lift.animateTo(1f, tween(650, easing = FastOutSlowInEasing)) }
+        delay(250)
+        title.animateTo(1f, tween(550))
+    }
+    val inf = rememberInfiniteTransition(label = "drive")
+    val road by inf.animateFloat(0f, 1f, infiniteRepeatable(tween(420, easing = LinearEasing)), label = "road")
+    val bob by inf.animateFloat(-1f, 1f, infiniteRepeatable(tween(180), RepeatMode.Reverse), label = "bob")
+
+    BoxWithConstraints(Modifier.fillMaxSize().background(J.Bg)) {
+        val h = maxHeight
+        val horizon = h * 0.42f
+        val p = approach.value
+        val l = lift.value
+        RoadBackdrop(Modifier.fillMaxSize(), phase = road)
+
+        val camSize = 150.dp * (0.18f + 0.82f * p)
+        val onRoadY = lerp(horizon, h * 0.70f, p)          // centre of camera while driving
+        val centreY = lerp(onRoadY, h * 0.34f, l)            // then lifts to the middle
+        val shake = 2.5.dp * bob * (1f - l) * p
+
+        // shadow on the asphalt
+        Box(
+            Modifier.align(Alignment.TopCenter)
+                .offset(y = onRoadY + camSize * 0.32f)
+                .size(camSize * 0.9f, camSize * 0.16f)
+                .graphicsLayer { alpha = 0.55f * (1f - l) }
+                .background(Brush.radialGradient(listOf(Color.Black, Color.Transparent)), CircleShape),
+        )
+        // headlight glow on the road ahead of the camera
+        Box(
+            Modifier.align(Alignment.TopCenter)
+                .offset(y = onRoadY)
+                .size(camSize * 1.6f, camSize * 1.1f)
+                .graphicsLayer { alpha = 0.6f * p * (1f - l) }
+                .background(Brush.radialGradient(listOf(J.Mint.copy(alpha = 0.35f), Color.Transparent)), CircleShape),
+        )
+        JeremyMark(
+            camSize,
+            Modifier.align(Alignment.TopCenter).offset(y = centreY - camSize / 2 + shake),
+            withRoad = false,
+        )
+
         Column(
-            Modifier.fillMaxSize().padding(bottom = 120.dp),
+            Modifier.align(Alignment.TopCenter).offset(y = h * 0.34f + 95.dp + 20.dp * (1f - title.value))
+                .graphicsLayer { alpha = title.value },
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
         ) {
-            JeremyMark(130.dp)
-            Spacer(Modifier.height(18.dp))
             Text("Jeremy", color = J.Text, fontSize = 52.sp, fontWeight = FontWeight.ExtraBold)
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
             Text(stringResource(R.string.tagline), color = J.TextDim, fontSize = 18.sp, textAlign = TextAlign.Center, lineHeight = 24.sp)
         }
     }
