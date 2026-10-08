@@ -137,4 +137,12 @@
     <string name="volume_keys">שליטה בכפתורי עוצמה</string>
     <string name="volume_keys_desc">כשמסך Jeremy פתוח: למעלה — התחל / שמור אירוע • למטה — סיים בלי לשמור • לחיצה ארוכה — עוצמה רגילה</string>
     <string name="overlay_missing">הכפתור הצף כבוי: חסרה הרשאת \"הצגה מעל אפליקציות אחרות\"</string>
+    <string name="trigger_harsh">בלימה / סטייה חדה</string>
+    <string name="live_sensors">מצב החיישנים בזמן אמת</string>
+    <string name="live_off">הפעל נסיעה כדי לראות את החיישנים פועלים</string>
+    <string name="live_force">כוח אופקי</string>
+    <string name="live_peak">שיא</string>
+    <string name="live_vision">תנועה חריגה בתמונה</string>
+    <string name="live_impact_thr" formatted="true">סף מכה %1$.1fG • סף בלימה %2$.2fG</string>
+    <string name="detect_note">מכה ובלימה חדה נמדדות בכוח האופקי בלבד, כך שבורות ופסי האטה לא מפעילים אירוע. זיהוי בתמונה מופעל רק כשהחיישנים מאשרים תנועה, או כשהשינוי חזק מאוד.</string>
 </resources>

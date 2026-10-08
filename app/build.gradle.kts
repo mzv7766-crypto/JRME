@@ -12,8 +12,8 @@ android {
         applicationId = "com.jeremy.dashcam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 29
-        versionName = "1.0"
+        versionCode = 30
+        versionName = "1.1"
     }
 
     buildTypes {
@@ -71,4 +71,6 @@ dependencies {
     implementation("androidx.media3:media3-common:$media3")
     implementation("androidx.media3:media3-exoplayer:$media3")
     implementation("androidx.media3:media3-ui:$media3")
+
+    testImplementation("junit:junit:4.13.2")
 }

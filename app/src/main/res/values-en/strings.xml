@@ -136,4 +136,12 @@
     <string name="volume_keys">Volume button control</string>
     <string name="volume_keys_desc">While Jeremy is open: Up — start / save event • Down — end without saving • Hold — normal volume</string>
     <string name="overlay_missing">Floating button is off: \"Display over other apps\" is not allowed</string>
+    <string name="trigger_harsh">Harsh braking / swerve</string>
+    <string name="live_sensors">Live sensor readings</string>
+    <string name="live_off">Start a drive to see the sensors live</string>
+    <string name="live_force">Horizontal force</string>
+    <string name="live_peak">Peak</string>
+    <string name="live_vision">Unusual motion in image</string>
+    <string name="live_impact_thr" formatted="true">Impact threshold %1$.1fG • Braking threshold %2$.2fG</string>
+    <string name="detect_note">Impacts and harsh braking use horizontal force only, so potholes and speed bumps don\'t trigger. Image detection fires only when the motion sensors confirm it, or when the change is very strong.</string>
 </resources>

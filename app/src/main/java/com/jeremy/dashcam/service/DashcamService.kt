@@ -40,6 +40,10 @@ import androidx.lifecycle.lifecycleScope
 import com.jeremy.dashcam.R
 import com.jeremy.dashcam.core.DashcamController
 import com.jeremy.dashcam.core.DashcamState
+import com.jeremy.dashcam.core.DetectionMetrics
+import com.jeremy.dashcam.core.detect.ImpactAlgorithm
+import com.jeremy.dashcam.core.detect.VisionAlgorithm
+import android.os.SystemClock
 import com.jeremy.dashcam.core.DrivePhase
 import com.jeremy.dashcam.core.EventExporter
 import com.jeremy.dashcam.core.MotionAnalyzer
@@ -139,8 +143,8 @@ class DashcamService : LifecycleService() {
         SettingsStore.init(this)
         EventRepository.init(this)
         exporter = EventExporter(this)
-        shock = ShockDetector(this) { main.post { onAutoTrigger(Trigger.SHOCK) } }
-        motion = MotionAnalyzer { main.post { onAutoTrigger(Trigger.MOTION) } }
+        shock = ShockDetector(this) { d -> main.post { onImpact(d) } }
+        motion = MotionAnalyzer { f -> main.post { onVision(f) } }
         voice = VoiceCommander(
             this,
             onStart = { if (!state.value.eventActive) startEvent(Trigger.VOICE) },
@@ -267,6 +271,7 @@ class DashcamService : LifecycleService() {
         driveJobs.forEach { it.cancel() }; driveJobs.clear()
         main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable)
         shock.stop(); motion.enabled = false; voice.stop()
+        main.removeCallbacks(metricsTick); DashcamController.metrics.value = null
         floating.hide()
         orientationListener?.disable(); orientationListener = null
         ProcessLifecycleOwner.get().lifecycle.removeObserver(processObserver)
@@ -471,17 +476,49 @@ class DashcamService : LifecycleService() {
         if (state.value.eventActive) stopEvent() else startEvent(trigger)
     }
 
-    private fun onAutoTrigger(trigger: Trigger) {
-        if (!running || state.value.eventActive) return
-        val s = settings
-        if (trigger == Trigger.SHOCK && !s.shockDetection) return
-        if (trigger == Trigger.MOTION && !s.smartDetection) return
-        startEvent(trigger)
+    /**
+     * Sensor fusion.
+     *  - A real impact from the motion sensors triggers immediately.
+     *  - Harsh braking / swerve (sustained horizontal force) triggers its own event type.
+     *  - Vision anomalies need confirmation: either the vision signal is very strong, or the motion
+     *    sensors felt a noticeable horizontal force (≥ 0.35 g) within ±1.5 s. This removes most false
+     *    alarms from passing traffic, shadows and wipers while still catching near-misses.
+     */
+    private fun onImpact(d: ImpactAlgorithm.Detection) {
+        if (!running || state.value.eventActive || !settings.shockDetection) return
+        val trigger = if (d.type == ImpactAlgorithm.Type.IMPACT) Trigger.SHOCK else Trigger.HARSH
+        startEvent(trigger, d.peakG)
     }
 
-    private fun startEvent(trigger: Trigger) {
+    private fun onVision(f: VisionAlgorithm.Frame) {
+        if (!running || state.value.eventActive || !settings.smartDetection) return
+        val now = SystemClock.elapsedRealtime()
+        if (f.candidate) lastVisionCandidateAt = now
+        if (!f.triggered) return
+        val confirmedBySensors = settings.shockDetection && shock.algorithm.hadBumpNear(now, 1500)
+        val sensorsUnavailable = !settings.shockDetection
+        if (f.strong || confirmedBySensors || sensorsUnavailable) startEvent(Trigger.MOTION, if (confirmedBySensors) shock.algorithm.lastBumpG else null)
+    }
+
+    private var lastVisionCandidateAt = Long.MIN_VALUE
+
+    private fun publishMetrics() {
+        if (!running) return
+        val a = shock.algorithm; val v = motion.algorithm
+        DashcamController.metrics.value = DetectionMetrics(
+            horizontalG = a.horizontalG, peakG = a.peakG,
+            impactThresholdG = a.impactThresholdG, harshThresholdG = a.harshThresholdG,
+            visionScore = v.lastScore, visionThreshold = v.scoreThreshold,
+            sensorsOn = settings.shockDetection, visionOn = settings.smartDetection,
+        )
+        main.postDelayed(metricsTick, 250)
+    }
+
+    private val metricsTick = Runnable { publishMetrics() }
+
+    private fun startEvent(trigger: Trigger, peakG: Float? = null) {
         if (!running || state.value.phase != DrivePhase.RUNNING || state.value.eventActive) return
-        state.update { it.copy(eventActive = true, eventStartTime = System.currentTimeMillis(), eventTrigger = trigger) }
+        state.update { it.copy(eventActive = true, eventStartTime = System.currentTimeMillis(), eventTrigger = trigger, eventPeakG = peakG) }
         if (settings.voiceFeedback) voice.speak(getString(R.string.tts_started))
     }
 
@@ -512,6 +549,7 @@ class DashcamService : LifecycleService() {
         val stopTime = System.currentTimeMillis()
         val eventStart = s.eventStartTime
         val trigger = s.eventTrigger ?: Trigger.MANUAL
+        val peakG = s.eventPeakG
         val preMs = settings.preEventSeconds * 1000L
         val showDateTime = settings.showDateTime
         state.update { it.copy(eventActive = false, eventTrigger = null, savingCount = it.savingCount + 1) }
@@ -535,7 +573,7 @@ class DashcamService : LifecycleService() {
                         EventRecord(
                             id = UUID.randomUUID().toString(), filePath = it.file.absolutePath, name = null,
                             videoStartTime = it.videoStartWall, triggerTime = eventStart, durationMs = it.durationMs,
-                            trigger = trigger, locked = false, sizeBytes = it.sizeBytes,
+                            trigger = trigger, locked = false, sizeBytes = it.sizeBytes, peakG = peakG,
                         )
                     }
                     onExportFinished(record, out)
@@ -573,6 +611,7 @@ class DashcamService : LifecycleService() {
     private fun applySettings(s: AppSettings) {
         if (!running) return
         if (s.shockDetection) shock.start(s.shockSensitivity) else shock.stop()
+        main.removeCallbacks(metricsTick); main.post(metricsTick)
         motion.sensitivity = s.smartSensitivity
         motion.enabled = s.smartDetection
         if (s.voiceFeedback || s.voiceCommands) voice.initTts()

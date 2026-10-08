@@ -3,67 +3,68 @@ package com.jeremy.dashcam.core
 import android.os.SystemClock
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
+import com.jeremy.dashcam.core.detect.VisionAlgorithm
 import com.jeremy.dashcam.data.Sensitivity
-import kotlin.math.abs
 
 /**
- * Local "smart" detector (no server): measures how much the scene changes between frames on a
- * coarse luminance grid and fires when the change suddenly spikes far above the recent baseline
- * (e.g. a sudden swerve, hard braking with a vehicle cutting in, a collision).
- * Designed so a semantic on-device / cloud AI model can later replace [score] → [onDetected].
+ * CameraX analyzer: samples a 40×30 luminance grid (~7 fps) and runs [VisionAlgorithm].
+ * Reports candidates to [onFrame] so the service can fuse them with the motion sensors.
  */
-class MotionAnalyzer(private val onDetected: () -> Unit) : ImageAnalysis.Analyzer {
+class MotionAnalyzer(private val onFrame: (VisionAlgorithm.Frame) -> Unit) : ImageAnalysis.Analyzer {
     @Volatile var enabled = false
     @Volatile var sensitivity: Sensitivity = Sensitivity.MEDIUM
 
-    private val gw = 32; private val gh = 24
-    private var prev: IntArray? = null
-    private var baseline = -1f
+    val algorithm = VisionAlgorithm()
     private var lastFrameAt = 0L
-    private var lastTrigger = 0L
-    private var warmup = 0
 
     override fun analyze(image: ImageProxy) {
         try {
             val now = SystemClock.elapsedRealtime()
-            if (!enabled || now - lastFrameAt < 150) return // ~6 fps is enough
+            if (!enabled || now - lastFrameAt < 140) return
             lastFrameAt = now
-            val grid = sample(image)
-            val p = prev
-            prev = grid
-            if (p == null) return
-            var diff = 0L
-            for (i in grid.indices) diff += abs(grid[i] - p[i])
-            val score = diff.toFloat() / grid.size // 0..255
-            if (baseline < 0) { baseline = score; return }
-            val factor = when (sensitivity) { Sensitivity.HIGH -> 2.6f; Sensitivity.MEDIUM -> 3.4f; Sensitivity.LOW -> 4.5f }
-            val minAbs = when (sensitivity) { Sensitivity.HIGH -> 18f; Sensitivity.MEDIUM -> 26f; Sensitivity.LOW -> 36f }
-            if (warmup < 20) { warmup++; baseline = baseline * 0.8f + score * 0.2f; return }
-            if (score > baseline * factor && score > minAbs && now - lastTrigger > 15_000) {
-                lastTrigger = now
-                onDetected()
+            algorithm.sensitivity = when (sensitivity) {
+                Sensitivity.LOW -> VisionAlgorithm.Level.LOW
+                Sensitivity.MEDIUM -> VisionAlgorithm.Level.MEDIUM
+                Sensitivity.HIGH -> VisionAlgorithm.Level.HIGH
             }
-            baseline = baseline * 0.95f + score * 0.05f
+            val f = algorithm.process(sample(image), now)
+            if (f.candidate || f.triggered) onFrame(f)
+        } catch (_: Exception) {
+            // never let analysis break the camera pipeline
         } finally {
             image.close()
         }
     }
 
-    fun reset() { prev = null; baseline = -1f; warmup = 0 }
+    fun reset() = algorithm.reset()
 
+    /** Box-averaged luminance (each grid cell averages a 3×3 sample patch → much less sensor noise). */
     private fun sample(image: ImageProxy): IntArray {
+        val gw = algorithm.gw; val gh = algorithm.gh
         val plane = image.planes[0]
         val buf = plane.buffer
         val rs = plane.rowStride; val ps = plane.pixelStride
         val w = image.width; val h = image.height
+        val rotated = image.imageInfo.rotationDegrees % 180 != 0
         val out = IntArray(gw * gh)
-        for (gy in 0 until gh) {
-            val y = (gy * h / gh) + h / (2 * gh)
-            for (gx in 0 until gw) {
-                val x = (gx * w / gw) + w / (2 * gw)
-                val idx = y * rs + x * ps
-                out[gy * gw + gx] = if (idx < buf.limit()) buf.get(idx).toInt() and 0xFF else 0
+        val cellW = w / (if (rotated) gh else gw); val cellH = h / (if (rotated) gw else gh)
+        for (gy in 0 until gh) for (gx in 0 until gw) {
+            // map the upright grid cell back to sensor coordinates
+            val (sx, sy) = when (image.imageInfo.rotationDegrees) {
+                90 -> gy to (gw - 1 - gx)
+                180 -> (gw - 1 - gx) to (gh - 1 - gy)
+                270 -> (gh - 1 - gy) to gx
+                else -> gx to gy
             }
+            val cx = sx * cellW + cellW / 2; val cy = sy * cellH + cellH / 2
+            var s = 0; var n = 0
+            for (oy in -1..1) for (ox in -1..1) {
+                val x = (cx + ox * (cellW / 4)).coerceIn(0, w - 1)
+                val y = (cy + oy * (cellH / 4)).coerceIn(0, h - 1)
+                val idx = y * rs + x * ps
+                if (idx < buf.limit()) { s += buf.get(idx).toInt() and 0xFF; n++ }
+            }
+            out[gy * gw + gx] = if (n > 0) s / n else 0
         }
         return out
     }

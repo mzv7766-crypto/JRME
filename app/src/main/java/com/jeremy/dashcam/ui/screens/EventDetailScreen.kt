@@ -96,7 +96,7 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
         }
         if (info) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp)) {
-                InfoLine(stringResource(R.string.reason), stringResource(e.trigger.labelRes))
+                InfoLine(stringResource(R.string.reason), stringResource(e.trigger.labelRes) + (e.peakG?.let { " • %.1fG".format(it) } ?: ""))
                 InfoLine(stringResource(R.string.duration), Notifications.formatDuration(e.durationMs))
                 InfoLine(stringResource(R.string.size), "%.1f MB".format(e.sizeBytes / 1_048_576.0))
                 InfoLine("⏱", formatDateTime(e.triggerTime))

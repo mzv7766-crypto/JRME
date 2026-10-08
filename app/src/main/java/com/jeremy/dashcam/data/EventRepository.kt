@@ -21,6 +21,7 @@ enum class Trigger(val labelRes: Int) {
     VOICE(R.string.trigger_voice),
     VOLUME(R.string.trigger_volume),
     SHOCK(R.string.trigger_shock),
+    HARSH(R.string.trigger_harsh),
     MOTION(R.string.trigger_motion),
 }
 
@@ -36,6 +37,8 @@ data class EventRecord(
     val trigger: Trigger,
     val locked: Boolean,
     val sizeBytes: Long,
+    /** Peak force in g for sensor-triggered events. */
+    val peakG: Float? = null,
 ) {
     val file: File get() = File(filePath)
 }
@@ -151,6 +154,7 @@ object EventRepository {
                 trigger = runCatching { Trigger.valueOf(o.getString("reason")) }.getOrDefault(Trigger.MANUAL),
                 locked = o.optBoolean("locked"),
                 sizeBytes = o.optLong("size"),
+                peakG = if (o.has("peakG")) o.getDouble("peakG").toFloat() else null,
             )
         }
     }.getOrElse { Log.e(TAG, "index read failed", it); emptyList() }
@@ -163,6 +167,7 @@ object EventRepository {
                 put("videoStart", r.videoStartTime); put("trigger", r.triggerTime)
                 put("duration", r.durationMs); put("reason", r.trigger.name)
                 put("locked", r.locked); put("size", r.sizeBytes)
+                r.peakG?.let { put("peakG", it.toDouble()) }
             })
         }
         val tmp = File(indexFile.parentFile, "events.json.tmp")

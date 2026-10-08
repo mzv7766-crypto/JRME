@@ -20,6 +20,7 @@ data class DashcamState(
     val eventActive: Boolean = false,
     val eventStartTime: Long = 0L,
     val eventTrigger: Trigger? = null,
+    val eventPeakG: Float? = null,
     val savingCount: Int = 0,
     val lensFacing: Int = CameraSelector.LENS_FACING_BACK,
     val audioActive: Boolean = false,
@@ -41,6 +42,9 @@ object DashcamController {
 
     /** Set by the camera screen while visible; null when not visible. Observed by the service. */
     val previewSurface = MutableStateFlow<Preview.SurfaceProvider?>(null)
+
+    /** Live detector readings for the settings screen (null when drive mode is off). */
+    val metrics = MutableStateFlow<DetectionMetrics?>(null)
 
     /** Emits an event id when an event has been saved (UI may navigate to it). */
     val lastSavedEventId = MutableStateFlow<String?>(null)
@@ -69,3 +73,14 @@ object DashcamController {
         DashcamService.instance?.switchCamera()
     }
 }
+
+data class DetectionMetrics(
+    val horizontalG: Float,
+    val peakG: Float,
+    val impactThresholdG: Float,
+    val harshThresholdG: Float,
+    val visionScore: Float,
+    val visionThreshold: Float,
+    val sensorsOn: Boolean,
+    val visionOn: Boolean,
+)

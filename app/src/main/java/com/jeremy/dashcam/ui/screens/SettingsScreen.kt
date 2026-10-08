@@ -2,6 +2,10 @@ package com.jeremy.dashcam.ui.screens
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
+import com.jeremy.dashcam.core.DashcamController
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -97,6 +101,9 @@ fun SettingsScreen() {
                     choice = Choice(ctx.getString(R.string.smart_sens), Sensitivity.entries, sensLabel, s.smartSensitivity) { v -> SettingsStore.update { it.copy(smartSensitivity = v) } }
                 }
             }
+
+            Text(stringResource(R.string.detect_note), color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+            LiveSensorsCard()
 
             Section(stringResource(R.string.sec_voice)) {
                 Toggle(stringResource(R.string.voice_cmds), s.voiceCommands) { v -> SettingsStore.update { it.copy(voiceCommands = v) } }
@@ -222,4 +229,47 @@ private fun ChoiceDialog(c: Choice<Any?>, onDismiss: () -> Unit) {
         },
         confirmButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
+}
+
+@Composable
+private fun LiveSensorsCard() {
+    val m by DashcamController.metrics.collectAsStateWithLifecycle()
+    Spacer(Modifier.height(6.dp))
+    JCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(stringResource(R.string.live_sensors), color = J.Text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            val x = m
+            if (x == null) {
+                Text(stringResource(R.string.live_off), color = J.TextDim, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+            } else {
+                Spacer(Modifier.height(10.dp))
+                Meter(stringResource(R.string.live_force), "%.2fG".format(x.horizontalG), x.horizontalG / x.impactThresholdG, x.harshThresholdG / x.impactThresholdG, x.sensorsOn)
+                Text(
+                    stringResource(R.string.live_peak) + ": %.2fG".format(x.peakG), color = J.TextDim, fontSize = 12.sp,
+                )
+                Spacer(Modifier.height(10.dp))
+                Meter(stringResource(R.string.live_vision), "%d%%".format((x.visionScore * 100).toInt()), x.visionScore / (x.visionThreshold * 2), 0.5f, x.visionOn)
+                Spacer(Modifier.height(8.dp))
+                Text(stringResource(R.string.live_impact_thr, x.impactThresholdG, x.harshThresholdG), color = J.TextDim, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+/** Horizontal bar; [marker] is a 0..1 tick (e.g. the braking threshold), full bar = trigger threshold. */
+@Composable
+private fun Meter(label: String, value: String, fraction: Float, marker: Float, enabled: Boolean) {
+    val f = fraction.coerceIn(0f, 1f)
+    val color = when { !enabled -> J.TextDim; f >= 1f -> J.Red; f >= marker -> J.Amber; else -> J.Green }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, color = J.Text, fontSize = 13.sp, modifier = Modifier.weight(1f))
+        Text(value, color = color, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+    Spacer(Modifier.height(4.dp))
+    Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(J.Surface)) {
+        Box(Modifier.fillMaxWidth(f).height(10.dp).clip(RoundedCornerShape(5.dp)).background(color))
+        Box(Modifier.fillMaxWidth(marker.coerceIn(0f, 1f)).height(10.dp)) {
+            Box(Modifier.align(Alignment.CenterEnd).width(2.dp).height(10.dp).background(J.Text.copy(alpha = 0.6f)))
+        }
+    }
 }

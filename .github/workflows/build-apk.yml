@@ -21,11 +21,11 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           chmod +x gradlew
           set -o pipefail
-          ./gradlew assembleDebug bundleRelease --no-daemon 2>&1 | tee build.log
+          ./gradlew testDebugUnitTest assembleDebug bundleRelease --no-daemon 2>&1 | tee build.log
       - name: Report compile errors as annotations
         if: failure()
         run: |
-          grep -E "^e: |^w: .*error|error:|What went wrong|AAPT|Execution failed|Could not resolve|Unresolved|^  - " build.log | grep -v "^> Task" | sed 's#file:///home/runner/work/JRME/JRME/##' > errs.txt || true
+          grep -E "FAILED$|AssertionError|expected:|^e: |^w: .*error|error:|What went wrong|AAPT|Execution failed|Could not resolve|Unresolved|^  - " build.log | grep -v "^> Task" | sed 's#file:///home/runner/work/JRME/JRME/##' > errs.txt || true
           split -l 8 errs.txt chunk_ || true
           for f in $(ls chunk_* 2>/dev/null | head -10); do
             msg=$(sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g' "$f")

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PanTool
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -133,7 +134,10 @@ private fun EventRow(e: EventRecord, onClick: () -> Unit) {
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(formatTime(e.triggerTime), color = J.Text, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                Text(e.name ?: stringResource(e.trigger.labelRes), color = J.Text, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    (e.name ?: stringResource(e.trigger.labelRes)) + (e.peakG?.let { " • %.1fG".format(it) } ?: ""),
+                    color = J.Text, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(Notifications.formatDuration(e.durationMs), color = J.TextDim, fontSize = 13.sp)
                     if (e.locked) {
@@ -163,6 +167,7 @@ fun Thumbnail(e: EventRecord, modifier: Modifier) {
 
 fun triggerIcon(t: Trigger): Pair<ImageVector, Color> = when (t) {
     Trigger.SHOCK -> Icons.Filled.DirectionsCar to J.Red
+    Trigger.HARSH -> Icons.Filled.Speed to J.Amber
     Trigger.MOTION -> Icons.Filled.Sensors to J.Amber
     Trigger.VOICE -> Icons.Filled.Mic to J.Mint
     Trigger.VOLUME -> Icons.Filled.VolumeUp to J.Mint
