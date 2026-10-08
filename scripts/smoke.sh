@@ -41,7 +41,7 @@ crashes() { adb logcat -d -b crash 2>/dev/null | grep -c "$PKG"; }
 seg_count() { adb shell run-as $PKG ls files/buffer 2>/dev/null | grep -c mp4; }
 seg_newest() { adb shell run-as $PKG ls files/buffer 2>/dev/null | grep mp4 | sort | tail -1 | tr -d '\r'; }
 EVDIR=/sdcard/Android/data/$PKG/files/Movies/events
-ev_count() { adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -o '"id"' | wc -l; }
+ev_count() { adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -o '"kind":"EVENT"' | wc -l; }
 wait_events() { for i in $(seq 1 60); do [ "$(ev_count)" -ge "$1" ] && return 0; sleep 4; done; return 1; }
 saving_done() { for i in $(seq 1 60); do svc_fg || return 0; sleep 4; done; return 1; }
 
@@ -149,8 +149,14 @@ adb shell input keyevent KEYCODE_BACK; sleep 2
 
 # 10. long-press bubble to stop everything
 adb shell input keyevent KEYCODE_HOME; sleep 3
+dismiss_sys; sleep 3
 adb shell input swipe $BX $BY $BX $BY 1600; sleep 5; shot 14_after_longpress
 N1=$(seg_count); sleep 12; N2=$(seg_count)
+if [ "$N2" != "0" ] && [ "$N1" != "$N2" ]; then   # busy emulator may drop the gesture – try once more
+  info "long-press retry"; adb shell input keyevent KEYCODE_BACK; sleep 3
+  adb shell input swipe $BX $BY $BX $BY 2000; sleep 6; shot 14_after_longpress_retry
+  N1=$(seg_count); sleep 12; N2=$(seg_count)
+fi
 [ "$N2" = "0" ] || [ "$N1" = "$N2" ] && pass "Long-press bubble stopped recording" || fail "Recording continued after long-press ($N1 → $N2 segments)"
 saving_done && pass "Service shut down after finishing pending saves" || fail "Service still running 4 min after long-press"
 

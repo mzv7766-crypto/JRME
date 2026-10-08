@@ -125,11 +125,19 @@ class DashcamService : LifecycleService() {
     private var exportBusy = false
     private var pendingTripJobs = 0
 
+    private var runningJob: ExportJob? = null
+
     private fun enqueueExport(job: ExportJob) {
-        if (job.isEvent) {
-            val idx = exportQueue.indexOfFirst { !it.isEvent }
-            if (idx < 0) exportQueue.addLast(job) else exportQueue.add(idx, job)
-        } else exportQueue.addLast(job)
+        val eventsQueued = exportQueue.count { it.isEvent }
+        if (job.isEvent) exportQueue.add(eventsQueued, job) else exportQueue.addLast(job)
+        // An event must never wait behind a long trip-clip transcode: pause the trip clip and redo it after.
+        val running = runningJob
+        if (job.isEvent && running != null && !running.isEvent && exporter.cancel()) {
+            Log.i(LOG, "trip export paused for an event")
+            exportQueue.add(eventsQueued + 1, running)
+            runningJob = null
+            exportBusy = false
+        }
         pumpExports()
     }
 
@@ -137,7 +145,13 @@ class DashcamService : LifecycleService() {
         if (exportBusy) return
         val job = exportQueue.removeFirstOrNull() ?: return
         exportBusy = true
-        job.run { main.post { exportBusy = false; pumpExports(); maybeFinish() } }
+        runningJob = job
+        job.run {
+            main.post {
+                if (runningJob === job) { runningJob = null; exportBusy = false }
+                pumpExports(); maybeFinish()
+            }
+        }
     }
 
     private fun idle() = state.value.savingCount == 0 && pendingTripJobs == 0 && !exportBusy && exportQueue.isEmpty()

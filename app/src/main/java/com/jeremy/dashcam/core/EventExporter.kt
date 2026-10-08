@@ -44,6 +44,19 @@ import java.util.Locale
 @OptIn(UnstableApi::class)
 class EventExporter(private val context: Context) {
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
+    private var gen = 0
+    private var active: Transformer? = null
+
+    /**
+     * Cancels the running transcode (levels 0/1) so a more urgent export can start right away.
+     * Returns false when nothing cancellable is running. The cancelled export never calls back.
+     */
+    fun cancel(): Boolean {
+        val t = active ?: return false
+        gen++; active = null
+        runCatching { t.cancel() }
+        return true
+    }
 
     data class Piece(val file: File, val clipStartMs: Long, val durationMs: Long, val wallStartMs: Long)
 
@@ -58,7 +71,8 @@ class EventExporter(private val context: Context) {
     ) {
         require(pieces.isNotEmpty())
         output.parentFile?.mkdirs()
-        tryLevel(if (burn) 0 else 2, pieces, output, showDateTime, onDone)
+        val myGen = ++gen
+        tryLevel(if (burn) 0 else 2, pieces, output, showDateTime) { r -> if (myGen == gen) onDone(r) }
     }
 
     /**
@@ -71,6 +85,7 @@ class EventExporter(private val context: Context) {
         val total = pieces.sumOf { (it.durationMs - it.clipStartMs).coerceAtLeast(0) }
         val videoStart = pieces.first().wallStartMs + pieces.first().clipStartMs
         if (level >= 2) {
+            active = null
             Log.w(TAG, "export: falling back to plain join (no overlays)")
             Thread {
                 val ok = runCatching { SegmentJoiner.join(pieces, output) }.onFailure { Log.e(TAG, "plain join failed", it) }.getOrDefault(false)
@@ -81,6 +96,7 @@ class EventExporter(private val context: Context) {
         val composition = runCatching { buildComposition(pieces, showDateTime, withAudio = level == 0) }
             .getOrElse { Log.e(TAG, "composition failed", it); tryLevel(level + 1, pieces, output, showDateTime, onDone); return }
         Log.i(TAG, "export level $level, ${pieces.size} pieces")
+        var thisTransformer: Transformer? = null
         val transformer = Transformer.Builder(context)
             .setVideoMimeType(MimeTypes.VIDEO_H264)
             .setAudioMimeType(MimeTypes.AUDIO_AAC)
@@ -88,21 +104,28 @@ class EventExporter(private val context: Context) {
             .setMaxDelayBetweenMuxerSamplesMs(60_000)
             .addListener(object : Transformer.Listener {
                 override fun onCompleted(composition: Composition, exportResult: ExportResult) {
+                    if (active !== thisTransformer) return
+                    active = null
                     val dur = if (exportResult.durationMs > 0) exportResult.durationMs else total
                     Log.i(TAG, "export level $level done: ${dur}ms, ${output.length()} bytes")
                     onDone(Result(output, dur, output.length(), videoStart))
                 }
 
                 override fun onError(composition: Composition, exportResult: ExportResult, exportException: ExportException) {
+                    if (active !== thisTransformer) return
+                    active = null
                     Log.e(TAG, "export level $level failed: ${exportException.errorCodeName}", exportException)
                     output.delete()
                     tryLevel(level + 1, pieces, output, showDateTime, onDone)
                 }
             })
             .build()
+        thisTransformer = transformer
+        active = transformer
         try {
             transformer.start(composition, output.absolutePath)
         } catch (e: Exception) {
+            active = null
             Log.e(TAG, "export level $level could not start", e)
             output.delete()
             tryLevel(level + 1, pieces, output, showDateTime, onDone)
