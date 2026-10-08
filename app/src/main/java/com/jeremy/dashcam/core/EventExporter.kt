@@ -83,6 +83,8 @@ class EventExporter(private val context: Context) {
         val transformer = Transformer.Builder(context)
             .setVideoMimeType(MimeTypes.VIDEO_H264)
             .setAudioMimeType(MimeTypes.AUDIO_AAC)
+            // slow devices: allow up to 60 s between muxed samples instead of the 10 s default
+            .setMaxDelayBetweenMuxerSamplesMs(60_000)
             .addListener(object : Transformer.Listener {
                 override fun onCompleted(composition: Composition, exportResult: ExportResult) {
                     val dur = if (exportResult.durationMs > 0) exportResult.durationMs else total
