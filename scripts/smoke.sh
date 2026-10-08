@@ -25,7 +25,17 @@ if exact: print(c(exact[0]))
 elif part: print(c(part[0]))
 PY
 }
-tap_text() { local p; p=$(find_text "$1"); if [ -n "$p" ]; then adb shell input tap $p; echo "$p"; return 0; fi; return 1; }
+# dismiss system "X isn't responding" dialogs from the slow emulator (not our app)
+dismiss_sys() { dump; if grep -q "isn&apos;t responding\|isn't responding" $OUT/ui.xml; then
+    local w; w=$(python3 - <<'PY'
+import re,xml.etree.ElementTree as ET
+r=ET.parse('results/ui.xml').getroot()
+for n in r.iter('node'):
+    if (n.get('text') or '')=='Wait':
+        x1,y1,x2,y2=map(int,re.findall(r'\d+',n.get('bounds'))); print((x1+x2)//2,(y1+y2)//2); break
+PY
+); [ -n "$w" ] && adb shell input tap $w && echo "  - (dismissed a system 'not responding' dialog)" >> $SUM; sleep 2; fi; }
+tap_text() { dismiss_sys; local p; p=$(find_text "$1"); if [ -n "$p" ]; then adb shell input tap $p; echo "$p"; return 0; fi; return 1; }
 svc_fg() { adb shell dumpsys activity services $PKG | grep -q "isForeground=true"; }
 crashes() { adb logcat -d -b crash 2>/dev/null | grep -c "$PKG"; }
 seg_count() { adb shell run-as $PKG ls files/buffer 2>/dev/null | grep -c mp4; }
@@ -35,6 +45,7 @@ ev_count() { adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -o '
 wait_events() { for i in $(seq 1 60); do [ "$(ev_count)" -ge "$1" ] && return 0; sleep 4; done; return 1; }
 saving_done() { for i in $(seq 1 60); do svc_fg || return 0; sleep 4; done; return 1; }
 
+sleep 25   # let the emulator's launcher finish starting
 adb logcat -c
 adb logcat -G 16M 2>/dev/null
 read W H <<< "$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1 | tr 'x' ' ')"
@@ -143,7 +154,9 @@ info "app error lines: $(wc -l < $OUT/app_errors.txt)"
 adb shell run-as $PKG cat files/events.json > $OUT/events.json 2>/dev/null
 mkdir -p $OUT/videos; i=0
 for f in $(python3 -c "import json;[print(e['path']) for e in json.load(open('$OUT/events.json'))]" 2>/dev/null); do
-  i=$((i+1)); adb exec-out run-as $PKG cat "$f" > $OUT/videos/ev$i.mp4
+  i=$((i+1)); adb pull "$f" $OUT/videos/ev$i.mp4 >/dev/null 2>&1
+  [ -s $OUT/videos/ev$i.mp4 ] || adb exec-out run-as $PKG sh -c "cat '$f'" > $OUT/videos/ev$i.mp4
+  info "video $i file: $(stat -c %s $OUT/videos/ev$i.mp4) bytes"
   DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 $OUT/videos/ev$i.mp4)
   RES=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height,codec_name -of csv=p=0 $OUT/videos/ev$i.mp4)
   AUD=$(ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 $OUT/videos/ev$i.mp4)
