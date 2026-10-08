@@ -143,7 +143,7 @@
     <string name="live_peak">Peak</string>
     <string name="live_vision">Unusual motion in image</string>
     <string name="live_impact_thr" formatted="true">Impact threshold %1$.1fG • Braking threshold %2$.2fG</string>
-    <string name="detect_note">Impacts and harsh braking use horizontal force only, so potholes and speed bumps don\'t trigger. Image detection fires only when the motion sensors confirm it, or when the change is very strong.</string>
+    <string name="detect_note">Impacts and harsh braking use horizontal force only, so potholes and speed bumps don\'t trigger. Image detection ignores headlights, flickering lights and small changes, and only starts an event when the motion sensors also feel something unusual. An event that started by itself ends automatically after the time you set (another impact extends it).</string>
     <string name="tab_events">Events</string>
     <string name="tab_trips">Full drive</string>
     <string name="trips_empty">No drive recordings yet</string>
@@ -165,4 +165,7 @@
     <string name="g_trip">Full drive</string>
     <string name="g_trip_sub">The whole way is saved</string>
     <string name="g_trip_body">When enabled, Jeremy saves the whole drive separately from events, in clips of the length you chose (e.g. 3 minutes). Find them in Events → \"Full drive\", grouped by drive. When the space fills up, the oldest are deleted – lock a clip to keep it.</string>
+    <string name="auto_stop">Auto-end events that started by themselves</string>
+    <string name="auto_stop_after">End after</string>
+    <string name="auto_stop_in" formatted="true">Ends automatically in %d s</string>
 </resources>

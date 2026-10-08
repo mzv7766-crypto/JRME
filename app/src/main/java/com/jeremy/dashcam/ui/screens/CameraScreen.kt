@@ -204,6 +204,15 @@ private fun PreviewOverlays(s: AppSettings, now: Long, eventActive: Boolean, eve
             "Jeremy", color = Color.White.copy(alpha = 0.92f), fontSize = 22.sp, fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.BottomEnd),
         )
+        val autoAt = DashcamController.state.collectAsStateWithLifecycle().value.autoStopAt
+        if (eventActive && autoAt > 0) {
+            Text(
+                stringResource(R.string.auto_stop_in, ((autoAt - now) / 1000).coerceAtLeast(0)),
+                color = Color.White, fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.BottomStart).padding(bottom = 30.dp)
+                    .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
         if (eventActive) {
             Text(
                 "● " + stringResource(R.string.event_recording) + "  " + Notifications.formatDuration(now - eventStart),

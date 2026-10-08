@@ -99,8 +99,14 @@ fun SettingsScreen() {
                     choice = Choice(ctx.getString(R.string.shock_sens), Sensitivity.entries, sensLabel, s.shockSensitivity) { v -> SettingsStore.update { it.copy(shockSensitivity = v) } }
                 }
                 Toggle(stringResource(R.string.smart_detect), s.smartDetection) { v -> SettingsStore.update { it.copy(smartDetection = v) } }
-                Nav(stringResource(R.string.smart_sens), sensLabel(s.smartSensitivity), enabled = s.smartDetection, last = true) {
+                Nav(stringResource(R.string.smart_sens), sensLabel(s.smartSensitivity), enabled = s.smartDetection) {
                     choice = Choice(ctx.getString(R.string.smart_sens), Sensitivity.entries, sensLabel, s.smartSensitivity) { v -> SettingsStore.update { it.copy(smartSensitivity = v) } }
+                }
+                Toggle(stringResource(R.string.auto_stop), s.autoStop) { v -> SettingsStore.update { it.copy(autoStop = v) } }
+                Nav(stringResource(R.string.auto_stop_after), secFmt.format(s.autoStopSeconds), enabled = s.autoStop, last = true) {
+                    choice = Choice(ctx.getString(R.string.auto_stop_after), SettingsStore.AUTO_STOP_OPTIONS, { secFmt.format(it) }, s.autoStopSeconds) { v ->
+                        SettingsStore.update { it.copy(autoStopSeconds = v) }
+                    }
                 }
             }
 

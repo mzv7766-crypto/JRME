@@ -144,7 +144,7 @@
     <string name="live_peak">שיא</string>
     <string name="live_vision">תנועה חריגה בתמונה</string>
     <string name="live_impact_thr" formatted="true">סף מכה %1$.1fG • סף בלימה %2$.2fG</string>
-    <string name="detect_note">מכה ובלימה חדה נמדדות בכוח האופקי בלבד, כך שבורות ופסי האטה לא מפעילים אירוע. זיהוי בתמונה מופעל רק כשהחיישנים מאשרים תנועה, או כשהשינוי חזק מאוד.</string>
+    <string name="detect_note">מכה ובלימה חדה נמדדות בכוח האופקי בלבד, כך שבורות ופסי האטה לא מפעילים אירוע. זיהוי בתמונה מתעלם מפנסים, מנורות מהבהבות ושינויים קטנים, ומפעיל אירוע רק כשגם החיישנים מרגישים תנועה חריגה. אירוע שהתחיל לבד ייסגר אוטומטית אחרי הזמן שהגדרת (מכה נוספת מאריכה אותו).</string>
     <string name="tab_events">אירועים</string>
     <string name="tab_trips">נסיעה מלאה</string>
     <string name="trips_empty">עדיין אין הקלטות נסיעה</string>
@@ -166,4 +166,7 @@
     <string name="g_trip">נסיעה מלאה</string>
     <string name="g_trip_sub">כל הדרך נשמרת</string>
     <string name="g_trip_body">כשהאפשרות פעילה, Jeremy שומרת את כל הנסיעה בנפרד מהאירועים, בסרטונים לפי האורך שבחרת (למשל 3 דקות). הסרטונים נמצאים במסך האירועים בלשונית \"נסיעה מלאה\", מקובצים לפי נסיעה. כשהנפח מתמלא, הישנים נמחקים – נעל סרטון כדי לשמור אותו.</string>
+    <string name="auto_stop">סיום אוטומטי לאירוע שזוהה לבד</string>
+    <string name="auto_stop_after">סיים אחרי</string>
+    <string name="auto_stop_in" formatted="true">ייסגר אוטומטית בעוד %d שנ׳</string>
 </resources>

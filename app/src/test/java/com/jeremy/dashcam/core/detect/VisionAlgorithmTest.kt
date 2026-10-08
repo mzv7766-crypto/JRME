@@ -3,6 +3,7 @@ package com.jeremy.dashcam.core.detect
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.hypot
 import kotlin.random.Random
 
 class VisionAlgorithmTest {
@@ -10,16 +11,43 @@ class VisionAlgorithmTest {
     private val rnd = Random(7)
 
     /** Textured road scene, optionally shifted (camera shake), with brightness offset and an optional object. */
-    private fun scene(shiftX: Int = 0, shiftY: Int = 0, bright: Int = 0, obj: IntRange? = null, objRows: IntRange = 12..24): IntArray {
+    private fun scene(
+        shiftX: Int = 0, shiftY: Int = 0, bright: Int = 0, obj: IntRange? = null, objRows: IntRange = 12..24,
+        night: Boolean = false, lights: List<Triple<Double, Double, Double>> = emptyList(),
+    ): IntArray {
         val g = IntArray(gw * gh)
         for (y in 0 until gh) for (x in 0 until gw) {
             val sx = x + shiftX; val sy = y + shiftY
-            val base = 60 + ((sx * 37 + sy * 91) % 70) + if (sy < 9) 80 else 0 // sky brighter
-            var v = base + bright + rnd.nextInt(-4, 5)
+            val m = (sx * 37 + sy * 91) % 70
+            val base = if (night) 12 + m / 7 + (if (sy < 9) 8 else 0) else 60 + m + if (sy < 9) 80 else 0 // sky brighter
+            var v = base + bright + if (night) rnd.nextInt(-6, 7) else rnd.nextInt(-4, 5)
             if (obj != null && x in obj && y in objRows) v = 15 + rnd.nextInt(0, 6) // dark car
             g[y * gw + x] = v.coerceIn(0, 255)
         }
+        for ((cx, cy, r) in lights) for (y in 0 until gh) for (x in 0 until gw) {   // headlight: saturated core + bloom
+            val d = hypot(x - cx, y - cy)
+            if (d <= r) g[y * gw + x] = 255
+            else if (d <= r * 2.2) g[y * gw + x] = maxOf(g[y * gw + x], (255 - (d - r) / (r * 1.2) * 190).toInt())
+        }
         return g
+    }
+
+    private val blocks = listOf(6 to 12, 14 to 12, 22 to 12, 30 to 12, 10 to 18, 26 to 18)
+
+    /** Flickering light areas (LED lamps / signs), alternating or with random phase. */
+    private fun flicker(n: Int, night: Boolean, random: Boolean) = List(n) { i ->
+        val g = scene(night = night)
+        blocks.forEachIndexed { bi, (x, y) ->
+            val on = if (random) rnd.nextBoolean() else (i + bi) % 2 == 0
+            for (dx in 0 until 4) for (dy in 0 until 3) g[(y + dy) * gw + x + dx] = if (on) 200 else 35
+        }
+        g
+    }
+
+    /** Oncoming cars at night: two headlights growing and drifting apart, repeatedly. */
+    private fun oncoming(n: Int) = List(n) { i ->
+        val t = (i % 12) / 12.0; val r = 0.6 + 2.4 * t; val y = 13 + 6 * t
+        scene(night = true, lights = listOf(Triple(19 - 3 - 5 * t, y, r), Triple(19 + 3 + 5 * t, y, r)))
     }
 
     private fun feed(v: VisionAlgorithm, frames: List<IntArray>, startMs: Long = 0): Int {
@@ -59,6 +87,25 @@ class VisionAlgorithmTest {
         val sweep = List(8) { i -> val start = 30 - i * 4; scene(obj = start.coerceAtLeast(0)..(start + 14).coerceAtMost(gw - 1)) }
         val frames = steady(30) + sweep + steady(10)
         assertTrue(feed(VisionAlgorithm(gw, gh), frames) >= 1)
+    }
+
+    @Test fun oncomingHeadlightsAtNightDoNotTrigger() {
+        for (lvl in VisionAlgorithm.Level.entries) {
+            val v = VisionAlgorithm(gw, gh).apply { sensitivity = lvl }
+            assertEquals("level $lvl", 0, feed(v, List(30) { scene(night = true) } + oncoming(60)))
+        }
+    }
+
+    @Test fun flickeringLightsDoNotTrigger() {
+        for (lvl in listOf(VisionAlgorithm.Level.MEDIUM, VisionAlgorithm.Level.HIGH)) for (night in listOf(false, true)) for (random in listOf(false, true)) {
+            val v = VisionAlgorithm(gw, gh).apply { sensitivity = lvl }
+            assertEquals("level $lvl night=$night random=$random", 0, feed(v, List(30) { scene(night = night) } + flicker(60, night, random)))
+        }
+    }
+
+    @Test fun quietNightDoesNotTrigger() {
+        val v = VisionAlgorithm(gw, gh).apply { sensitivity = VisionAlgorithm.Level.HIGH }
+        assertEquals(0, feed(v, List(150) { scene(night = true) }))
     }
 
     @Test fun lowSensitivityIsStricter() {

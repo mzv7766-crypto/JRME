@@ -224,6 +224,10 @@ private fun ActiveHome(onShowCamera: () -> Unit) {
                         else stringResource(R.string.event_saving),
                         color = J.Text, fontWeight = FontWeight.SemiBold,
                     )
+                    if (state.eventActive && state.autoStopAt > 0) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.auto_stop_in, ((state.autoStopAt - now) / 1000).coerceAtLeast(0)), color = J.TextDim, fontSize = 12.sp)
+                    }
                 }
             }
         }

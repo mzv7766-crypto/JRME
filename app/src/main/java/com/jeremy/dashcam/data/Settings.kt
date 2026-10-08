@@ -38,6 +38,8 @@ data class AppSettings(
     val tripMaxStorageGb: Int = 16,
     val tripBurn: Boolean = true,
     val orientation: ScreenOrientation = ScreenOrientation.AUTO,
+    val autoStop: Boolean = true,
+    val autoStopSeconds: Int = 20,
 )
 
 /** Simple, synchronous settings store observable via StateFlow (shared by UI and service). */
@@ -45,6 +47,7 @@ object SettingsStore {
     val PRE_EVENT_OPTIONS = listOf(5, 10, 15, 30, 60)
     val FPS_OPTIONS = listOf(24, 30, 60)
     val STORAGE_OPTIONS = listOf(2, 4, 8, 16, 32, 64)
+    val AUTO_STOP_OPTIONS = listOf(10, 15, 20, 30, 45, 60, 90)
     val TRIP_CLIP_OPTIONS = listOf(1, 2, 3, 5, 10, 15)
     val TRIP_STORAGE_OPTIONS = listOf(4, 8, 16, 32, 64, 128)
 
@@ -85,6 +88,8 @@ object SettingsStore {
             tripMaxStorageGb = getInt("tripGb", 16),
             tripBurn = getBoolean("tripBurn", true),
             orientation = enumOr(getString("orient", null), ScreenOrientation.AUTO),
+            autoStop = getBoolean("autoStop", true),
+            autoStopSeconds = getInt("autoStopSec", 20),
         )
     }
 
@@ -116,6 +121,8 @@ object SettingsStore {
             .putInt("tripGb", s.tripMaxStorageGb)
             .putBoolean("tripBurn", s.tripBurn)
             .putString("orient", s.orientation.name)
+            .putBoolean("autoStop", s.autoStop)
+            .putInt("autoStopSec", s.autoStopSeconds)
             .apply()
     }
 

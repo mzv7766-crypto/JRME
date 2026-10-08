@@ -326,7 +326,7 @@ class DashcamService : LifecycleService() {
     private fun teardown() {
         running = false
         driveJobs.forEach { it.cancel() }; driveJobs.clear()
-        main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable)
+        main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable); main.removeCallbacks(autoStopRunnable)
         shock.stop(); motion.enabled = false; voice.stop()
         main.removeCallbacks(metricsTick); DashcamController.metrics.value = null
         floating.hide()
@@ -549,19 +549,49 @@ class DashcamService : LifecycleService() {
      *    alarms from passing traffic, shadows and wipers while still catching near-misses.
      */
     private fun onImpact(d: ImpactAlgorithm.Detection) {
-        if (!running || state.value.eventActive || !settings.shockDetection) return
+        if (!running || !settings.shockDetection) return
+        if (state.value.eventActive) { extendAutoStop(); return }   // still unusual → keep recording a bit longer
         val trigger = if (d.type == ImpactAlgorithm.Type.IMPACT) Trigger.SHOCK else Trigger.HARSH
         startEvent(trigger, d.peakG)
     }
 
+    /**
+     * Image detection is only a *hint*: it starts an event only when the motion sensors confirm that
+     * something physical happened (≥ 0.45 g within ±1.5 s). Without sensors it needs a very strong,
+     * daytime signal. Headlights, flicker and night-time noise therefore never start an event alone.
+     */
     private fun onVision(f: VisionAlgorithm.Frame) {
-        if (!running || state.value.eventActive || !settings.smartDetection) return
+        if (!running || !settings.smartDetection) return
         val now = SystemClock.elapsedRealtime()
         if (f.candidate) lastVisionCandidateAt = now
         if (!f.triggered) return
-        val confirmedBySensors = settings.shockDetection && shock.algorithm.hadBumpNear(now, 1500)
-        val sensorsUnavailable = !settings.shockDetection
-        if (f.strong || confirmedBySensors || sensorsUnavailable) startEvent(Trigger.MOTION, if (confirmedBySensors) shock.algorithm.lastBumpG else null)
+        val a = shock.algorithm
+        val confirmed = settings.shockDetection && a.hadBumpNear(now, 1500) && a.lastBumpG >= 0.45f
+        val ok = if (settings.shockDetection) confirmed else (f.strong && !f.night)
+        if (!ok) { Log.i(LOG, "vision anomaly ignored (not confirmed by sensors, night=${f.night})"); return }
+        if (state.value.eventActive) { extendAutoStop(); return }
+        startEvent(Trigger.MOTION, a.lastBumpG)
+    }
+
+    private val autoStopRunnable = Runnable {
+        val s = state.value
+        if (running && s.eventActive && s.autoStopAt > 0) {
+            if (System.currentTimeMillis() >= s.autoStopAt - 50) { Log.i(LOG, "auto event ended by timer"); stopEvent() }
+            else scheduleAutoStop(s.autoStopAt)
+        }
+    }
+
+    private fun scheduleAutoStop(at: Long) {
+        main.removeCallbacks(autoStopRunnable)
+        main.postDelayed(autoStopRunnable, (at - System.currentTimeMillis()).coerceAtLeast(0))
+    }
+
+    private fun extendAutoStop() {
+        val s = state.value
+        if (s.autoStopAt <= 0) return
+        val at = maxOf(s.autoStopAt, System.currentTimeMillis() + settings.autoStopSeconds * 1000L)
+        state.update { it.copy(autoStopAt = at) }
+        scheduleAutoStop(at)
     }
 
     private var lastVisionCandidateAt = Long.MIN_VALUE
@@ -583,7 +613,11 @@ class DashcamService : LifecycleService() {
     private fun startEvent(trigger: Trigger, peakG: Float? = null) {
         if (!running || state.value.phase != DrivePhase.RUNNING || state.value.eventActive) return
         main.removeCallbacks(rotateSegment) // keep the current segment running for the whole event
-        state.update { it.copy(eventActive = true, eventStartTime = System.currentTimeMillis(), eventTrigger = trigger, eventPeakG = peakG) }
+        val now = System.currentTimeMillis()
+        val auto = trigger == Trigger.SHOCK || trigger == Trigger.HARSH || trigger == Trigger.MOTION
+        val stopAt = if (auto && settings.autoStop) now + settings.autoStopSeconds * 1000L else 0L
+        state.update { it.copy(eventActive = true, eventStartTime = now, eventTrigger = trigger, eventPeakG = peakG, autoStopAt = stopAt) }
+        if (stopAt > 0) scheduleAutoStop(stopAt)
         Log.i(LOG, "event start trigger=$trigger")
         if (settings.voiceFeedback) voice.speak(getString(R.string.tts_started))
     }
@@ -592,7 +626,8 @@ class DashcamService : LifecycleService() {
     fun discardEvent() {
         if (Looper.myLooper() != Looper.getMainLooper()) { main.post { discardEvent() }; return }
         if (!state.value.eventActive) return
-        state.update { it.copy(eventActive = false, eventTrigger = null) }
+        main.removeCallbacks(autoStopRunnable)
+        state.update { it.copy(eventActive = false, eventTrigger = null, autoStopAt = 0L) }
         Log.i(LOG, "event discarded")
         if (activeRecording != null) { main.removeCallbacks(rotateSegment); main.postDelayed(rotateSegment, 2_000) }
         pruneBuffer()
@@ -620,7 +655,8 @@ class DashcamService : LifecycleService() {
         val peakG = s.eventPeakG
         val preMs = settings.preEventSeconds * 1000L
         val showDateTime = settings.showDateTime
-        state.update { it.copy(eventActive = false, eventTrigger = null, savingCount = it.savingCount + 1) }
+        main.removeCallbacks(autoStopRunnable)
+        state.update { it.copy(eventActive = false, eventTrigger = null, autoStopAt = 0L, savingCount = it.savingCount + 1) }
 
         val collectAndExport = {
             val from = eventStart - preMs
