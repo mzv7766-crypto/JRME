@@ -26,7 +26,7 @@ class VisionAlgorithm(val gw: Int = 40, val gh: Int = 30) {
     data class Frame(val score: Float, val candidate: Boolean, val strong: Boolean, val triggered: Boolean)
 
     private val cellThr get() = when (sensitivity) { Level.HIGH -> 20; Level.MEDIUM -> 26; Level.LOW -> 34 }
-    private val minFrac get() = when (sensitivity) { Level.HIGH -> 0.10f; Level.MEDIUM -> 0.14f; Level.LOW -> 0.20f }
+    private val minFrac get() = when (sensitivity) { Level.HIGH -> 0.08f; Level.MEDIUM -> 0.11f; Level.LOW -> 0.17f }
     private val zThr get() = when (sensitivity) { Level.HIGH -> 3.0f; Level.MEDIUM -> 4.0f; Level.LOW -> 5.0f }
     val scoreThreshold: Float get() = minFrac
 
@@ -74,6 +74,11 @@ class VisionAlgorithm(val gw: Int = 40, val gh: Int = 30) {
             }
             if (sad < best) { best = sad; bestDx = dx; bestDy = dy }
         }
+        // Repetitive textures (lane dashes, fences) can make a wrong shift look slightly better.
+        // Only accept a non-zero shift when it is clearly better than "no movement".
+        var sad0 = 0L
+        for (y in r0 until r1) for (x in c0 until c1) sad0 += abs(norm[y * gw + x] - p[y * gw + x])
+        if (best >= sad0 * 0.85) { bestDx = 0; bestDy = 0 }
         lastShiftX = bestDx; lastShiftY = bestDy
 
         // 2) residual after compensation → fraction of (weighted) ROI cells that changed a lot
@@ -97,11 +102,12 @@ class VisionAlgorithm(val gw: Int = 40, val gh: Int = 30) {
             val d = score - mu; mu += a * d; varr = (1 - a) * (varr + a * d * d)
             return Frame(score, false, false, false)
         }
-        val sd = sqrt(varr + 1e-4f)
+        val sd = maxOf(0.02f, sqrt(varr))
         val z = (score - mu) / sd
         val candidate = score >= minFrac && z >= zThr
         val strong = score >= minFrac * 1.6f && z >= zThr * 1.5f
-        if (!candidate) { val a = 0.05f; val d = score - mu; mu += a * d; varr = (1 - a) * (varr + a * d * d) }
+        // the baseline only learns from clearly normal frames, so an ongoing event can't "teach" itself away
+        if (!candidate && score < minFrac * 0.5f) { val a = 0.05f; val d = score - mu; mu += a * d; varr = (1 - a) * (varr + a * d * d) }
 
         // 4) temporal consistency: ≥ 3 of the last 5 frames
         recent[recentIdx] = candidate; recentIdx = (recentIdx + 1) % recent.size

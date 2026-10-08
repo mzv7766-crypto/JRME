@@ -39,6 +39,11 @@ class VisionAlgorithmTest {
         assertEquals(0, feed(VisionAlgorithm(gw, gh), frames))
     }
 
+    @Test fun strongerShakeIsCompensated() {
+        val frames = steady(30) + List(40) { i -> scene(shiftX = listOf(0, 2, 3, 1, -1, -3, -2, 0)[i % 8], shiftY = listOf(0, 2, 0, -2)[i % 4]) }
+        assertEquals(0, feed(VisionAlgorithm(gw, gh), frames))
+    }
+
     @Test fun tunnelLightingChangeIsIgnored() {
         val frames = steady(30) + List(20) { scene(bright = -45) } + List(20) { scene(bright = 40) }
         assertEquals(0, feed(VisionAlgorithm(gw, gh), frames))
