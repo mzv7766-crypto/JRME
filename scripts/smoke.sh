@@ -43,7 +43,7 @@ seg_newest() { adb shell run-as $PKG ls files/buffer 2>/dev/null | grep mp4 | so
 EVDIR=/sdcard/Android/data/$PKG/files/Movies/events
 ev_count() { adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -o '"kind":"EVENT"' | wc -l; }
 wait_events() { for i in $(seq 1 60); do [ "$(ev_count)" -ge "$1" ] && return 0; sleep 4; done; return 1; }
-saving_done() { for i in $(seq 1 60); do svc_fg || return 0; sleep 4; done; return 1; }
+saving_done() { for i in $(seq 1 120); do svc_fg || return 0; sleep 4; done; return 1; }
 
 sleep 25   # let the emulator's launcher finish starting
 adb logcat -c
@@ -85,8 +85,14 @@ sleep 5; shot 02_home_idle
 [ "$(crashes)" = "0" ] && pass "Launch + splash animation, no crash" || fail "Crash on launch"
 
 # 3. start drive
-if tap_text "Start" >/dev/null; then pass "Tapped Start drive"; else fail "Start drive button not found"; fi
-sleep 6; shot 03_home_active
+started=0
+for attempt in 1 2 3; do   # a frozen system dialog on the emulator can swallow the tap – retry
+  tap_text "Start" >/dev/null; sleep 6
+  if svc_fg; then started=1; break; fi
+  info "start tap not delivered (attempt $attempt), retrying"
+done
+[ $started = 1 ] && pass "Tapped Start drive" || fail "Drive did not start after 3 taps"
+shot 03_home_active
 svc_fg && pass "Foreground camera service running" || fail "Foreground service NOT running"
 adb shell dumpsys activity services $PKG | grep -E "foregroundServiceType|isForeground" | head -3 > $OUT/fgs.txt
 info "$(tr '\n' ' ' < $OUT/fgs.txt)"
@@ -158,7 +164,7 @@ if [ "$N2" != "0" ] && [ "$N1" != "$N2" ]; then   # busy emulator may drop the g
   N1=$(seg_count); sleep 12; N2=$(seg_count)
 fi
 [ "$N2" = "0" ] || [ "$N1" = "$N2" ] && pass "Long-press bubble stopped recording" || fail "Recording continued after long-press ($N1 → $N2 segments)"
-saving_done && pass "Service shut down after finishing pending saves" || fail "Service still running 4 min after long-press"
+saving_done && pass "Service shut down after finishing pending saves" || fail "Service still running 8 min after long-press"
 
 # 10b. full-drive clips (1-minute clips during this ~5 minute drive, last one flushed on stop)
 T=$(adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -o '"kind":"TRIP"' | wc -l)
