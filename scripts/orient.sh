@@ -27,7 +27,7 @@ run_case() {   # $1 name, $2 orient setting, $3 accel vector
   adb shell am force-stop $PKG
   adb shell "run-as $PKG sh -c 'rm -rf files/events.json files/buffer; mkdir -p shared_prefs && cat > shared_prefs/jeremy_settings.xml'" <<XML
 <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
-<map><boolean name="trip" value="false" /><boolean name="overlayPrompt" value="true" /><string name="orient">$2</string><boolean name="shock" value="false" /><boolean name="smart" value="false" /></map>
+<map><boolean name="trip" value="$4" /><int name="tripMin" value="1" /><boolean name="overlayPrompt" value="true" /><string name="orient">$2</string><boolean name="shock" value="false" /><boolean name="smart" value="false" /></map>
 XML
   adb emu sensor set acceleration $3 >/dev/null; sleep 2
   adb logcat -c
@@ -41,16 +41,22 @@ XML
   ffmpeg -v error -y -ss 1 -i $OUT/$1_segment.mp4 -frames:v 1 $OUT/$1_segment_frame.png
   tap_text "Camera"; sleep 3; shot "$1_2_camera"
   B=$(find_text "Save event"); adb shell input tap $B; sleep 7; adb shell input tap $B
-  for i in $(seq 1 60); do adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -q '"kind":"EVENT"' && break; sleep 4; done
-  P=$(adb shell run-as $PKG cat files/events.json | python3 -c "import sys,json;print(json.load(sys.stdin)[0]['path'])")
-  adb exec-out run-as $PKG cat "$P" > $OUT/$1_event.mp4
-  info "$1: exported event (w h rotation): $(probe $OUT/$1_event.mp4)"
-  ffmpeg -v error -y -ss 3 -i $OUT/$1_event.mp4 -frames:v 1 $OUT/$1_event_frame.png
+  for i in $(seq 1 100); do adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -q '"kind":"EVENT"' && break; sleep 4; done
+  [ "$4" = "true" ] && { sleep 60; for i in $(seq 1 60); do adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -q '"kind":"TRIP"' && break; sleep 4; done; }
+  adb shell run-as $PKG cat files/events.json > $OUT/$1_events.json
+  for kind in EVENT TRIP; do
+    P=$(python3 -c "import json;r=[e['path'] for e in json.load(open('$OUT/$1_events.json')) if e.get('kind')=='$kind'];print(r[0] if r else '')")
+    [ -z "$P" ] && { info "$1: no $kind file"; continue; }
+    adb exec-out run-as $PKG cat "$P" > $OUT/$1_$kind.mp4
+    info "$1: exported $kind (w h rotation): $(probe $OUT/$1_$kind.mp4)"
+    ffmpeg -v error -y -ss 3 -i $OUT/$1_$kind.mp4 -frames:v 1 $OUT/$1_${kind}_frame.png
+  done
+  adb logcat -d -s Jeremy:I | grep -E "export" | head -8 | sed 's/^/    /' | tee -a $SUM
   adb logcat -d -s Jeremy:I | grep -E "segment start|orientation" | head -6 | sed 's/^/    /' | tee -a $SUM
   adb shell am force-stop $PKG; rm -f $OUT/*.mp4
 }
 # emulator: accel x=+9.8 → device rotated so left edge is down (landscape)
-run_case landscape_physical_lock LANDSCAPE "9.81:0:0"
-run_case landscape_physical_auto AUTO "9.81:0:0"
-run_case portrait_physical_auto AUTO "0:9.81:0"
+run_case landscape_physical_lock LANDSCAPE "9.81:0:0" true
+run_case landscape_physical_auto AUTO "9.81:0:0" false
+run_case portrait_physical_auto AUTO "0:9.81:0" false
 echo done >> $SUM
