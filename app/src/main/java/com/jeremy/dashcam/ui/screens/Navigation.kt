@@ -113,7 +113,7 @@ fun BottomBar(current: String?, onSelect: (String) -> Unit) {
  * reflectors stream past), then lifts to the centre while the "Jeremy" name fades in.
  */
 @Composable
-fun SplashScreen() {
+fun SplashScreen(onFinished: () -> Unit = {}) {
     val approach = remember { Animatable(0f) }
     val lift = remember { Animatable(0f) }
     val title = remember { Animatable(0f) }
@@ -122,6 +122,8 @@ fun SplashScreen() {
         launch { lift.animateTo(1f, tween(650, easing = FastOutSlowInEasing)) }
         delay(250)
         title.animateTo(1f, tween(550))
+        delay(450)
+        onFinished() // end exactly when the animation is done (also on slow phones)
     }
     val inf = rememberInfiniteTransition(label = "drive")
     val road by inf.animateFloat(0f, 1f, infiniteRepeatable(tween(420, easing = LinearEasing)), label = "road")

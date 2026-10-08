@@ -43,6 +43,7 @@ import java.util.Locale
  */
 @OptIn(UnstableApi::class)
 class EventExporter(private val context: Context) {
+    private val main = android.os.Handler(android.os.Looper.getMainLooper())
 
     data class Piece(val file: File, val clipStartMs: Long, val durationMs: Long, val wallStartMs: Long)
 
@@ -55,12 +56,62 @@ class EventExporter(private val context: Context) {
         onDone: (Result?) -> Unit,
     ) {
         require(pieces.isNotEmpty())
+        output.parentFile?.mkdirs()
+        tryLevel(0, pieces, output, showDateTime, onDone)
+    }
+
+    /**
+     * Fallback chain so an event is NEVER lost:
+     *  0 – burned overlays + audio
+     *  1 – burned overlays, audio removed (some devices/emulators record audio formats the encoder can't take)
+     *  2 – plain lossless join of the segments with MediaMuxer (no overlays) – last resort
+     */
+    private fun tryLevel(level: Int, pieces: List<Piece>, output: File, showDateTime: Boolean, onDone: (Result?) -> Unit) {
+        val total = pieces.sumOf { (it.durationMs - it.clipStartMs).coerceAtLeast(0) }
+        val videoStart = pieces.first().wallStartMs + pieces.first().clipStartMs
+        if (level >= 2) {
+            Log.w(TAG, "export: falling back to plain join (no overlays)")
+            Thread {
+                val ok = runCatching { SegmentJoiner.join(pieces, output) }.onFailure { Log.e(TAG, "plain join failed", it) }.getOrDefault(false)
+                main.post { onDone(if (ok) Result(output, total, output.length(), videoStart) else null) }
+            }.start()
+            return
+        }
+        val composition = runCatching { buildComposition(pieces, showDateTime, withAudio = level == 0) }
+            .getOrElse { Log.e(TAG, "composition failed", it); tryLevel(level + 1, pieces, output, showDateTime, onDone); return }
+        Log.i(TAG, "export level $level, ${pieces.size} pieces")
+        val transformer = Transformer.Builder(context)
+            .setVideoMimeType(MimeTypes.VIDEO_H264)
+            .setAudioMimeType(MimeTypes.AUDIO_AAC)
+            .addListener(object : Transformer.Listener {
+                override fun onCompleted(composition: Composition, exportResult: ExportResult) {
+                    val dur = if (exportResult.durationMs > 0) exportResult.durationMs else total
+                    Log.i(TAG, "export level $level done: ${dur}ms, ${output.length()} bytes")
+                    onDone(Result(output, dur, output.length(), videoStart))
+                }
+
+                override fun onError(composition: Composition, exportResult: ExportResult, exportException: ExportException) {
+                    Log.e(TAG, "export level $level failed: ${exportException.errorCodeName}", exportException)
+                    output.delete()
+                    tryLevel(level + 1, pieces, output, showDateTime, onDone)
+                }
+            })
+            .build()
+        try {
+            transformer.start(composition, output.absolutePath)
+        } catch (e: Exception) {
+            Log.e(TAG, "export level $level could not start", e)
+            output.delete()
+            tryLevel(level + 1, pieces, output, showDateTime, onDone)
+        }
+    }
+
+    private fun buildComposition(pieces: List<Piece>, showDateTime: Boolean, withAudio: Boolean): Composition {
         val shortSide = probeShortSide(pieces.first().file)
         val brandPx = (shortSide * 0.055f).toInt().coerceAtLeast(24)
         val timePx = (shortSide * 0.042f).toInt().coerceAtLeast(18)
-
         // Effects are attached to EVERY clip (not the composition): this forces a real re-encode, so the
-        // overlays are burned into the pixels. Composition-level effects can be skipped by a pure remux.
+        // overlays are burned into the pixels.
         val items = pieces.map { p ->
             val media = MediaItem.Builder()
                 .setUri(Uri.fromFile(p.file))
@@ -74,36 +125,13 @@ class EventExporter(private val context: Context) {
             if (showDateTime) overlays.add(TimestampOverlay(p.wallStartMs + p.clipStartMs, timePx))
             val videoEffects = ImmutableList.of<Effect>(OverlayEffect(overlays.build()))
             EditedMediaItem.Builder(media)
+                .setRemoveAudio(!withAudio)
                 .setEffects(Effects(ImmutableList.of(), videoEffects))
                 .build()
         }
-
-        val composition = Composition.Builder(ImmutableList.of(EditedMediaItemSequence(items)))
-            .experimentalSetForceAudioTrack(true)
+        return Composition.Builder(ImmutableList.of(EditedMediaItemSequence(items)))
+            .apply { if (withAudio) experimentalSetForceAudioTrack(true) }
             .build()
-
-        output.parentFile?.mkdirs()
-        attempt(composition, output, pieces, retriesLeft = 1, onDone = onDone)
-    }
-
-    private fun attempt(composition: Composition, output: File, pieces: List<Piece>, retriesLeft: Int, onDone: (Result?) -> Unit) {
-        val transformer = Transformer.Builder(context)
-            .setVideoMimeType(MimeTypes.VIDEO_H264)
-            .setAudioMimeType(MimeTypes.AUDIO_AAC)
-            .addListener(object : Transformer.Listener {
-                override fun onCompleted(composition: Composition, exportResult: ExportResult) {
-                    val dur = if (exportResult.durationMs > 0) exportResult.durationMs else pieces.sumOf { it.durationMs }
-                    onDone(Result(output, dur, output.length(), pieces.first().wallStartMs + pieces.first().clipStartMs))
-                }
-
-                override fun onError(composition: Composition, exportResult: ExportResult, exportException: ExportException) {
-                    Log.e(TAG, "export failed (retries left $retriesLeft)", exportException)
-                    output.delete()
-                    if (retriesLeft > 0) attempt(composition, output, pieces, retriesLeft - 1, onDone) else onDone(null)
-                }
-            })
-            .build()
-        transformer.start(composition, output.absolutePath)
     }
 
     private fun brandOverlay(px: Int): TextOverlay {
@@ -154,7 +182,7 @@ class EventExporter(private val context: Context) {
     }
 
     companion object {
-        private const val TAG = "EventExporter"
+        private const val TAG = "Jeremy"
         private fun SpannableString.span(what: Any) = setSpan(what, 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 }

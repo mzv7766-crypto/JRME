@@ -98,12 +98,12 @@ private fun JeremyRoot(pendingNav: MutableStateFlow<Pair<String?, String?>?>, sh
         LayoutDir.LTR -> LayoutDirection.Ltr
     }
     var splash by rememberSaveable { mutableStateOf(showSplash) }
-    LaunchedEffect(Unit) { if (splash) { delay(2600); splash = false } }
+    LaunchedEffect(Unit) { if (splash) { delay(8000); splash = false } } // safety net only
 
     CompositionLocalProvider(LocalLayoutDirection provides dir) {
         Box(Modifier.fillMaxSize()) {
             FullScreenBackground { AppScaffold(pendingNav) }
-            AnimatedVisibility(visible = splash, exit = fadeOut()) { SplashScreen() }
+            AnimatedVisibility(visible = splash, exit = fadeOut()) { SplashScreen(onFinished = { splash = false }) }
         }
     }
 }

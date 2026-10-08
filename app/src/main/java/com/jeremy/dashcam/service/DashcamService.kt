@@ -81,7 +81,8 @@ class DashcamService : LifecycleService() {
         const val ACTION_TOGGLE_EVENT = "com.jeremy.dashcam.TOGGLE_EVENT"
         const val ACTION_DISCARD_EVENT = "com.jeremy.dashcam.DISCARD_EVENT"
         private const val TAG = "DashcamService"
-        private const val SEGMENT_MS = 5_000L
+        private const val SEGMENT_MS = 10_000L
+        private const val LOG = "Jeremy"
 
         @Volatile
         var instance: DashcamService? = null
@@ -113,6 +114,7 @@ class DashcamService : LifecycleService() {
     private var activeStartWall = 0L
     private val finalizeCallbacks = ArrayList<() -> Unit>()
     private var consecutiveFailures = 0
+    private var lastSegmentEndWall = 0L
     private val rotateSegment = Runnable { activeRecording?.stop() }
     private val startSegmentRunnable = Runnable { startSegment() }
 
@@ -400,7 +402,8 @@ class DashcamService : LifecycleService() {
             if (settings.recordAudio && hasAudioPermission()) pending = pending.withAudioEnabled()
             activeStartWall = System.currentTimeMillis()
             activeRecording = pending.start(ContextCompat.getMainExecutor(this)) { ev -> onRecordEvent(file, ev) }
-            main.postDelayed(rotateSegment, SEGMENT_MS)
+            // While an event is running the segment is NOT rotated, so the event itself is one gap-free recording.
+            if (!state.value.eventActive) main.postDelayed(rotateSegment, SEGMENT_MS)
         } catch (e: Exception) {
             Log.e(TAG, "start segment failed", e)
             activeRecording = null
@@ -422,6 +425,9 @@ class DashcamService : LifecycleService() {
                     VideoRecordEvent.Finalize.ERROR_RECORDER_ERROR,
                 )
                 if (!fatal && file.exists() && file.length() > 1024 && durMs > 300) {
+                    val gap = if (lastSegmentEndWall > 0) activeStartWall - lastSegmentEndWall else 0
+                    Log.i(LOG, "segment ${file.name} dur=${durMs}ms gapBefore=${gap}ms")
+                    lastSegmentEndWall = activeStartWall + durMs
                     segments += Segment(file, activeStartWall, durMs)
                     consecutiveFailures = 0
                 } else {
@@ -518,7 +524,9 @@ class DashcamService : LifecycleService() {
 
     private fun startEvent(trigger: Trigger, peakG: Float? = null) {
         if (!running || state.value.phase != DrivePhase.RUNNING || state.value.eventActive) return
+        main.removeCallbacks(rotateSegment) // keep the current segment running for the whole event
         state.update { it.copy(eventActive = true, eventStartTime = System.currentTimeMillis(), eventTrigger = trigger, eventPeakG = peakG) }
+        Log.i(LOG, "event start trigger=$trigger")
         if (settings.voiceFeedback) voice.speak(getString(R.string.tts_started))
     }
 
@@ -527,6 +535,8 @@ class DashcamService : LifecycleService() {
         if (Looper.myLooper() != Looper.getMainLooper()) { main.post { discardEvent() }; return }
         if (!state.value.eventActive) return
         state.update { it.copy(eventActive = false, eventTrigger = null) }
+        Log.i(LOG, "event discarded")
+        if (activeRecording != null) { main.removeCallbacks(rotateSegment); main.postDelayed(rotateSegment, 2_000) }
         pruneBuffer()
         if (settings.voiceFeedback) voice.speak(getString(R.string.tts_discarded))
     }
@@ -565,6 +575,7 @@ class DashcamService : LifecycleService() {
                     val clip = if (i == 0) (from - seg.startWall).coerceIn(0, (seg.durationMs - 200).coerceAtLeast(0)) else 0L
                     EventExporter.Piece(seg.file, clip, seg.durationMs, seg.startWall)
                 }
+                Log.i(LOG, "export pieces=${pieces.size} mediaMs=${pieces.sumOf { it.durationMs - it.clipStartMs }} spanMs=${stopTime - from}")
                 val out = EventRepository.newEventFile(eventStart)
                 exporter.export(pieces, out, showDateTime) { result ->
                     protectedFiles -= chosen.map { it.file }.toSet()

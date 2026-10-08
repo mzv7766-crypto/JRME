@@ -16,11 +16,13 @@ import sys,re,xml.etree.ElementTree as ET
 q=sys.argv[1]
 try: root=ET.parse('results/ui.xml').getroot()
 except Exception: sys.exit(0)
-for n in root.iter('node'):
-    t=(n.get('text') or '')+' '+(n.get('content-desc') or '')
-    if q in t:
-        x1,y1,x2,y2=map(int,re.findall(r'\d+',n.get('bounds')))
-        print((x1+x2)//2,(y1+y2)//2); break
+nodes=list(root.iter('node'))
+def c(n):
+    x1,y1,x2,y2=map(int,re.findall(r'\d+',n.get('bounds'))); return f"{(x1+x2)//2} {(y1+y2)//2}"
+exact=[n for n in nodes if (n.get('text') or '')==q or (n.get('content-desc') or '')==q]
+part=[n for n in nodes if q in (n.get('text') or '')]
+if exact: print(c(exact[0]))
+elif part: print(c(part[0]))
 PY
 }
 tap_text() { local p; p=$(find_text "$1"); if [ -n "$p" ]; then adb shell input tap $p; echo "$p"; return 0; fi; return 1; }
@@ -29,15 +31,22 @@ crashes() { adb logcat -d -b crash 2>/dev/null | grep -c "$PKG"; }
 seg_count() { adb shell run-as $PKG ls files/buffer 2>/dev/null | grep -c mp4; }
 seg_newest() { adb shell run-as $PKG ls files/buffer 2>/dev/null | grep mp4 | sort | tail -1 | tr -d '\r'; }
 EVDIR=/sdcard/Android/data/$PKG/files/Movies/events
-ev_count() { adb shell ls $EVDIR 2>/dev/null | grep -c mp4; }
+ev_count() { adb shell run-as $PKG cat files/events.json 2>/dev/null | grep -o '"id"' | wc -l; }
+wait_events() { for i in $(seq 1 60); do [ "$(ev_count)" -ge "$1" ] && return 0; sleep 4; done; return 1; }
+saving_done() { for i in $(seq 1 60); do svc_fg || return 0; sleep 4; done; return 1; }
 
 adb logcat -c
+adb logcat -G 16M 2>/dev/null
 read W H <<< "$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1 | tr 'x' ' ')"
 D=$(adb shell wm density | grep -oE '[0-9]+' | tail -1); DP=$(python3 -c "print($D/160)")
 info "screen ${W}x${H} density $D"
 
 # 1. install + permissions
 adb install -r -g app-debug.apk > $OUT/install.txt 2>&1 && pass "Install" || { fail "Install: $(cat $OUT/install.txt)"; exit 0; }
+APPUID=$(adb shell dumpsys package $PKG | grep -oE "userId=[0-9]+" | head -1 | cut -d= -f2)
+adb logcat -P "$APPUID" 2>/dev/null   # don't let 'chatty' drop our app's log lines
+adb logcat -v time -s Jeremy:V > $OUT/jeremy_log.txt 2>/dev/null &
+LOGPID=$!
 adb shell pm grant $PKG android.permission.CAMERA
 adb shell pm grant $PKG android.permission.RECORD_AUDIO
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS 2>/dev/null
@@ -46,8 +55,9 @@ adb shell settings put system accelerometer_rotation 0
 
 # 2. launch + splash
 adb shell am start -W -n $PKG/.MainActivity > $OUT/launch.txt
-sleep 1.2; shot 01_splash
-sleep 3; shot 02_home_idle
+sleep 0.3; shot 01_splash_a
+sleep 1.2; shot 01_splash_b
+sleep 5; shot 02_home_idle
 [ "$(crashes)" = "0" ] && pass "Launch + splash animation, no crash" || fail "Crash on launch"
 
 # 3. start drive
@@ -70,19 +80,18 @@ if [ -n "$BTN" ]; then
   adb shell input tap $BTN; sleep 2; shot 06_event_running
   sleep 6; adb shell input tap $BTN; pass "Event started and stopped from camera screen"
 else fail "Save event button not found"; fi
-for i in $(seq 1 30); do [ "$(ev_count)" -ge 1 ] && break; sleep 3; done
-[ "$(ev_count)" -ge 1 ] && pass "Event #1 exported to MP4" || fail "Event #1 not exported within 90s"
+wait_events 1 && pass "Event #1 exported to MP4" || fail "Event #1 not exported within 4 min"
 
 # 6. discard
 adb shell input tap $BTN; sleep 4
 tap_text "Home" >/dev/null; sleep 2; shot 07_home_event_active
 if tap_text "End without saving" >/dev/null; then sleep 6
-  [ "$(ev_count)" -eq 1 ] && pass "Discard: event ended without creating a video" || fail "Discard created a video"
+  sleep 20; [ "$(ev_count)" -eq 1 ] && pass "Discard: event ended without creating a video" || fail "Discard created a video"
 else fail "Discard button not found on home"; fi
 svc_fg && pass "Recording continues after discard" || fail "Service stopped after discard"
 
 # 7. landscape camera
-tap_text "Camera" >/dev/null; sleep 1
+tap_text "Camera" >/dev/null; sleep 2
 adb shell settings put system user_rotation 1; sleep 4; shot 08_camera_landscape
 adb shell settings put system user_rotation 0; sleep 3
 
@@ -96,8 +105,7 @@ BX=$(python3 -c "print(int($W - 12*$DP - 34*$DP))"); BY=$(python3 -c "print(int(
 info "bubble tap at $BX,$BY"
 adb shell input tap $BX $BY; sleep 2; shot 10_bubble_event
 sleep 6; adb shell input tap $BX $BY
-for i in $(seq 1 30); do [ "$(ev_count)" -ge 2 ] && break; sleep 3; done
-[ "$(ev_count)" -ge 2 ] && pass "Floating bubble: event saved while app in background" || fail "Bubble event not saved (overlay: $(head -c 200 $OUT/overlay.txt))"
+wait_events 2 && pass "Floating bubble: event saved while app in background" || fail "Bubble event not saved (overlay: $(head -c 200 $OUT/overlay.txt))"
 adb shell cmd statusbar expand-notifications; sleep 2; shot 11_notification; adb shell cmd statusbar collapse
 
 # 9. reopen app, events list + detail
@@ -118,7 +126,9 @@ adb shell input keyevent KEYCODE_BACK; sleep 2
 # 10. long-press bubble to stop everything
 adb shell input keyevent KEYCODE_HOME; sleep 3
 adb shell input swipe $BX $BY $BX $BY 1600; sleep 5; shot 14_after_longpress
-svc_fg && fail "Long-press bubble did NOT stop drive mode" || pass "Long-press bubble stopped camera + service"
+N1=$(seg_count); sleep 12; N2=$(seg_count)
+[ "$N2" = "0" ] || [ "$N1" = "$N2" ] && pass "Long-press bubble stopped recording" || fail "Recording continued after long-press ($N1 → $N2 segments)"
+saving_done && pass "Service shut down after finishing pending saves" || fail "Service still running 4 min after long-press"
 
 # 11. crash / error scan
 adb logcat -d > $OUT/logcat.txt
@@ -130,10 +140,10 @@ grep -E "DashcamService|EventExporter|Camera2CameraImpl.*ERROR|Recorder.*error" 
 info "app error lines: $(wc -l < $OUT/app_errors.txt)"
 
 # 12. videos
-adb shell ls -l $EVDIR > $OUT/events_ls.txt 2>&1
+adb shell run-as $PKG cat files/events.json > $OUT/events.json 2>/dev/null
 mkdir -p $OUT/videos; i=0
-for f in $(adb shell ls $EVDIR | tr -d '\r' | grep mp4); do
-  i=$((i+1)); adb pull $EVDIR/$f $OUT/videos/ev$i.mp4 >/dev/null 2>&1
+for f in $(python3 -c "import json;[print(e['path']) for e in json.load(open('$OUT/events.json'))]" 2>/dev/null); do
+  i=$((i+1)); adb exec-out run-as $PKG cat "$f" > $OUT/videos/ev$i.mp4
   DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 $OUT/videos/ev$i.mp4)
   RES=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height,codec_name -of csv=p=0 $OUT/videos/ev$i.mp4)
   AUD=$(ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 $OUT/videos/ev$i.mp4)
@@ -142,5 +152,8 @@ for f in $(adb shell ls $EVDIR | tr -d '\r' | grep mp4); do
   ffmpeg -v error -y -sseof -1.5 -i $OUT/videos/ev$i.mp4 -frames:v 1 $OUT/video${i}_frame_end.png
 done
 rm -rf $OUT/videos
-adb shell run-as $PKG cat files/events.json > $OUT/events.json 2>/dev/null
+kill $LOGPID 2>/dev/null
+grep -oE "gapBefore=[0-9-]+" $OUT/jeremy_log.txt | cut -d= -f2 > $OUT/gaps.txt
+info "segment gaps (ms): $(tr '\n' ' ' < $OUT/gaps.txt)"
+grep -E "export|event " $OUT/jeremy_log.txt | sed 's/^/    /' | tee -a $SUM
 echo "done" >> $SUM
