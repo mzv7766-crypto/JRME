@@ -1,0 +1,48 @@
+--------- beginning of main
+10-08 23:28:32.584 I/Jeremy  ( 4917): segment seg_1791502102076.mp4 dur=8677ms gapBefore=0ms
+10-08 23:28:43.080 I/Jeremy  ( 4917): segment seg_1791502112586.mp4 dur=9873ms gapBefore=746ms
+10-08 23:28:54.243 I/Jeremy  ( 4917): segment seg_1791502123080.mp4 dur=9843ms gapBefore=658ms
+10-08 23:29:05.120 I/Jeremy  ( 4917): segment seg_1791502134244.mp4 dur=9101ms gapBefore=1280ms
+10-08 23:29:16.807 I/Jeremy  ( 4917): segment seg_1791502145121.mp4 dur=9849ms gapBefore=1774ms
+10-08 23:29:17.526 I/Jeremy  ( 4917): event start trigger=MANUAL
+10-08 23:29:27.397 I/Jeremy  ( 4917): segment seg_1791502156808.mp4 dur=9432ms gapBefore=1879ms
+10-08 23:29:27.397 I/Jeremy  ( 4917): trip clip queued: 6 segments, 56775ms final=false
+10-08 23:29:27.782 I/Jeremy  ( 4917): export level 0, 6 pieces
+10-08 23:29:28.176 I/Jeremy  ( 4917): export pieces=3 mediaMs=20169 spanMs=24146
+10-08 23:29:28.208 I/Jeremy  ( 4917): trip export paused for an event
+10-08 23:29:28.220 I/Jeremy  ( 4917): export level 0, 3 pieces
+10-08 23:29:39.685 I/Jeremy  ( 4917): segment seg_1791502168229.mp4 dur=9841ms gapBefore=2188ms
+10-08 23:29:50.518 I/Jeremy  ( 4917): segment seg_1791502179695.mp4 dur=9816ms gapBefore=1472ms
+10-08 23:30:01.008 I/Jeremy  ( 4917): segment seg_1791502190518.mp4 dur=9981ms gapBefore=978ms
+10-08 23:30:06.717 I/Jeremy  ( 4917): export level 0 done: 20363ms, 662679 bytes
+10-08 23:30:06.785 I/Jeremy  ( 4917): export level 0, 6 pieces
+10-08 23:30:07.954 I/Jeremy  ( 4917): event start trigger=MANUAL
+10-08 23:30:32.227 I/Jeremy  ( 4917): event discarded
+10-08 23:30:37.753 I/Jeremy  ( 4917): segment seg_1791502201009.mp4 dur=33183ms gapBefore=616ms
+10-08 23:30:37.754 I/Jeremy  ( 4917): trip clip queued: 4 segments, 62821ms final=false
+10-08 23:30:49.540 I/Jeremy  ( 4917): segment seg_1791502237755.mp4 dur=9847ms gapBefore=3401ms
+10-08 23:31:00.423 I/Jeremy  ( 4917): segment seg_1791502249544.mp4 dur=9840ms gapBefore=1951ms
+10-08 23:31:11.192 I/Jeremy  ( 4917): segment seg_1791502260423.mp4 dur=9772ms gapBefore=1064ms
+10-08 23:31:21.670 I/Jeremy  ( 4917): segment seg_1791502271192.mp4 dur=9817ms gapBefore=986ms
+10-08 23:31:28.984 I/Jeremy  ( 4917): export level 0 done: 57220ms, 2424971 bytes
+10-08 23:31:29.071 I/Jeremy  ( 4917): export level 0, 4 pieces
+10-08 23:31:31.277 I/Jeremy  ( 4917): event start trigger=FLOATING
+10-08 23:31:42.511 I/Jeremy  ( 4917): segment seg_1791502281672.mp4 dur=19568ms gapBefore=650ms
+10-08 23:31:42.511 I/Jeremy  ( 4917): trip clip queued: 5 segments, 58844ms final=false
+10-08 23:31:42.511 I/Jeremy  ( 4917): export pieces=2 mediaMs=24332 spanMs=25003
+10-08 23:31:42.561 I/Jeremy  ( 4917): trip export paused for an event
+10-08 23:31:42.579 I/Jeremy  ( 4917): export level 0, 2 pieces
+10-08 23:31:52.845 I/Jeremy  ( 4917): segment seg_1791502302582.mp4 dur=9869ms gapBefore=1336ms
+10-08 23:32:03.149 I/Jeremy  ( 4917): segment seg_1791502312846.mp4 dur=9884ms gapBefore=398ms
+10-08 23:32:04.319 I/Jeremy  ( 4917): export level 0 done: 24377ms, 1131913 bytes
+10-08 23:32:04.332 I/Jeremy  ( 4917): export level 0, 4 pieces
+10-08 23:32:15.439 I/Jeremy  ( 4917): segment seg_1791502323149.mp4 dur=9733ms gapBefore=427ms
+10-08 23:32:30.142 I/Jeremy  ( 4917): segment seg_1791502335440.mp4 dur=10747ms gapBefore=2543ms
+10-08 23:32:40.556 I/Jeremy  ( 4917): segment seg_1791502350142.mp4 dur=9522ms gapBefore=4022ms
+10-08 23:32:42.197 I/Jeremy  ( 4917): segment seg_1791502360557.mp4 dur=1204ms gapBefore=825ms
+10-08 23:32:42.245 I/Jeremy  ( 4917): trip clip queued: 6 segments, 50959ms final=true
+10-08 23:32:48.146 I/Jeremy  ( 4917): export level 0 done: 63376ms, 2712989 bytes
+10-08 23:32:48.227 I/Jeremy  ( 4917): export level 0, 5 pieces
+10-08 23:33:18.362 I/Jeremy  ( 4917): export level 0 done: 59166ms, 2285967 bytes
+10-08 23:33:18.405 I/Jeremy  ( 4917): export level 0, 6 pieces
+10-08 23:33:47.781 I/Jeremy  ( 4917): export level 0 done: 51540ms, 1887077 bytes
