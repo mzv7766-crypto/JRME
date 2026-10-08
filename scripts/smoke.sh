@@ -182,6 +182,8 @@ R=$(adb shell dumpsys window | grep -oE "mCurrentRotation=ROTATION_[0-9]+|mRotat
 info "rotation with landscape setting: $R"
 tap_text "Events" >/dev/null; sleep 3; shot 17_landscape_events
 tap_text "Settings" >/dev/null; sleep 3; shot 18_landscape_settings
+tap_text "Clip length" >/dev/null; sleep 2; shot 19_landscape_choice_dialog
+adb shell input keyevent KEYCODE_BACK; sleep 1
 [ "$(crashes)" = "0" ] && pass "App locked to landscape: all screens open without crash" || fail "Crash in landscape mode"
 
 # 11. crash / error scan

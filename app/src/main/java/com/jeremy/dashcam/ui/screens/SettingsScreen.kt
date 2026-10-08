@@ -1,6 +1,12 @@
 package com.jeremy.dashcam.ui.screens
 
 import androidx.appcompat.app.AppCompatDelegate
+import android.content.res.Configuration
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.background
 import com.jeremy.dashcam.core.DashcamController
 import androidx.compose.ui.draw.clip
@@ -240,21 +246,43 @@ private fun Nav(label: String, value: String, enabled: Boolean = true, clickable
     if (!last) HorizontalDivider(color = J.Stroke, modifier = Modifier.padding(horizontal = 16.dp))
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChoiceDialog(c: Choice<Any?>, onDismiss: () -> Unit) {
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     AlertDialog(
         onDismissRequest = onDismiss, containerColor = J.Surface,
         title = { Text(c.title) },
         text = {
-            Column {
-                c.options.forEach { o ->
-                    Row(
-                        Modifier.fillMaxWidth().clickable { c.onPick(o); onDismiss() }.background(if (o == c.selected) J.Green.copy(alpha = 0.1f) else Color.Transparent)
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(o == c.selected, { c.onPick(o); onDismiss() }, colors = RadioButtonDefaults.colors(selectedColor = J.Green))
-                        Text(c.label(o), color = J.Text)
+            if (landscape) {
+                // Landscape: all options as large chips side by side – everything visible without scrolling.
+                FlowRow(
+                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    c.options.forEach { o ->
+                        val sel = o == c.selected
+                        Box(
+                            Modifier.clip(RoundedCornerShape(14.dp))
+                                .background(if (sel) J.Green.copy(alpha = 0.25f) else J.Card)
+                                .border(if (sel) 2.dp else 1.dp, if (sel) J.Green else J.Stroke, RoundedCornerShape(14.dp))
+                                .clickable { c.onPick(o); onDismiss() }
+                                .padding(horizontal = 18.dp, vertical = 12.dp),
+                        ) { Text(c.label(o), color = if (sel) J.Mint else J.Text, fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal, fontSize = 16.sp) }
+                    }
+                }
+            } else {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    c.options.forEach { o ->
+                        Row(
+                            Modifier.fillMaxWidth().clickable { c.onPick(o); onDismiss() }.background(if (o == c.selected) J.Green.copy(alpha = 0.1f) else Color.Transparent)
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(o == c.selected, { c.onPick(o); onDismiss() }, colors = RadioButtonDefaults.colors(selectedColor = J.Green))
+                            Text(c.label(o), color = J.Text)
+                        }
                     }
                 }
             }

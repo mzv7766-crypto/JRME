@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -306,7 +307,7 @@ private fun QuickSettingsDialog(s: AppSettings, onMore: () -> Unit, onDismiss: (
         containerColor = J.Surface,
         title = { Text(stringResource(R.string.quick_settings)) },
         text = {
-            Column {
+            Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) {
                 QuickToggle(stringResource(R.string.record_audio), s.recordAudio) { v -> SettingsStore.update { it.copy(recordAudio = v) } }
                 QuickToggle(stringResource(R.string.show_datetime), s.showDateTime) { v -> SettingsStore.update { it.copy(showDateTime = v) } }
                 QuickToggle(stringResource(R.string.shock_detect), s.shockDetection) { v -> SettingsStore.update { it.copy(shockDetection = v) } }

@@ -105,7 +105,44 @@ class DashcamService : LifecycleService() {
     private var analysisExecutor: ExecutorService? = null
     private var appliedVideoKey: String? = null
     private var rebindPending = false
-    private var targetRotation = Surface.ROTATION_0
+    private var candidateRotation: Int? = null
+    private var candidateSince = 0L
+    private var physicalRotation: Int? = null
+    private var segmentRotation = Surface.ROTATION_0
+    private var lastRotationSwitch = 0L
+    private var analysisUseCase: ImageAnalysis? = null
+
+    private fun displayRotation(): Int = runCatching {
+        getSystemService(android.hardware.display.DisplayManager::class.java).getDisplay(android.view.Display.DEFAULT_DISPLAY).rotation
+    }.getOrDefault(Surface.ROTATION_0)
+
+    /** Recording orientation: the phone's physical orientation, constrained by the app's orientation setting. */
+    private fun desiredRotation(): Int {
+        val base = physicalRotation ?: displayRotation()
+        val isLandscape = base == Surface.ROTATION_90 || base == Surface.ROTATION_270
+        return when (settings.orientation) {
+            com.jeremy.dashcam.data.ScreenOrientation.LANDSCAPE -> if (isLandscape) base else {
+                val d = displayRotation(); if (d == Surface.ROTATION_90 || d == Surface.ROTATION_270) d else Surface.ROTATION_90
+            }
+            com.jeremy.dashcam.data.ScreenOrientation.PORTRAIT -> if (isLandscape) Surface.ROTATION_0 else base
+            com.jeremy.dashcam.data.ScreenOrientation.AUTO -> base
+        }
+    }
+
+    /** Apply a new orientation quickly: start a fresh segment now (never in the middle of an event). */
+    private fun onOrientationMaybeChanged() {
+        if (!running) return
+        val want = desiredRotation()
+        analysisUseCase?.targetRotation = want
+        if (want == segmentRotation || state.value.eventActive) return
+        val now = SystemClock.elapsedRealtime()
+        val rec = activeRecording ?: return
+        if (now - lastRotationSwitch < 3000 || System.currentTimeMillis() - activeStartWall < 1500) return
+        lastRotationSwitch = now
+        Log.i(LOG, "orientation changed → new segment with rotation $want")
+        main.removeCallbacks(rotateSegment)
+        rec.stop()
+    }
 
     // Rolling buffer
     private val bufferDir by lazy { File(filesDir, "buffer").apply { mkdirs() } }
@@ -259,12 +296,18 @@ class DashcamService : LifecycleService() {
 
         orientationListener = object : OrientationEventListener(this) {
             override fun onOrientationChanged(o: Int) {
-                if (o == ORIENTATION_UNKNOWN) return
-                targetRotation = when (o) {
+                // Flat (pointing at the floor/sky) → no physical orientation; fall back to the screen.
+                val r = if (o == ORIENTATION_UNKNOWN) null else when (o) {
                     in 45..134 -> Surface.ROTATION_270
                     in 135..224 -> Surface.ROTATION_180
                     in 225..314 -> Surface.ROTATION_90
                     else -> Surface.ROTATION_0
+                }
+                val now = SystemClock.elapsedRealtime()
+                if (r != candidateRotation) { candidateRotation = r; candidateSince = now; return }
+                if (now - candidateSince >= 800 && physicalRotation != r) {   // stable for 0.8 s
+                    physicalRotation = r
+                    onOrientationMaybeChanged()
                 }
             }
         }.also { if (it.canDetectOrientation()) it.enable() }
@@ -330,7 +373,7 @@ class DashcamService : LifecycleService() {
         shock.stop(); motion.enabled = false; voice.stop()
         main.removeCallbacks(metricsTick); DashcamController.metrics.value = null
         floating.hide()
-        orientationListener?.disable(); orientationListener = null
+        orientationListener?.disable(); orientationListener = null; analysisUseCase = null
         ProcessLifecycleOwner.get().lifecycle.removeObserver(processObserver)
         val rec = activeRecording
         if (rec != null) {
@@ -375,7 +418,7 @@ class DashcamService : LifecycleService() {
             val recorder = Recorder.Builder().setQualitySelector(qualitySelector).build()
             return VideoCapture.Builder(recorder).apply {
                 if (withFps) setTargetFrameRate(Range(s.fps, s.fps))
-            }.build().also { it.targetRotation = targetRotation }
+            }.build().also { it.targetRotation = desiredRotation() }
         }
 
         val newPreview = Preview.Builder().build()
@@ -387,6 +430,8 @@ class DashcamService : LifecycleService() {
             )
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
+        analysis.targetRotation = desiredRotation()
+        analysisUseCase = analysis
         val exec = analysisExecutor ?: Executors.newSingleThreadExecutor().also { analysisExecutor = it }
         analysis.setAnalyzer(exec, motion)
 
@@ -451,7 +496,7 @@ class DashcamService : LifecycleService() {
     private fun startSegment() {
         if (!running || activeRecording != null) return
         val vc = videoCapture ?: return
-        if (!state.value.eventActive) vc.targetRotation = targetRotation // keep one orientation inside an event
+        if (!state.value.eventActive) { segmentRotation = desiredRotation(); vc.targetRotation = segmentRotation } // one orientation per event
         val file = File(bufferDir, "seg_${System.currentTimeMillis()}.mp4")
         try {
             var pending = vc.output.prepareRecording(this, FileOutputOptions.Builder(file).build())
@@ -767,6 +812,7 @@ class DashcamService : LifecycleService() {
         if (!running) return
         if (s.shockDetection) shock.start(s.shockSensitivity) else shock.stop()
         main.removeCallbacks(metricsTick); main.post(metricsTick)
+        onOrientationMaybeChanged()
         motion.sensitivity = s.smartSensitivity
         motion.enabled = s.smartDetection
         if (s.voiceFeedback || s.voiceCommands) voice.initTts()
