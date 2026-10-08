@@ -497,6 +497,7 @@ class DashcamService : LifecycleService() {
         if (!running || activeRecording != null) return
         val vc = videoCapture ?: return
         if (!state.value.eventActive) { segmentRotation = desiredRotation(); vc.targetRotation = segmentRotation } // one orientation per event
+        Log.i(LOG, "segment start rotation=$segmentRotation physical=$physicalRotation display=${displayRotation()} setting=${settings.orientation}")
         val file = File(bufferDir, "seg_${System.currentTimeMillis()}.mp4")
         try {
             var pending = vc.output.prepareRecording(this, FileOutputOptions.Builder(file).build())
