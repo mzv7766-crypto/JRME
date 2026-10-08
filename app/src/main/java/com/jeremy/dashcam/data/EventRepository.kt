@@ -25,6 +25,8 @@ enum class Trigger(val labelRes: Int) {
     MOTION(R.string.trigger_motion),
 }
 
+enum class RecordKind { EVENT, TRIP }
+
 data class EventRecord(
     val id: String,
     val filePath: String,
@@ -39,7 +41,13 @@ data class EventRecord(
     val sizeBytes: Long,
     /** Peak force in g for sensor-triggered events. */
     val peakG: Float? = null,
+    /** EVENT = saved incident; TRIP = part of the full-drive recording. */
+    val kind: RecordKind = RecordKind.EVENT,
+    /** Drive id (drive start time) – groups the trip clips of one drive. */
+    val tripId: Long = 0L,
 ) {
+    val isTrip get() = kind == RecordKind.TRIP
+    val endTime get() = videoStartTime + durationMs
     val file: File get() = File(filePath)
 }
 
@@ -62,7 +70,12 @@ object EventRepository {
         synchronized(this) { _events.value = readIndex().filter { it.file.exists() }.sortedByDescending { it.triggerTime } }
     }
 
+    val tripsDir: File by lazy {
+        File(appContext.getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: appContext.filesDir, "trips").apply { mkdirs() }
+    }
+
     fun newEventFile(triggerTime: Long): File = File(eventsDir, "Jeremy_${triggerTime}.mp4")
+    fun newTripFile(startTime: Long): File = File(tripsDir, "Jeremy_trip_${startTime}.mp4")
 
     fun get(id: String): EventRecord? = _events.value.firstOrNull { it.id == id }
 
@@ -89,31 +102,44 @@ object EventRepository {
         true
     }
 
-    fun usedBytes(): Long = _events.value.sumOf { it.sizeBytes }
+    fun usedBytes(kind: RecordKind? = null): Long = _events.value.filter { kind == null || it.kind == kind }.sumOf { it.sizeBytes }
 
     /** Auto-delete: removes the oldest UNLOCKED events until under the limit. Locked events are never touched. */
     fun enforceStorageLimit() {
         synchronized(this) { enforceLocked() }
     }
 
+    /**
+     * Auto-delete: per kind, removes the oldest UNLOCKED clips until under that kind's limit.
+     * Also, if the phone itself runs low on space (< 1 GB free), the oldest unlocked TRIP clips go first.
+     * Locked clips are never touched.
+     */
     private fun enforceLocked() {
         val s = SettingsStore.current
-        if (!s.autoDelete) return
-        val limit = s.maxStorageGb.toLong() * 1024 * 1024 * 1024
-        var used = usedBytes()
-        if (used <= limit) return
-        val candidates = _events.value.filter { !it.locked }.sortedBy { it.triggerTime }
         val removed = mutableSetOf<String>()
-        for (c in candidates) {
-            if (used <= limit) break
-            c.file.delete(); thumbFile(c.id).delete()
-            used -= c.sizeBytes
-            removed += c.id
+        fun trim(kind: RecordKind, limitBytes: Long) {
+            var used = usedBytes(kind)
+            if (used <= limitBytes) return
+            for (c in _events.value.filter { it.kind == kind && !it.locked }.sortedBy { it.triggerTime }) {
+                if (used <= limitBytes) break
+                c.file.delete(); thumbFile(c.id).delete(); used -= c.sizeBytes; removed += c.id
+            }
+        }
+        if (s.autoDelete) trim(RecordKind.EVENT, s.maxStorageGb.toLong() shl 30)
+        trim(RecordKind.TRIP, s.tripMaxStorageGb.toLong() shl 30)
+        // low device storage: free space from trips first
+        val free = runCatching { tripsDir.usableSpace }.getOrDefault(Long.MAX_VALUE)
+        if (free < (1L shl 30)) {
+            var need = (1L shl 30) - free
+            for (c in _events.value.filter { it.isTrip && !it.locked && it.id !in removed }.sortedBy { it.triggerTime }) {
+                if (need <= 0) break
+                c.file.delete(); thumbFile(c.id).delete(); need -= c.sizeBytes; removed += c.id
+            }
         }
         if (removed.isNotEmpty()) {
             _events.value = _events.value.filter { it.id !in removed }
             writeIndex()
-            Log.i(TAG, "Auto-deleted ${removed.size} events")
+            Log.i(TAG, "Auto-deleted ${removed.size} clips")
         }
     }
 
@@ -155,6 +181,8 @@ object EventRepository {
                 locked = o.optBoolean("locked"),
                 sizeBytes = o.optLong("size"),
                 peakG = if (o.has("peakG")) o.getDouble("peakG").toFloat() else null,
+                kind = if (o.optString("kind") == "TRIP") RecordKind.TRIP else RecordKind.EVENT,
+                tripId = o.optLong("tripId"),
             )
         }
     }.getOrElse { Log.e(TAG, "index read failed", it); emptyList() }
@@ -168,6 +196,7 @@ object EventRepository {
                 put("duration", r.durationMs); put("reason", r.trigger.name)
                 put("locked", r.locked); put("size", r.sizeBytes)
                 r.peakG?.let { put("peakG", it.toDouble()) }
+                put("kind", r.kind.name); put("tripId", r.tripId)
             })
         }
         val tmp = File(indexFile.parentFile, "events.json.tmp")

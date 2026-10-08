@@ -181,6 +181,8 @@ private fun ActiveHome(onShowCamera: () -> Unit) {
                         stringResource(if (state.phase == DrivePhase.STARTING) R.string.camera_starting else R.string.camera_running_bg),
                         color = J.TextDim, fontSize = 14.sp,
                     )
+                    val st by SettingsStore.state.collectAsStateWithLifecycle()
+                    if (st.tripRecording) Text(stringResource(R.string.trip_status, st.tripClipMinutes), color = J.Mint, fontSize = 13.sp)
                 }
             }
         }

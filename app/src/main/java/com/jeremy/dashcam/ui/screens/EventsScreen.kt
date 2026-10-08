@@ -3,6 +3,11 @@ package com.jeremy.dashcam.ui.screens
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,19 +80,20 @@ import java.util.Locale
 @Composable
 fun EventsScreen(onOpen: (String) -> Unit) {
     val ctx = LocalContext.current
-    val events by EventRepository.events.collectAsStateWithLifecycle()
+    val all by EventRepository.events.collectAsStateWithLifecycle()
+    var tab by rememberSaveable { mutableIntStateOf(0) } // 0 = events, 1 = full drive
     var searching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+    val events = remember(all, tab) { all.filter { if (tab == 0) !it.isTrip else it.isTrip } }
 
     val filtered = remember(events, query) {
         if (query.isBlank()) events else events.filter {
-            val label = it.name ?: ctx.getString(it.trigger.labelRes)
+            val label = it.name ?: ctx.getString(if (it.isTrip) R.string.trip_clip else it.trigger.labelRes)
             label.contains(query, ignoreCase = true) || formatDate(it.triggerTime).contains(query)
         }
     }
     val today = stringResource(R.string.today)
     val yesterday = stringResource(R.string.yesterday)
-    val groups = remember(filtered, today, yesterday) { filtered.groupBy { dayLabel(it.triggerTime, today, yesterday) } }
 
     Column(Modifier.fillMaxSize()) {
         ScreenHeader(
@@ -98,6 +104,20 @@ fun EventsScreen(onOpen: (String) -> Unit) {
                 }
             },
         )
+        // Events | Full drive
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp).clip(RoundedCornerShape(14.dp)).background(J.Card).padding(4.dp),
+        ) {
+            listOf(R.string.tab_events, R.string.tab_trips).forEachIndexed { i, label ->
+                val sel = tab == i
+                Box(
+                    Modifier.weight(1f).clip(RoundedCornerShape(11.dp)).background(if (sel) J.Green.copy(alpha = 0.22f) else Color.Transparent)
+                        .clickable { tab = i }.padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center,
+                ) { Text(stringResource(label), color = if (sel) J.Mint else J.TextDim, fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal, fontSize = 15.sp) }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
         if (searching) {
             OutlinedTextField(
                 query, { query = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -108,20 +128,63 @@ fun EventsScreen(onOpen: (String) -> Unit) {
         }
         if (events.isEmpty()) {
             Column(Modifier.fillMaxSize().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Icon(Icons.Filled.VideoLibrary, null, tint = J.TextDim, modifier = Modifier.size(64.dp))
+                Icon(if (tab == 0) Icons.Filled.VideoLibrary else Icons.Filled.Route, null, tint = J.TextDim, modifier = Modifier.size(64.dp))
                 Spacer(Modifier.height(12.dp))
-                Text(stringResource(R.string.events_empty), color = J.Text, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text(stringResource(R.string.events_empty_hint), color = J.TextDim)
+                Text(stringResource(if (tab == 0) R.string.events_empty else R.string.trips_empty), color = J.Text, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(if (tab == 0) R.string.events_empty_hint else R.string.trips_empty_hint), color = J.TextDim, textAlign = TextAlign.Center)
             }
             return
         }
-        LazyColumn(contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            groups.forEach { (label, list) ->
-                item(key = "h_$label") {
-                    Text(label, color = J.TextDim, fontSize = 14.sp, modifier = Modifier.padding(start = 6.dp, top = 8.dp, bottom = 2.dp))
+        if (tab == 0) {
+            val groups = remember(filtered, today, yesterday) { filtered.groupBy { dayLabel(it.triggerTime, today, yesterday) } }
+            LazyColumn(contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                groups.forEach { (label, list) ->
+                    item(key = "h_$label") {
+                        Text(label, color = J.TextDim, fontSize = 14.sp, modifier = Modifier.padding(start = 6.dp, top = 8.dp, bottom = 2.dp))
+                    }
+                    items(list, key = { it.id }) { e -> EventRow(e) { onOpen(e.id) } }
                 }
-                items(list, key = { it.id }) { e -> EventRow(e) { onOpen(e.id) } }
             }
+        } else {
+            // one group per drive, newest drive first, clips in driving order
+            val drives = remember(filtered) { filtered.groupBy { it.tripId }.toList().sortedByDescending { it.first } }
+            LazyColumn(contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                drives.forEach { (id, clips) ->
+                    val sorted = clips.sortedBy { it.videoStartTime }
+                    item(key = "d_$id") { DriveHeader(sorted, today, yesterday) }
+                    items(sorted, key = { it.id }) { e -> TripRow(e) { onOpen(e.id) } }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DriveHeader(clips: List<EventRecord>, today: String, yesterday: String) {
+    val start = clips.first().videoStartTime
+    val end = clips.last().endTime
+    val mins = ((end - start) / 60_000).coerceAtLeast(1)
+    val size = clips.sumOf { it.sizeBytes } / 1_048_576.0
+    Column(Modifier.padding(start = 6.dp, top = 12.dp, bottom = 2.dp)) {
+        Text(dayLabel(start, today, yesterday), color = J.TextDim, fontSize = 13.sp)
+        Text(
+            stringResource(R.string.drive_header, formatTime(start), formatTime(end), mins.toInt(), clips.size) + " • %.0f MB".format(size),
+            color = J.Text, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+private fun TripRow(e: EventRecord, onClick: () -> Unit) {
+    JCard(Modifier.fillMaxWidth(), onClick = onClick) {
+        Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Thumbnail(e, Modifier.width(96.dp).height(56.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(formatTime(e.videoStartTime) + " – " + formatTime(e.endTime), color = J.Text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(e.name ?: Notifications.formatDuration(e.durationMs), color = J.TextDim, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            if (e.locked) Icon(Icons.Filled.Lock, null, tint = J.Mint, modifier = Modifier.size(18.dp).padding(end = 4.dp))
         }
     }
 }

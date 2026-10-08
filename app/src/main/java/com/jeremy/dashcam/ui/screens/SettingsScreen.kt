@@ -51,6 +51,7 @@ import com.jeremy.dashcam.data.AppLanguage
 import com.jeremy.dashcam.data.EventRepository
 import com.jeremy.dashcam.data.LayoutDir
 import com.jeremy.dashcam.data.Resolution
+import com.jeremy.dashcam.data.ScreenOrientation
 import com.jeremy.dashcam.data.Sensitivity
 import com.jeremy.dashcam.data.SettingsStore
 import com.jeremy.dashcam.ui.components.JCard
@@ -69,6 +70,7 @@ fun SettingsScreen() {
 
     val secFmt = stringResource(R.string.seconds_fmt)
     val gbFmt = stringResource(R.string.gb_fmt)
+    val minFmt = stringResource(R.string.min_fmt)
     val sensLabel: (Sensitivity) -> String = { ctx.getString(it.labelRes) }
 
     Column(Modifier.fillMaxSize()) {
@@ -118,6 +120,27 @@ fun SettingsScreen() {
                 Text(stringResource(R.string.volume_keys_desc), color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
             }
 
+            Section(stringResource(R.string.sec_trip)) {
+                Toggle(stringResource(R.string.trip_record), s.tripRecording) { v -> SettingsStore.update { it.copy(tripRecording = v) } }
+                Nav(stringResource(R.string.trip_clip_len), minFmt.format(s.tripClipMinutes), enabled = s.tripRecording) {
+                    choice = Choice(ctx.getString(R.string.trip_clip_len), SettingsStore.TRIP_CLIP_OPTIONS, { minFmt.format(it) }, s.tripClipMinutes) { v ->
+                        SettingsStore.update { it.copy(tripClipMinutes = v) }
+                    }
+                }
+                Nav(stringResource(R.string.trip_max_storage), gbFmt.format(s.tripMaxStorageGb), enabled = s.tripRecording) {
+                    choice = Choice(ctx.getString(R.string.trip_max_storage), SettingsStore.TRIP_STORAGE_OPTIONS, { gbFmt.format(it) }, s.tripMaxStorageGb) { v ->
+                        SettingsStore.update { it.copy(tripMaxStorageGb = v) }; Thread { EventRepository.enforceStorageLimit() }.start()
+                    }
+                }
+                Toggle(stringResource(R.string.trip_burn), s.tripBurn) { v -> SettingsStore.update { it.copy(tripBurn = v) } }
+                Nav(
+                    stringResource(R.string.storage_used),
+                    "%.2f GB • %d".format(events.filter { it.isTrip }.sumOf { it.sizeBytes } / 1_073_741_824.0, events.count { it.isTrip }),
+                    clickable = false, last = true,
+                ) {}
+            }
+            Text(stringResource(R.string.trip_note), color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+
             Section(stringResource(R.string.sec_storage)) {
                 Toggle(stringResource(R.string.auto_delete), s.autoDelete) { v ->
                     SettingsStore.update { it.copy(autoDelete = v) }; Thread { EventRepository.enforceStorageLimit() }.start()
@@ -127,7 +150,7 @@ fun SettingsScreen() {
                         SettingsStore.update { it.copy(maxStorageGb = v) }; Thread { EventRepository.enforceStorageLimit() }.start()
                     }
                 }
-                Nav(stringResource(R.string.storage_used), "%.2f GB • %d".format(events.sumOf { it.sizeBytes } / 1_073_741_824.0, events.size), clickable = false, last = true) {}
+                Nav(stringResource(R.string.storage_used), "%.2f GB • %d".format(events.filter { !it.isTrip }.sumOf { it.sizeBytes } / 1_073_741_824.0, events.count { !it.isTrip }), clickable = false, last = true) {}
             }
             Text(stringResource(R.string.auto_delete_note), color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
 
@@ -139,6 +162,9 @@ fun SettingsScreen() {
                             if (v.tag.isEmpty()) LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(v.tag)
                         )
                     }
+                }
+                Nav(stringResource(R.string.orientation), stringResource(s.orientation.labelRes)) {
+                    choice = Choice(ctx.getString(R.string.orientation), ScreenOrientation.entries, { ctx.getString(it.labelRes) }, s.orientation) { v -> SettingsStore.update { it.copy(orientation = v) } }
                 }
                 Nav(stringResource(R.string.direction), stringResource(s.layoutDir.labelRes), last = true) {
                     choice = Choice(ctx.getString(R.string.direction), LayoutDir.entries, { ctx.getString(it.labelRes) }, s.layoutDir) { v -> SettingsStore.update { it.copy(layoutDir = v) } }

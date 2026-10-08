@@ -53,11 +53,12 @@ class EventExporter(private val context: Context) {
         pieces: List<Piece>,
         output: File,
         showDateTime: Boolean,
+        burn: Boolean = true,
         onDone: (Result?) -> Unit,
     ) {
         require(pieces.isNotEmpty())
         output.parentFile?.mkdirs()
-        tryLevel(0, pieces, output, showDateTime, onDone)
+        tryLevel(if (burn) 0 else 2, pieces, output, showDateTime, onDone)
     }
 
     /**

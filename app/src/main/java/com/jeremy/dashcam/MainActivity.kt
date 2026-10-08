@@ -1,6 +1,19 @@
 package com.jeremy.dashcam
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import com.jeremy.dashcam.data.ScreenOrientation
+import com.jeremy.dashcam.ui.screens.SideRail
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
@@ -65,6 +78,18 @@ class MainActivity : AppCompatActivity() {
         )
         super.onCreate(savedInstanceState)
         handleIntent(intent)
+        // Screen-orientation setting applies to the whole app (auto / always portrait / always landscape).
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                SettingsStore.state.map { it.orientation }.distinctUntilChanged().collect { o ->
+                    requestedOrientation = when (o) {
+                        ScreenOrientation.AUTO -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+                        ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                        ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                    }
+                }
+            }
+        }
         setContent {
             JeremyTheme { JeremyRoot(pendingNav, showSplash = savedInstanceState == null) }
         }
@@ -125,13 +150,10 @@ private fun AppScaffold(pendingNav: MutableStateFlow<Pair<String?, String?>?>) {
         pendingNav.value = null
     }
 
-    // Only the camera screen gets the special landscape behaviour (full-bleed, no bottom bar).
-    val hideBar = route == Routes.CAMERA && landscape || route == Routes.EVENT
-    Scaffold(
-        containerColor = androidx.compose.ui.graphics.Color.Transparent,
-        bottomBar = { if (!hideBar) BottomBar(route) { nav.navigateTab(it) } },
-    ) { pad ->
-        NavHost(nav, startDestination = Routes.HOME, modifier = Modifier.padding(pad)) {
+    // Portrait: bottom bar. Landscape: a side rail, so the screen height stays free (car mount).
+    val showNav = route != Routes.EVENT
+    val content: @Composable (Modifier) -> Unit = { m ->
+        NavHost(nav, startDestination = Routes.HOME, modifier = m) {
             composable(Routes.HOME) { HomeScreen(onShowCamera = { nav.navigateTab(Routes.CAMERA) }, onSettings = { nav.navigateTab(Routes.SETTINGS) }) }
             composable(Routes.EVENTS) { EventsScreen(onOpen = { nav.navigate(Routes.event(it)) }) }
             composable(Routes.CAMERA) { CameraScreen(onSettings = { nav.navigateTab(Routes.SETTINGS) }, onStartDrive = { nav.navigateTab(Routes.HOME) }) }
@@ -141,6 +163,17 @@ private fun AppScaffold(pendingNav: MutableStateFlow<Pair<String?, String?>?>) {
                 EventDetailScreen(e.arguments?.getString("id").orEmpty(), onBack = { nav.popBackStack() })
             }
         }
+    }
+    if (landscape) {
+        Row(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+            if (showNav) SideRail(route) { nav.navigateTab(it) }
+            Box(Modifier.weight(1f).fillMaxHeight()) { content(Modifier.fillMaxSize()) }
+        }
+    } else {
+        Scaffold(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
+            bottomBar = { if (showNav) BottomBar(route) { nav.navigateTab(it) } },
+        ) { pad -> content(Modifier.padding(pad)) }
     }
 }
 

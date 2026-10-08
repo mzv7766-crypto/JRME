@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 enum class Resolution(val label: String, val height: Int) { HD("720p (HD)", 720), FHD("1080p (Full HD)", 1080), UHD("2160p (4K)", 2160) }
 enum class Sensitivity(val labelRes: Int) { LOW(R.string.sens_low), MEDIUM(R.string.sens_med), HIGH(R.string.sens_high) }
 enum class AppLanguage(val tag: String, val labelRes: Int) { SYSTEM("", R.string.lang_system), HEBREW("he", R.string.lang_he), ENGLISH("en", R.string.lang_en) }
+enum class ScreenOrientation(val labelRes: Int) { AUTO(R.string.orient_auto), PORTRAIT(R.string.orient_portrait), LANDSCAPE(R.string.orient_landscape) }
 enum class LayoutDir(val labelRes: Int) { AUTO(R.string.dir_auto), RTL(R.string.dir_rtl), LTR(R.string.dir_ltr) }
 
 data class AppSettings(
@@ -32,6 +33,11 @@ data class AppSettings(
     val layoutDir: LayoutDir = LayoutDir.AUTO,
     val overlayPromptShown: Boolean = false,
     val volumeKeys: Boolean = true,
+    val tripRecording: Boolean = true,
+    val tripClipMinutes: Int = 3,
+    val tripMaxStorageGb: Int = 16,
+    val tripBurn: Boolean = true,
+    val orientation: ScreenOrientation = ScreenOrientation.AUTO,
 )
 
 /** Simple, synchronous settings store observable via StateFlow (shared by UI and service). */
@@ -39,6 +45,8 @@ object SettingsStore {
     val PRE_EVENT_OPTIONS = listOf(5, 10, 15, 30, 60)
     val FPS_OPTIONS = listOf(24, 30, 60)
     val STORAGE_OPTIONS = listOf(2, 4, 8, 16, 32, 64)
+    val TRIP_CLIP_OPTIONS = listOf(1, 2, 3, 5, 10, 15)
+    val TRIP_STORAGE_OPTIONS = listOf(4, 8, 16, 32, 64, 128)
 
     private lateinit var prefs: SharedPreferences
     private val _state = MutableStateFlow(AppSettings())
@@ -72,6 +80,11 @@ object SettingsStore {
             layoutDir = enumOr(getString("dir", null), LayoutDir.AUTO),
             overlayPromptShown = getBoolean("overlayPrompt", false),
             volumeKeys = getBoolean("volKeys", true),
+            tripRecording = getBoolean("trip", true),
+            tripClipMinutes = getInt("tripMin", 3),
+            tripMaxStorageGb = getInt("tripGb", 16),
+            tripBurn = getBoolean("tripBurn", true),
+            orientation = enumOr(getString("orient", null), ScreenOrientation.AUTO),
         )
     }
 
@@ -98,6 +111,11 @@ object SettingsStore {
             .putString("dir", s.layoutDir.name)
             .putBoolean("overlayPrompt", s.overlayPromptShown)
             .putBoolean("volKeys", s.volumeKeys)
+            .putBoolean("trip", s.tripRecording)
+            .putInt("tripMin", s.tripClipMinutes)
+            .putInt("tripGb", s.tripMaxStorageGb)
+            .putBoolean("tripBurn", s.tripBurn)
+            .putString("orient", s.orientation.name)
             .apply()
     }
 

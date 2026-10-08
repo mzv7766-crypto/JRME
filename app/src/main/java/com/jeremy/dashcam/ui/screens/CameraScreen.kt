@@ -46,6 +46,9 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -99,6 +102,8 @@ fun CameraScreen(onSettings: () -> Unit, onStartDrive: () -> Unit) {
 
     val onEvent = { DashcamController.toggleEvent(Trigger.MANUAL) }
     if (landscape) {
+      // Event button on the physical RIGHT side in landscape, also in Hebrew (RTL).
+      CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             CameraPreview(Modifier.fillMaxSize())
             PreviewOverlays(settings, now, state.eventActive, state.eventStartTime, Modifier.fillMaxSize().padding(end = 110.dp))
@@ -116,6 +121,7 @@ fun CameraScreen(onSettings: () -> Unit, onStartDrive: () -> Unit) {
                 RoundAction(Icons.Filled.Tune, stringResource(R.string.quick_settings), { quick = true }, size = 46.dp)
             }
         }
+      }
     } else {
         Column(Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 6.dp)) {
             Box(Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(22.dp)).background(Color.Black)) {

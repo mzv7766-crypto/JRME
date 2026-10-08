@@ -145,4 +145,25 @@
     <string name="live_vision">תנועה חריגה בתמונה</string>
     <string name="live_impact_thr" formatted="true">סף מכה %1$.1fG • סף בלימה %2$.2fG</string>
     <string name="detect_note">מכה ובלימה חדה נמדדות בכוח האופקי בלבד, כך שבורות ופסי האטה לא מפעילים אירוע. זיהוי בתמונה מופעל רק כשהחיישנים מאשרים תנועה, או כשהשינוי חזק מאוד.</string>
+    <string name="tab_events">אירועים</string>
+    <string name="tab_trips">נסיעה מלאה</string>
+    <string name="trips_empty">עדיין אין הקלטות נסיעה</string>
+    <string name="trips_empty_hint">כשהקלטת נסיעה מלאה פעילה, כל הדרך נשמרת כאן בסרטונים לפי האורך שבחרת</string>
+    <string name="trip_clip">נסיעה</string>
+    <string name="drive_header" formatted="true">%1$s – %2$s • %3$d דק׳ • %4$d סרטונים</string>
+    <string name="sec_trip">הקלטת נסיעה מלאה</string>
+    <string name="trip_record">שמור את כל הנסיעה</string>
+    <string name="trip_clip_len">אורך כל סרטון</string>
+    <string name="trip_max_storage">נפח מרבי לנסיעות</string>
+    <string name="trip_burn">צרוב תאריך ומיתוג גם בסרטוני נסיעה</string>
+    <string name="trip_note">הנסיעה נשמרת בנפרד מהאירועים. כשהנפח מתמלא נמחקים הסרטונים הישנים ביותר (סרטון נעול לא יימחק). צריבה בסרטוני נסיעה צורכת יותר סוללה.</string>
+    <string name="min_fmt" formatted="true">%d דק׳</string>
+    <string name="trip_status" formatted="true">נסיעה מלאה נשמרת • סרטון כל %d דק׳</string>
+    <string name="orientation">כיוון מסך</string>
+    <string name="orient_auto">אוטומטי לפי המכשיר</string>
+    <string name="orient_portrait">תמיד לאורך</string>
+    <string name="orient_landscape">תמיד לרוחב</string>
+    <string name="g_trip">נסיעה מלאה</string>
+    <string name="g_trip_sub">כל הדרך נשמרת</string>
+    <string name="g_trip_body">כשהאפשרות פעילה, Jeremy שומרת את כל הנסיעה בנפרד מהאירועים, בסרטונים לפי האורך שבחרת (למשל 3 דקות). הסרטונים נמצאים במסך האירועים בלשונית \"נסיעה מלאה\", מקובצים לפי נסיעה. כשהנפח מתמלא, הישנים נמחקים – נעל סרטון כדי לשמור אותו.</string>
 </resources>

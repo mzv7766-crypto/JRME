@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -112,6 +114,34 @@ fun BottomBar(current: String?, onSelect: (String) -> Unit) {
  * Opening animation: the Jeremy camera drives up the road toward the viewer (road dashes and
  * reflectors stream past), then lifts to the centre while the "Jeremy" name fades in.
  */
+/** Landscape navigation: vertical rail on the side of the screen. */
+@Composable
+fun SideRail(current: String?, onSelect: (String) -> Unit) {
+    Row(Modifier.fillMaxHeight()) {
+        Column(
+            Modifier.width(84.dp).fillMaxHeight().background(J.BgDeep.copy(alpha = 0.96f)).padding(vertical = 6.dp),
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            tabs.forEach { t ->
+                val sel = current == t.route
+                Column(
+                    Modifier.width(76.dp).clip(RoundedCornerShape(14.dp)).clickable { onSelect(t.route) }.padding(vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(
+                        Modifier.clip(RoundedCornerShape(12.dp)).background(if (sel) J.Green.copy(alpha = 0.18f) else androidx.compose.ui.graphics.Color.Transparent)
+                            .padding(horizontal = 14.dp, vertical = 3.dp),
+                    ) { Icon(t.icon, null, tint = if (sel) J.Mint else J.TextDim, modifier = Modifier.size(24.dp)) }
+                    Spacer(Modifier.height(2.dp))
+                    Text(stringResource(t.label), fontSize = 11.sp, color = if (sel) J.Mint else J.TextDim, fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal, maxLines = 1)
+                }
+            }
+        }
+        Box(Modifier.width(1.dp).fillMaxHeight().background(J.Stroke))
+    }
+}
+
 @Composable
 fun SplashScreen(onFinished: () -> Unit = {}) {
     val approach = remember { Animatable(0f) }

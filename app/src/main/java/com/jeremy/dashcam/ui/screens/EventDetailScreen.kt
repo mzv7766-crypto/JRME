@@ -2,6 +2,7 @@ package com.jeremy.dashcam.ui.screens
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -44,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -76,7 +79,7 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
         Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = J.Text) }
             Text(
-                e?.let { it.name ?: stringResource(it.trigger.labelRes) } ?: "", color = J.Text, fontSize = 19.sp,
+                e?.let { it.name ?: if (it.isTrip) stringResource(R.string.trip_clip) + " " + formatTime(it.videoStartTime) + "–" + formatTime(it.endTime) else stringResource(it.trigger.labelRes) } ?: "", color = J.Text, fontSize = 19.sp,
                 fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
             )
             if (e != null) {
@@ -90,34 +93,51 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(R.string.event_not_found), color = J.TextDim) }
             return
         }
-        // Video takes the free space; actions sit BELOW it so they never cover the video.
-        Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 10.dp).clip(RoundedCornerShape(18.dp)).background(Color.Black)) {
-            VideoPlayer(e)
-        }
-        if (info) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp)) {
-                InfoLine(stringResource(R.string.reason), stringResource(e.trigger.labelRes) + (e.peakG?.let { " • %.1fG".format(it) } ?: ""))
-                InfoLine(stringResource(R.string.duration), Notifications.formatDuration(e.durationMs))
-                InfoLine(stringResource(R.string.size), "%.1f MB".format(e.sizeBytes / 1_048_576.0))
-                InfoLine("⏱", formatDateTime(e.triggerTime))
-            }
-        } else {
-            Text(
-                formatDateTime(e.triggerTime) + "  •  " + Notifications.formatDuration(e.durationMs),
-                color = J.TextDim, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
-            )
-        }
-        // Compact action menu
-        Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActionTile(Icons.Filled.Share, stringResource(R.string.share), Modifier.weight(1f)) { share(ctx, e) }
-            ActionTile(Icons.Filled.Edit, stringResource(R.string.rename), Modifier.weight(1f)) { rename = true }
+        val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val lockedMsg = stringResource(R.string.delete_locked)
+        val actions: @Composable (Modifier) -> Unit = { m ->
+            ActionTile(Icons.Filled.Share, stringResource(R.string.share), m) { share(ctx, e) }
+            ActionTile(Icons.Filled.Edit, stringResource(R.string.rename), m) { rename = true }
             ActionTile(
                 if (e.locked) Icons.Filled.LockOpen else Icons.Filled.Lock,
-                stringResource(if (e.locked) R.string.unlock else R.string.lock), Modifier.weight(1f),
+                stringResource(if (e.locked) R.string.unlock else R.string.lock), m,
             ) { EventRepository.setLocked(e.id, !e.locked) }
-            val lockedMsg = stringResource(R.string.delete_locked)
-            ActionTile(Icons.Filled.Delete, stringResource(R.string.delete), Modifier.weight(1f), tint = if (e.locked) J.TextDim else J.Red) {
+            ActionTile(Icons.Filled.Delete, stringResource(R.string.delete), m, tint = if (e.locked) J.TextDim else J.Red) {
                 if (e.locked) Toast.makeText(ctx, lockedMsg, Toast.LENGTH_SHORT).show() else confirmDelete = true
+            }
+        }
+        val details: @Composable () -> Unit = {
+            if (info) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp)) {
+                    InfoLine(stringResource(R.string.reason), if (e.isTrip) stringResource(R.string.trip_clip) else stringResource(e.trigger.labelRes) + (e.peakG?.let { " • %.1fG".format(it) } ?: ""))
+                    InfoLine(stringResource(R.string.duration), Notifications.formatDuration(e.durationMs))
+                    InfoLine(stringResource(R.string.size), "%.1f MB".format(e.sizeBytes / 1_048_576.0))
+                    InfoLine("⏱", formatDateTime(e.triggerTime))
+                }
+            } else {
+                Text(
+                    formatDateTime(e.triggerTime) + "  •  " + Notifications.formatDuration(e.durationMs),
+                    color = J.TextDim, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
+                )
+            }
+        }
+        if (landscape) {
+            // Landscape: video on the side, compact actions in a column – nothing covers the video.
+            Row(Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 4.dp)) {
+                Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(18.dp)).background(Color.Black)) { VideoPlayer(e) }
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.width(112.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    actions(Modifier.fillMaxWidth().weight(1f))
+                }
+            }
+        } else {
+            // Video takes the free space; actions sit BELOW it so they never cover the video.
+            Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 10.dp).clip(RoundedCornerShape(18.dp)).background(Color.Black)) {
+                VideoPlayer(e)
+            }
+            details()
+            Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                actions(Modifier.weight(1f))
             }
         }
     }
@@ -155,8 +175,9 @@ private fun InfoLine(k: String, v: String) {
 private fun ActionTile(icon: ImageVector, label: String, modifier: Modifier, tint: Color = J.Text, onClick: () -> Unit) {
     Column(
         modifier.clip(RoundedCornerShape(16.dp)).background(J.Card).border(1.dp, J.Stroke, RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick).padding(vertical = 12.dp),
+            .clickable(onClick = onClick).padding(vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(icon, label, tint = tint, modifier = Modifier.size(26.dp))
         Spacer(Modifier.height(4.dp))

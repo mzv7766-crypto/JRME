@@ -144,4 +144,25 @@
     <string name="live_vision">Unusual motion in image</string>
     <string name="live_impact_thr" formatted="true">Impact threshold %1$.1fG • Braking threshold %2$.2fG</string>
     <string name="detect_note">Impacts and harsh braking use horizontal force only, so potholes and speed bumps don\'t trigger. Image detection fires only when the motion sensors confirm it, or when the change is very strong.</string>
+    <string name="tab_events">Events</string>
+    <string name="tab_trips">Full drive</string>
+    <string name="trips_empty">No drive recordings yet</string>
+    <string name="trips_empty_hint">With full-drive recording on, the whole drive is saved here in clips of the length you chose</string>
+    <string name="trip_clip">Drive</string>
+    <string name="drive_header" formatted="true">%1$s – %2$s • %3$d min • %4$d clips</string>
+    <string name="sec_trip">Full-drive recording</string>
+    <string name="trip_record">Save the whole drive</string>
+    <string name="trip_clip_len">Clip length</string>
+    <string name="trip_max_storage">Max storage for drives</string>
+    <string name="trip_burn">Burn date &amp; branding into drive clips too</string>
+    <string name="trip_note">Drives are stored separately from events. When the space fills up, the oldest clips are deleted (locked clips are kept). Burning into drive clips uses more battery.</string>
+    <string name="min_fmt" formatted="true">%d min</string>
+    <string name="trip_status" formatted="true">Full drive is being saved • a clip every %d min</string>
+    <string name="orientation">Screen orientation</string>
+    <string name="orient_auto">Auto (follow device)</string>
+    <string name="orient_portrait">Always portrait</string>
+    <string name="orient_landscape">Always landscape</string>
+    <string name="g_trip">Full drive</string>
+    <string name="g_trip_sub">The whole way is saved</string>
+    <string name="g_trip_body">When enabled, Jeremy saves the whole drive separately from events, in clips of the length you chose (e.g. 3 minutes). Find them in Events → \"Full drive\", grouped by drive. When the space fills up, the oldest are deleted – lock a clip to keep it.</string>
 </resources>

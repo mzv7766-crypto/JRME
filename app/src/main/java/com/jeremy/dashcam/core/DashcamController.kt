@@ -22,6 +22,8 @@ data class DashcamState(
     val eventTrigger: Trigger? = null,
     val eventPeakG: Float? = null,
     val savingCount: Int = 0,
+    /** Trip clips still being written after the drive was turned off. */
+    val backgroundSaving: Boolean = false,
     val lensFacing: Int = CameraSelector.LENS_FACING_BACK,
     val audioActive: Boolean = false,
     val error: String? = null,

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -70,6 +71,7 @@ private val guide = listOf(
     GuideItem(Icons.Filled.PlayArrow, J.Green, R.string.g_quick, R.string.g_quick_sub, R.string.g_quick_body),
     GuideItem(Icons.Filled.DirectionsCar, J.Mint, R.string.g_drive, R.string.g_drive_sub, R.string.g_drive_body),
     GuideItem(Icons.Filled.Warning, J.Amber, R.string.g_event, R.string.g_event_sub, R.string.g_event_body),
+    GuideItem(Icons.Filled.Route, J.Mint, R.string.g_trip, R.string.g_trip_sub, R.string.g_trip_body),
     GuideItem(Icons.Filled.RadioButtonChecked, J.Green, R.string.g_float, R.string.g_float_sub, R.string.g_float_body),
     GuideItem(Icons.Filled.Mic, J.Mint, R.string.g_voice, R.string.g_voice_sub, R.string.g_voice_body),
     GuideItem(Icons.Filled.Share, J.Green, R.string.g_share, R.string.g_share_sub, R.string.g_share_body),

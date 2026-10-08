@@ -52,6 +52,7 @@ import com.jeremy.dashcam.core.VoiceCommander
 import com.jeremy.dashcam.data.AppSettings
 import com.jeremy.dashcam.data.EventRecord
 import com.jeremy.dashcam.data.EventRepository
+import com.jeremy.dashcam.data.RecordKind
 import com.jeremy.dashcam.data.Resolution
 import com.jeremy.dashcam.data.SettingsStore
 import com.jeremy.dashcam.data.Trigger
@@ -109,7 +110,46 @@ class DashcamService : LifecycleService() {
     // Rolling buffer
     private val bufferDir by lazy { File(filesDir, "buffer").apply { mkdirs() } }
     private val segments = ArrayList<Segment>()
-    private val protectedFiles = HashSet<File>()
+    /** Segments in use by a pending event or trip export (ref-counted: both may use the same file). */
+    private val protectedRefs = HashMap<File, Int>()
+    private fun protect(files: Collection<File>) = files.forEach { protectedRefs[it] = (protectedRefs[it] ?: 0) + 1 }
+    private fun unprotect(files: Collection<File>) = files.forEach { f ->
+        val n = (protectedRefs[f] ?: 0) - 1
+        if (n <= 0) protectedRefs.remove(f) else protectedRefs[f] = n
+    }
+    private fun isProtected(f: File) = protectedRefs.containsKey(f)
+
+    // ---- export queue: one export at a time, events before trip clips ----
+    private class ExportJob(val isEvent: Boolean, val run: (done: () -> Unit) -> Unit)
+    private val exportQueue = ArrayDeque<ExportJob>()
+    private var exportBusy = false
+    private var pendingTripJobs = 0
+
+    private fun enqueueExport(job: ExportJob) {
+        if (job.isEvent) {
+            val idx = exportQueue.indexOfFirst { !it.isEvent }
+            if (idx < 0) exportQueue.addLast(job) else exportQueue.add(idx, job)
+        } else exportQueue.addLast(job)
+        pumpExports()
+    }
+
+    private fun pumpExports() {
+        if (exportBusy) return
+        val job = exportQueue.removeFirstOrNull() ?: return
+        exportBusy = true
+        job.run { main.post { exportBusy = false; pumpExports(); maybeFinish() } }
+    }
+
+    private fun idle() = state.value.savingCount == 0 && pendingTripJobs == 0 && !exportBusy && exportQueue.isEmpty()
+
+    private fun maybeFinish() {
+        if (!running && idle()) finishService()
+    }
+
+    // ---- full-trip recording ----
+    private var tripId = 0L
+    private val tripPending = ArrayList<Segment>()
+    private var tripClipStart = 0L
     private var activeRecording: Recording? = null
     private var activeStartWall = 0L
     private val finalizeCallbacks = ArrayList<() -> Unit>()
@@ -168,7 +208,7 @@ class DashcamService : LifecycleService() {
                 state.value = DashcamState(); stopSelf()
             }
         }
-        if (!running && state.value.savingCount == 0 && intent?.action != ACTION_START) stopSelf()
+        if (!running && idle() && intent?.action != ACTION_START) stopSelf()
         return START_NOT_STICKY
     }
 
@@ -201,6 +241,7 @@ class DashcamService : LifecycleService() {
 
         bufferDir.listFiles()?.forEach { it.delete() } // leftovers from a previous crash
         segments.clear()
+        tripId = now; tripPending.clear(); tripClipStart = 0L
 
         orientationListener = object : OrientationEventListener(this) {
             override fun onOrientationChanged(o: Int) {
@@ -259,12 +300,12 @@ class DashcamService : LifecycleService() {
     /** Turns drive mode fully off: saves a running event, stops camera + sensors, removes the floating button. */
     fun shutdown() {
         if (!running) {
-            if (state.value.savingCount == 0) stopSelf()
+            if (idle()) stopSelf()
             return
         }
         if (state.value.eventActive) stopEvent()
         teardown()
-        if (state.value.savingCount == 0) finishService()
+        maybeFinish()
         // else: stay alive (with a "saving" notification) until the export completes.
     }
 
@@ -279,14 +320,15 @@ class DashcamService : LifecycleService() {
         ProcessLifecycleOwner.get().lifecycle.removeObserver(processObserver)
         val rec = activeRecording
         if (rec != null) {
-            finalizeCallbacks += { unbindCamera(); cleanBuffer() }
+            finalizeCallbacks += { unbindCamera(); flushTrip(final = true); cleanBuffer() }
             rec.stop()
         } else {
-            unbindCamera(); cleanBuffer()
+            unbindCamera(); flushTrip(final = true); cleanBuffer()
         }
         val saving = state.value.savingCount
-        state.value = DashcamState(savingCount = saving)
-        if (saving > 0) {
+        val background = pendingTripJobs > 0 || exportBusy || exportQueue.isNotEmpty() || tripPending.isNotEmpty() || activeRecording != null
+        state.value = DashcamState(savingCount = saving, backgroundSaving = background)
+        if (saving > 0 || background) {
             getSystemService(NotificationManager::class.java).notify(Notifications.ID_DRIVE, Notifications.drive(this, state.value))
         }
     }
@@ -428,8 +470,10 @@ class DashcamService : LifecycleService() {
                     val gap = if (lastSegmentEndWall > 0) activeStartWall - lastSegmentEndWall else 0
                     Log.i(LOG, "segment ${file.name} dur=${durMs}ms gapBefore=${gap}ms")
                     lastSegmentEndWall = activeStartWall + durMs
-                    segments += Segment(file, activeStartWall, durMs)
+                    val seg = Segment(file, activeStartWall, durMs)
+                    segments += seg
                     consecutiveFailures = 0
+                    onTripSegment(seg)
                 } else {
                     file.delete()
                     if (ev.error != VideoRecordEvent.Finalize.ERROR_NONE) {
@@ -466,13 +510,13 @@ class DashcamService : LifecycleService() {
         val it = segments.iterator()
         while (it.hasNext()) {
             val seg = it.next()
-            if (seg.endWall < keepFrom && seg.file !in protectedFiles) { seg.file.delete(); it.remove() }
+            if (seg.endWall < keepFrom && !isProtected(seg.file)) { seg.file.delete(); it.remove() }
         }
     }
 
     private fun cleanBuffer() {
         val it = segments.iterator()
-        while (it.hasNext()) { val seg = it.next(); if (seg.file !in protectedFiles) { seg.file.delete(); it.remove() } }
+        while (it.hasNext()) { val seg = it.next(); if (!isProtected(seg.file)) { seg.file.delete(); it.remove() } }
     }
 
     // ---------------------------------------------------------------- events
@@ -570,25 +614,28 @@ class DashcamService : LifecycleService() {
             if (chosen.isEmpty()) {
                 onExportFinished(null, null)
             } else {
-                protectedFiles += chosen.map { it.file }
                 val pieces = chosen.mapIndexed { i, seg ->
                     val clip = if (i == 0) (from - seg.startWall).coerceIn(0, (seg.durationMs - 200).coerceAtLeast(0)) else 0L
                     EventExporter.Piece(seg.file, clip, seg.durationMs, seg.startWall)
                 }
                 Log.i(LOG, "export pieces=${pieces.size} mediaMs=${pieces.sumOf { it.durationMs - it.clipStartMs }} spanMs=${stopTime - from}")
                 val out = EventRepository.newEventFile(eventStart)
-                exporter.export(pieces, out, showDateTime) { result ->
-                    protectedFiles -= chosen.map { it.file }.toSet()
-                    if (running) pruneBuffer() else cleanBuffer()
-                    val record = result?.let {
-                        EventRecord(
-                            id = UUID.randomUUID().toString(), filePath = it.file.absolutePath, name = null,
-                            videoStartTime = it.videoStartWall, triggerTime = eventStart, durationMs = it.durationMs,
-                            trigger = trigger, locked = false, sizeBytes = it.sizeBytes, peakG = peakG,
-                        )
+                protect(chosen.map { it.file })
+                enqueueExport(ExportJob(isEvent = true) { done ->
+                    exporter.export(pieces, out, showDateTime) { result ->
+                        unprotect(chosen.map { it.file })
+                        if (running) pruneBuffer() else cleanBuffer()
+                        val record = result?.let {
+                            EventRecord(
+                                id = UUID.randomUUID().toString(), filePath = it.file.absolutePath, name = null,
+                                videoStartTime = it.videoStartWall, triggerTime = eventStart, durationMs = it.durationMs,
+                                trigger = trigger, locked = false, sizeBytes = it.sizeBytes, peakG = peakG,
+                            )
+                        }
+                        onExportFinished(record, out)
+                        done()
                     }
-                    onExportFinished(record, out)
-                }
+                })
             }
         }
         if (activeRecording != null) {
@@ -597,6 +644,53 @@ class DashcamService : LifecycleService() {
         } else {
             collectAndExport()
         }
+    }
+
+    /** Every finished segment joins the current trip clip; when the clip reaches N minutes it is saved. */
+    private fun onTripSegment(seg: Segment) {
+        if (!settings.tripRecording) { if (tripPending.isNotEmpty()) flushTrip(final = false); return }
+        if (tripPending.isEmpty()) tripClipStart = seg.startWall
+        tripPending += seg
+        protect(listOf(seg.file))
+        if (seg.endWall - tripClipStart >= settings.tripClipMinutes * 60_000L) flushTrip(final = false)
+    }
+
+    private fun flushTrip(final: Boolean) {
+        if (tripPending.isEmpty()) return
+        val segs = tripPending.toList(); tripPending.clear()
+        val files = segs.map { it.file }
+        if (segs.sumOf { it.durationMs } < 1500) { unprotect(files); return } // too short to keep
+        val pieces = segs.map { EventExporter.Piece(it.file, 0, it.durationMs, it.startWall) }
+        val start = segs.first().startWall
+        val out = EventRepository.newTripFile(start)
+        val thisTrip = tripId
+        val showDateTime = settings.showDateTime
+        pendingTripJobs++
+        Log.i(LOG, "trip clip queued: ${segs.size} segments, ${segs.sumOf { it.durationMs }}ms final=$final")
+        enqueueExport(ExportJob(isEvent = false) { done ->
+            // If saving falls behind (slow device), skip burning for the backlog so the drive is never lost.
+            val burn = settings.tripBurn && exportQueue.count { !it.isEvent } < 2
+            exporter.export(pieces, out, showDateTime, burn) { result ->
+                unprotect(files)
+                if (running) pruneBuffer() else cleanBuffer()
+                val record = result?.let {
+                    EventRecord(
+                        id = UUID.randomUUID().toString(), filePath = it.file.absolutePath, name = null,
+                        videoStartTime = it.videoStartWall, triggerTime = start, durationMs = it.durationMs,
+                        trigger = Trigger.MANUAL, locked = false, sizeBytes = it.sizeBytes,
+                        kind = RecordKind.TRIP, tripId = thisTrip,
+                    )
+                }
+                Thread {
+                    if (record != null) EventRepository.add(record) else out.delete()
+                    main.post {
+                        pendingTripJobs--
+                        if (!running && pendingTripJobs == 0) state.update { it.copy(backgroundSaving = false) }
+                        done()
+                    }
+                }.start()
+            }
+        })
     }
 
     private fun onExportFinished(record: EventRecord?, out: File?) {
@@ -612,7 +706,7 @@ class DashcamService : LifecycleService() {
                     out?.delete()
                     Notifications.eventFailed(this)
                 }
-                if (!running && state.value.savingCount == 0) finishService()
+                maybeFinish()
             }
         }.start()
     }
