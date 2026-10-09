@@ -117,7 +117,18 @@ class DashcamService : LifecycleService() {
         override fun onDisplayChanged(displayId: Int) {
             if (displayId != android.view.Display.DEFAULT_DISPLAY) return
             val r = displayRotation()
-            preview?.let { if (it.targetRotation != r) { it.targetRotation = r; Log.i(LOG, "preview rotation → $r") } }
+            preview?.let { pv ->
+                if (pv.targetRotation != r) {
+                    pv.targetRotation = r
+                    // re-attach so the on-screen surface gets a new transform for the new rotation
+                    val sp = DashcamController.previewSurface.value
+                    if (sp != null) runCatching {
+                        pv.setSurfaceProvider(null)
+                        pv.setSurfaceProvider(ContextCompat.getMainExecutor(this@DashcamService), sp)
+                    }
+                    Log.i(LOG, "preview rotation → $r")
+                }
+            }
             onOrientationMaybeChanged()
         }
         override fun onDisplayAdded(displayId: Int) = Unit

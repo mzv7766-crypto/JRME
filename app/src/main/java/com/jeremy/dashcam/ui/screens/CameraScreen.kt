@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -162,14 +163,17 @@ fun CameraScreen(onSettings: () -> Unit, onStartDrive: () -> Unit) {
 private fun CameraPreview(modifier: Modifier) {
     val ctx = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val previewView = remember {
+    // The activity rotates without being recreated, so build a fresh PreviewView (and surface) per rotation:
+    // the camera service then attaches it with the correct rotation – no sideways picture after turning the phone.
+    val rotationKey = LocalConfiguration.current.orientation
+    val previewView = remember(rotationKey) {
         PreviewView(ctx).apply {
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
             scaleType = PreviewView.ScaleType.FILL_CENTER
         }
     }
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, previewView) {
         val obs = LifecycleEventObserver { _, e ->
             when (e) {
                 Lifecycle.Event.ON_START -> DashcamController.previewSurface.value = previewView.surfaceProvider
@@ -186,7 +190,7 @@ private fun CameraPreview(modifier: Modifier) {
             if (DashcamController.previewSurface.value === previewView.surfaceProvider) DashcamController.previewSurface.value = null
         }
     }
-    AndroidView({ previewView }, modifier)
+    key(previewView) { AndroidView({ previewView }, modifier) }
 }
 
 /** On-screen preview of what gets burned into the saved MP4 (date/time on top, Jeremy at the bottom). */
