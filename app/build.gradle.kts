@@ -12,8 +12,8 @@ android {
         applicationId = "com.jeremy.dashcam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 36
-        versionName = "1.7"
+        versionCode = 35
+        versionName = "1.6"
     }
 
     buildTypes {
