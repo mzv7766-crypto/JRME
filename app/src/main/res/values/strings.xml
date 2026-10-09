@@ -169,4 +169,6 @@
     <string name="auto_stop">סיום אוטומטי לאירוע שזוהה לבד</string>
     <string name="auto_stop_after">סיים אחרי</string>
     <string name="auto_stop_in" formatted="true">ייסגר אוטומטית בעוד %d שנ׳</string>
+    <string name="rec_landscape">▭ מקליט לרוחב</string>
+    <string name="rec_portrait">▯ מקליט לאורך</string>
 </resources>

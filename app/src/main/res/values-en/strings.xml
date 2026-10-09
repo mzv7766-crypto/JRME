@@ -168,4 +168,6 @@
     <string name="auto_stop">Auto-end events that started by themselves</string>
     <string name="auto_stop_after">End after</string>
     <string name="auto_stop_in" formatted="true">Ends automatically in %d s</string>
+    <string name="rec_landscape">▭ Recording landscape</string>
+    <string name="rec_portrait">▯ Recording portrait</string>
 </resources>

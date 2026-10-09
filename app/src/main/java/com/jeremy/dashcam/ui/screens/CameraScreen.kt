@@ -228,6 +228,8 @@ private fun PreviewOverlays(s: AppSettings, now: Long, eventActive: Boolean, eve
 private fun TopInfo(s: AppSettings, eventActive: Boolean, audio: Boolean, modifier: Modifier) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         if (eventActive) Chip(stringResource(R.string.rec), leading = { Icon(Icons.Filled.FiberManualRecord, null, tint = J.Red, modifier = Modifier.size(12.dp)) })
+        val land = DashcamController.state.collectAsStateWithLifecycle().value.recordingLandscape
+        if (land != null) Chip(stringResource(if (land) R.string.rec_landscape else R.string.rec_portrait))
         Chip(
             "${s.resolution.height}P • ${s.fps} FPS",
             leading = { Icon(if (audio) Icons.Filled.Mic else Icons.Filled.MicOff, null, tint = Color.White, modifier = Modifier.size(14.dp)) },

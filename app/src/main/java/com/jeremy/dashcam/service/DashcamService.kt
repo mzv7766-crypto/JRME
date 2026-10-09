@@ -497,6 +497,8 @@ class DashcamService : LifecycleService() {
         if (!running || activeRecording != null) return
         val vc = videoCapture ?: return
         if (!state.value.eventActive) { segmentRotation = desiredRotation(); vc.targetRotation = segmentRotation } // one orientation per event
+        val land = segmentRotation == Surface.ROTATION_90 || segmentRotation == Surface.ROTATION_270
+        if (state.value.recordingLandscape != land) state.update { it.copy(recordingLandscape = land) }
         Log.i(LOG, "segment start rotation=$segmentRotation physical=$physicalRotation display=${displayRotation()} setting=${settings.orientation}")
         val file = File(bufferDir, "seg_${System.currentTimeMillis()}.mp4")
         try {

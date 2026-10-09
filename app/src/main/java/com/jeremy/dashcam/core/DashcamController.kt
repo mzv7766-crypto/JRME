@@ -23,6 +23,8 @@ data class DashcamState(
     val eventPeakG: Float? = null,
     /** Wall time at which an automatically started event ends by itself (0 = no auto end). */
     val autoStopAt: Long = 0L,
+    /** Orientation of the video being recorded right now (true = landscape). */
+    val recordingLandscape: Boolean? = null,
     val savingCount: Int = 0,
     /** Trip clips still being written after the drive was turned off. */
     val backgroundSaving: Boolean = false,
