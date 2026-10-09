@@ -16,6 +16,9 @@ import android.util.Size
 import android.view.OrientationEventListener
 import android.view.Surface
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.CompositionSettings
+import androidx.camera.core.ConcurrentCamera
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCase
@@ -327,7 +330,10 @@ class DashcamService : LifecycleService() {
 
         // React to settings while driving.
         driveJobs += lifecycleScope.launch { SettingsStore.state.collect { applySettings(it) } }
-        driveJobs += lifecycleScope.launch { com.jeremy.dashcam.data.ProStore.state.collect { applyProFeatures() } }
+        driveJobs += lifecycleScope.launch { com.jeremy.dashcam.data.ProStore.state.collect {
+            applyProFeatures()
+            if (appliedVideoKey != null && appliedVideoKey != videoKey(settings) && !state.value.eventActive) requestRebind()
+        } }
         // Attach / detach the on-screen preview offered by the UI (never opens the camera itself).
         driveJobs += lifecycleScope.launch {
             DashcamController.previewSurface.collect { sp ->
@@ -373,7 +379,7 @@ class DashcamService : LifecycleService() {
         driveJobs.forEach { it.cancel() }; driveJobs.clear()
         main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable); main.removeCallbacks(autoStopRunnable)
         shock.stop(); motion.enabled = false; voice.stop()
-        com.jeremy.dashcam.core.pro.LocationTracker.stop(); sosOverlay.dismiss()
+        com.jeremy.dashcam.core.pro.LocationTracker.stop(); sosOverlay.dismiss(); DashcamController.dualActive.value = false
         main.removeCallbacks(metricsTick); DashcamController.metrics.value = null
         floating.hide()
         orientationListener?.disable(); orientationListener = null; analysisUseCase = null
@@ -401,7 +407,7 @@ class DashcamService : LifecycleService() {
 
     // ---------------------------------------------------------------- camera
 
-    private fun videoKey(s: AppSettings) = "${s.resolution}/${s.fps}/${s.recordAudio}/${state.value.lensFacing}"
+    private fun videoKey(s: AppSettings) = "${s.resolution}/${s.fps}/${s.recordAudio}/${state.value.lensFacing}/${isPro && s.proDual}"
 
     @SuppressLint("RestrictedApi")
     private fun bindCamera() {
@@ -442,7 +448,30 @@ class DashcamService : LifecycleService() {
         val attempts: List<Pair<Boolean, Boolean>> = listOf(true to true, false to true, true to false, false to false) // fps, analysis
         var bound: VideoCapture<Recorder>? = null
         var lastError: Exception? = null
-        for ((fps, withAnalysis) in attempts) {
+        DashcamController.dualActive.value = false
+        // PRO (demo): front + back at once, composed picture-in-picture into ONE recording
+        val dualOk = runCatching { p.availableConcurrentCameraInfos.isNotEmpty() }.getOrDefault(false)
+        DashcamController.dualSupported.value = dualOk
+        if (isPro && s.proDual && dualOk) {
+            try {
+                val vc = buildVideo(false)
+                val group = UseCaseGroup.Builder().addUseCase(newPreview).addUseCase(vc).build()
+                val primary = ConcurrentCamera.SingleCameraConfig(
+                    CameraSelector.DEFAULT_BACK_CAMERA, group,
+                    CompositionSettings.Builder().setAlpha(1f).setOffset(0f, 0f).setScale(1f, 1f).build(), this)
+                val secondary = ConcurrentCamera.SingleCameraConfig(
+                    CameraSelector.DEFAULT_FRONT_CAMERA, group,
+                    CompositionSettings.Builder().setAlpha(1f).setOffset(-0.62f, 0.62f).setScale(0.33f, 0.33f).build(), this)
+                p.unbindAll()
+                p.bindToLifecycle(listOf(primary, secondary))
+                bound = vc
+                DashcamController.dualActive.value = true
+            } catch (e: Exception) {
+                lastError = e
+                Log.w(TAG, "dual bind failed", e)
+            }
+        }
+        if (bound == null) for ((fps, withAnalysis) in attempts) {
             val vc = buildVideo(fps)
             val cases = mutableListOf<UseCase>(newPreview, vc)
             if (withAnalysis) cases += analysis

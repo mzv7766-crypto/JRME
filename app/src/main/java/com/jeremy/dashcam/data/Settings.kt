@@ -50,6 +50,7 @@ data class AppSettings(
     val sosNumber: String = "",
     val sosSeconds: Int = 30,
     val sosMinG: Float = 3.5f,
+    val proDual: Boolean = false,
 )
 
 /** Simple, synchronous settings store observable via StateFlow (shared by UI and service). */
@@ -109,6 +110,7 @@ object SettingsStore {
             sosNumber = getString("sosNumber", "") ?: "",
             sosSeconds = getInt("sosSec", 30),
             sosMinG = getFloat("sosG", 3.5f),
+            proDual = getBoolean("proDual", false),
         )
     }
 
@@ -151,6 +153,7 @@ object SettingsStore {
             .putString("sosNumber", s.sosNumber)
             .putInt("sosSec", s.sosSeconds)
             .putFloat("sosG", s.sosMinG)
+            .putBoolean("proDual", s.proDual)
             .apply()
     }
 

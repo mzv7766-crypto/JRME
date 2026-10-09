@@ -13,7 +13,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 35
-        versionName = "1.6-demo2"
+        versionName = "1.6-demo3"
         applicationIdSuffix = ".demo"
         // demo: only 64-bit ARM (all current phones incl. Galaxy S26) to keep the APK small enough to send
         ndk { abiFilters += "arm64-v8a" }

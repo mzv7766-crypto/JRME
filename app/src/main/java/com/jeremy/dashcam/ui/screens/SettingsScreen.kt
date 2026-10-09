@@ -372,63 +372,121 @@ private fun ProSettingsCard(onOpenPro: () -> Unit) {
 }
 
 
-/** PRO features (demo). When not Pro every row shows a lock and opens the Pro screen. */
+/**
+ * PRO features (demo). Every feature has its own on/off switch and a PRO badge – shown to everyone.
+ * Pro users: the switches work. Others: the switches are locked and tapping opens the Pro screen.
+ */
 @Composable
 private fun ProFeaturesSection(isPro: Boolean, onOpenPro: () -> Unit) {
     val ctx = LocalContext.current
     val st by SettingsStore.state.collectAsStateWithLifecycle()
+    val dualSupported by DashcamController.dualSupported.collectAsStateWithLifecycle()
+    val dualActive by DashcamController.dualActive.collectAsStateWithLifecycle()
     var pickCar by remember { mutableStateOf(false) }
     var editSos by remember { mutableStateOf(false) }
 
+    fun has(p: String) = androidx.core.content.ContextCompat.checkSelfPermission(ctx, p) == android.content.pm.PackageManager.PERMISSION_GRANTED
     val locPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { r ->
         if (r.values.any { it }) SettingsStore.update { it.copy(proSpeedLocation = true) }
     }
     val btPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { ok -> if (ok) pickCar = true }
     val callPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { _ -> editSos = true }
-    fun has(p: String) = androidx.core.content.ContextCompat.checkSelfPermission(ctx, p) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
-    @Composable
-    fun Locked(label: String) {
-        Row(Modifier.fillMaxWidth().clickable(onClick = onOpenPro).padding(horizontal = 16.dp, vertical = 15.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(label, color = J.Text, fontSize = 15.sp, modifier = Modifier.weight(1f))
-            Icon(Icons.Filled.Lock, null, tint = J.Amber, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(4.dp))
-            Text("PRO", color = J.Amber, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
-        }
-        HorizontalDivider(color = J.Stroke, modifier = Modifier.padding(horizontal = 16.dp))
-    }
+    val camPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { _ -> }
 
     Section("תכונות Pro") {
-        if (!isPro) {
-            Locked("מהירות ומיקום בסרטון")
-            Locked("הפעלה אוטומטית עם ה־Bluetooth של הרכב")
-            Locked("קריאת לוחיות רישוי באירועים")
-            Locked("התראת חירום עם חיוג")
-            Locked("זיהוי חכם עם בינה מלאכותית (בקרוב)")
-            Locked("גיבוי ל־Google Drive (בקרוב)")
-            return@Section
-        }
-        Toggle("מהירות ומיקום בסרטון", st.proSpeedLocation && has(android.Manifest.permission.ACCESS_FINE_LOCATION)) { v ->
+        ProRow("מהירות ומיקום בסרטון", "נצרב על הסרטון ונשמר באירוע", isPro, st.proSpeedLocation && has(android.Manifest.permission.ACCESS_FINE_LOCATION), onOpenPro) { v ->
             if (v && !has(android.Manifest.permission.ACCESS_FINE_LOCATION))
                 locPerm.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION))
             else SettingsStore.update { it.copy(proSpeedLocation = v) }
         }
-        Nav("הפעלה אוטומטית ברכב", st.carBtName ?: "כבוי") {
-            if (android.os.Build.VERSION.SDK_INT >= 31 && !has(android.Manifest.permission.BLUETOOTH_CONNECT)) btPerm.launch(android.Manifest.permission.BLUETOOTH_CONNECT)
+        ProRow(
+            "מצלמה כפולה (קדמית + אחורית)",
+            when {
+                dualSupported == false -> "לא נתמך במכשיר זה"
+                dualActive -> "פעילה עכשיו • הנהג בחלון קטן בפינה"
+                dualSupported == null -> "ייבדק בהפעלת הנסיעה הבאה"
+                else -> "הכביש + הנהג בסרטון אחד"
+            },
+            isPro, st.proDual, onOpenPro,
+        ) { v ->
+            if (v && !has(android.Manifest.permission.CAMERA)) camPerm.launch(android.Manifest.permission.CAMERA)
+            SettingsStore.update { it.copy(proDual = v) }
+        }
+        ProRow("הפעלה אוטומטית ברכב", st.carBtName?.let { "מחובר ל: $it" } ?: "מתחיל לצלם כשהטלפון מתחבר ל־Bluetooth של הרכב", isPro, st.carBtAddress != null, onOpenPro) { v ->
+            if (!v) SettingsStore.update { it.copy(carBtAddress = null, carBtName = null) }
+            else if (android.os.Build.VERSION.SDK_INT >= 31 && !has(android.Manifest.permission.BLUETOOTH_CONNECT)) btPerm.launch(android.Manifest.permission.BLUETOOTH_CONNECT)
             else pickCar = true
         }
-        Toggle("קריאת לוחיות רישוי באירועים", st.proPlates) { v -> SettingsStore.update { it.copy(proPlates = v) } }
-        Nav("התראת חירום", if (st.sosEnabled && st.sosNumber.isNotBlank()) "${st.sosName.ifBlank { st.sosNumber }} • ${st.sosSeconds} שנ׳" else "כבוי", last = true) {
+        ProRow("קריאת לוחיות רישוי", "מזהה מספרי רכב בסרטוני אירועים", isPro, st.proPlates, onOpenPro) { v ->
+            SettingsStore.update { it.copy(proPlates = v) }
+        }
+        ProRow(
+            "התראת חירום עם חיוג",
+            if (st.sosNumber.isNotBlank()) "${st.sosName.ifBlank { st.sosNumber }} • ${st.sosSeconds} שנ׳" else "אחרי מכה חזקה – חיוג למספר שתגדיר",
+            isPro, st.sosEnabled && st.sosNumber.isNotBlank(), onOpenPro,
+        ) { v ->
+            when {
+                !v -> SettingsStore.update { it.copy(sosEnabled = false) }
+                !has(android.Manifest.permission.CALL_PHONE) -> callPerm.launch(android.Manifest.permission.CALL_PHONE)
+                st.sosNumber.isBlank() -> editSos = true
+                else -> SettingsStore.update { it.copy(sosEnabled = true) }
+            }
+        }
+        if (isPro) Nav("הגדרות חירום", if (st.sosNumber.isBlank()) "לא הוגדר" else st.sosNumber) {
             if (!has(android.Manifest.permission.CALL_PHONE)) callPerm.launch(android.Manifest.permission.CALL_PHONE) else editSos = true
         }
+        ProRow("זיהוי חכם עם בינה מלאכותית", "בקרוב", isPro, false, onOpenPro, soon = true) {}
+        ProRow("גיבוי ל־Google Drive", "בקרוב", isPro, false, onOpenPro, soon = true, last = true) {}
     }
     Text(
-        "הפעלה אוטומטית ברכב והתראת חירום עובדות גם כשהאפליקציה סגורה, בתנאי שהרשאת \"הצגה מעל אפליקציות\" מאושרת.",
+        if (isPro) "הפעלה אוטומטית ברכב והתראת חירום עובדות גם כשהאפליקציה סגורה, בתנאי שהרשאת \"הצגה מעל אפליקציות\" מאושרת. במצב מצלמה כפולה הזיהוי החזותי כבוי (החיישנים ממשיכים לעבוד)."
+        else "התכונות המסומנות ב־PRO זמינות למנויי Jeremy Pro. לחץ על אחת מהן כדי להתחיל ${com.jeremy.dashcam.data.ProStore.TRIAL_DAYS} ימי ניסיון חינם.",
         color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
     )
 
     if (pickCar) CarPicker(onDismiss = { pickCar = false })
     if (editSos) SosDialog(st, onDismiss = { editSos = false })
+}
+
+/** A Pro feature row: title, subtitle, PRO badge and an on/off switch (locked when not Pro). */
+@Composable
+private fun ProRow(
+    label: String, sub: String, isPro: Boolean, value: Boolean, onOpenPro: () -> Unit,
+    soon: Boolean = false, last: Boolean = false, onChange: (Boolean) -> Unit,
+) {
+    val usable = isPro && !soon
+    val click: () -> Unit = {
+        when {
+            !isPro -> onOpenPro()
+            !soon -> onChange(!value)
+            else -> Unit
+        }
+    }
+    Row(
+        Modifier.fillMaxWidth().clickable(enabled = !soon || !isPro, onClick = click).padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(label, color = J.Text.copy(alpha = if (soon) 0.55f else 1f), fontSize = 15.sp, modifier = Modifier.weight(1f, fill = false))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    "PRO", color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(if (isPro) J.Mint else J.Amber).padding(horizontal = 6.dp, vertical = 1.dp),
+                )
+            }
+            Text(sub, color = J.TextDim, fontSize = 12.sp)
+        }
+        Spacer(Modifier.width(8.dp))
+        if (!isPro) Icon(Icons.Filled.Lock, null, tint = J.Amber, modifier = Modifier.size(18.dp).padding(end = 2.dp))
+        Switch(
+            checked = usable && value,
+            onCheckedChange = { v: Boolean -> if (usable) onChange(v) else if (!isPro) onOpenPro() },
+            enabled = !soon,
+            colors = SwitchDefaults.colors(checkedTrackColor = J.Green, checkedThumbColor = Color.White, uncheckedTrackColor = J.Surface),
+        )
+    }
+    if (!last) HorizontalDivider(color = J.Stroke, modifier = Modifier.padding(horizontal = 16.dp))
 }
 
 @android.annotation.SuppressLint("MissingPermission")
