@@ -47,7 +47,8 @@ XML
   for kind in EVENT TRIP; do
     P=$(python3 -c "import json;r=[e['path'] for e in json.load(open('$OUT/$1_events.json')) if e.get('kind')=='$kind'];print(r[0] if r else '')")
     [ -z "$P" ] && { info "$1: no $kind file"; continue; }
-    adb exec-out run-as $PKG cat "$P" > $OUT/$1_$kind.mp4
+    adb pull "$P" $OUT/$1_$kind.mp4 >/dev/null 2>&1 || adb exec-out run-as $PKG cat "$P" > $OUT/$1_$kind.mp4
+    info "$1: $kind file size $(stat -c %s $OUT/$1_$kind.mp4)"
     info "$1: exported $kind (w h rotation): $(probe $OUT/$1_$kind.mp4)"
     ffmpeg -v error -y -ss 3 -i $OUT/$1_$kind.mp4 -frames:v 1 $OUT/$1_${kind}_frame.png
   done
