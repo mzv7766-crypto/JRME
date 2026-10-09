@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
@@ -67,7 +69,7 @@ import com.jeremy.dashcam.ui.theme.J
 private data class Choice<T>(val title: String, val options: List<T>, val label: (T) -> String, val selected: T, val onPick: (T) -> Unit)
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(onOpenPro: () -> Unit = {}) {
     val s by SettingsStore.state.collectAsStateWithLifecycle()
     val events by EventRepository.events.collectAsStateWithLifecycle()
     val ctx = LocalContext.current
@@ -82,6 +84,8 @@ fun SettingsScreen() {
     Column(Modifier.fillMaxSize()) {
         ScreenHeader(stringResource(R.string.settings_title))
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 14.dp)) {
+
+            ProSettingsCard(onOpenPro)
 
             Section(stringResource(R.string.sec_video)) {
                 Nav(stringResource(R.string.pre_event), secFmt.format(s.preEventSeconds)) {
@@ -330,6 +334,57 @@ private fun Meter(label: String, value: String, fraction: Float, marker: Float, 
         Box(Modifier.fillMaxWidth(f).height(10.dp).clip(RoundedCornerShape(5.dp)).background(color))
         Box(Modifier.fillMaxWidth(marker.coerceIn(0f, 1f)).height(10.dp)) {
             Box(Modifier.align(Alignment.CenterEnd).width(2.dp).height(10.dp).background(J.Text.copy(alpha = 0.6f)))
+        }
+    }
+}
+
+/** DEMO: Pro entry point + Pro-only features (locked unless Pro). */
+@Composable
+private fun ProSettingsCard(onOpenPro: () -> Unit) {
+    val p by com.jeremy.dashcam.data.ProStore.state.collectAsStateWithLifecycle()
+    val ctx = LocalContext.current
+    Spacer(Modifier.height(10.dp))
+    JCard(Modifier.fillMaxWidth(), onClick = onOpenPro) {
+        Row(
+            Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(J.GreenDark, J.Card))).padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(androidx.compose.material.icons.Icons.Filled.Star, null, tint = if (p.isPro) J.Mint else J.Amber, modifier = Modifier.size(28.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Jeremy Pro", color = J.Text, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text(
+                    when {
+                        p.isAdmin -> "מנהל • Pro מלא"
+                        p.isFreeAccount -> "חשבון חינם • Pro מלא"
+                        p.trialActive -> "תקופת ניסיון • נותרו ${com.jeremy.dashcam.data.ProStore.daysLeft(p.trialEndsAt)} ימים"
+                        p.isPro -> "Pro פעיל"
+                        else -> "${com.jeremy.dashcam.data.ProStore.TRIAL_DAYS} ימי ניסיון חינם, אחר כך ${com.jeremy.dashcam.data.ProStore.PRICE} לחודש"
+                    },
+                    color = J.TextDim, fontSize = 13.sp,
+                )
+            }
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = J.TextDim)
+        }
+    }
+    Section("תכונות Pro") {
+        listOf("זיהוי חכם עם בינה מלאכותית", "גיבוי אוטומטי ל־Google Drive").forEachIndexed { i, label ->
+            Row(
+                Modifier.fillMaxWidth().clickable {
+                    if (p.isPro) android.widget.Toast.makeText(ctx, "בהדגמה: התכונה תתווסף בהמשך", android.widget.Toast.LENGTH_SHORT).show()
+                    else onOpenPro()
+                }.padding(horizontal = 16.dp, vertical = 15.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(label, color = J.Text, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                if (p.isPro) Text("פעיל", color = J.Mint, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                else Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(androidx.compose.material.icons.Icons.Filled.Lock, null, tint = J.Amber, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("PRO", color = J.Amber, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+            if (i == 0) HorizontalDivider(color = J.Stroke, modifier = Modifier.padding(horizontal = 16.dp))
         }
     }
 }

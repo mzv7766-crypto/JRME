@@ -151,14 +151,15 @@ private fun AppScaffold(pendingNav: MutableStateFlow<Pair<String?, String?>?>) {
     }
 
     // Portrait: bottom bar. Landscape: a side rail, so the screen height stays free (car mount).
-    val showNav = route != Routes.EVENT
+    val showNav = route != Routes.EVENT && route != Routes.PRO
     val content: @Composable (Modifier) -> Unit = { m ->
         NavHost(nav, startDestination = Routes.HOME, modifier = m) {
             composable(Routes.HOME) { HomeScreen(onShowCamera = { nav.navigateTab(Routes.CAMERA) }, onSettings = { nav.navigateTab(Routes.SETTINGS) }) }
             composable(Routes.EVENTS) { EventsScreen(onOpen = { nav.navigate(Routes.event(it)) }) }
             composable(Routes.CAMERA) { CameraScreen(onSettings = { nav.navigateTab(Routes.SETTINGS) }, onStartDrive = { nav.navigateTab(Routes.HOME) }) }
             composable(Routes.GUIDE) { GuideScreen() }
-            composable(Routes.SETTINGS) { SettingsScreen() }
+            composable(Routes.SETTINGS) { SettingsScreen(onOpenPro = { nav.navigate(Routes.PRO) }) }
+            composable(Routes.PRO) { com.jeremy.dashcam.ui.screens.ProScreen(onBack = { nav.popBackStack() }) }
             composable(Routes.EVENT, arguments = listOf(navArgument("id") { type = NavType.StringType })) { e ->
                 EventDetailScreen(e.arguments?.getString("id").orEmpty(), onBack = { nav.popBackStack() })
             }

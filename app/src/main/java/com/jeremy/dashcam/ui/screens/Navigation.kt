@@ -69,6 +69,7 @@ object Routes {
     const val GUIDE = "guide"
     const val SETTINGS = "settings"
     const val EVENT = "event/{id}"
+    const val PRO = "pro"
     fun event(id: String) = "event/$id"
 }
 

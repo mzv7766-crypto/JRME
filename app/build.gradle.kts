@@ -13,7 +13,8 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 35
-        versionName = "1.6"
+        versionName = "1.6-demo"
+        applicationIdSuffix = ".demo"
     }
 
     buildTypes {

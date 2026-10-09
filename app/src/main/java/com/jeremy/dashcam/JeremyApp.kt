@@ -9,6 +9,7 @@ class JeremyApp : Application() {
     override fun onCreate() {
         super.onCreate()
         SettingsStore.init(this)
+        com.jeremy.dashcam.data.ProStore.init(this)
         EventRepository.init(this)
         Notifications.createChannels(this)
         Thread { EventRepository.enforceStorageLimit() }.start()
