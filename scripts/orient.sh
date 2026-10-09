@@ -56,6 +56,22 @@ XML
   adb logcat -d -s Jeremy:I | grep -E "segment start|orientation" | head -6 | sed 's/^/    /' | tee -a $SUM
   adb shell am force-stop $PKG; rm -f $OUT/*.mp4
 }
+# Preview must turn with the screen while recording (activity rotates without being recreated)
+adb shell am force-stop $PKG
+adb shell "run-as $PKG sh -c 'rm -rf files/events.json files/buffer; mkdir -p shared_prefs && cat > shared_prefs/jeremy_settings.xml'" <<XML
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map><boolean name="trip" value="false" /><boolean name="overlayPrompt" value="true" /><string name="orient">AUTO</string><boolean name="shock" value="false" /><boolean name="smart" value="false" /></map>
+XML
+adb shell settings put system accelerometer_rotation 0; adb shell settings put system user_rotation 0
+adb shell am start -n $PKG/.MainActivity >/dev/null; sleep 9
+for i in 1 2 3; do tap_text "Start"; sleep 6; adb shell dumpsys activity services $PKG | grep -q isForeground=true && break; done
+tap_text "Camera"; sleep 5; shot preview_1_portrait
+adb shell settings put system user_rotation 1; sleep 6; shot preview_2_landscape
+adb shell settings put system user_rotation 0; sleep 6; shot preview_3_portrait_again
+adb logcat -d -s Jeremy:I | grep -E "preview rotation" | head -4 | sed 's/^/    /' | tee -a $SUM
+adb shell am force-stop $PKG
+echo done >> $SUM
+exit 0
 # emulator: accel x=+9.8 → device rotated so left edge is down (landscape)
 run_case landscape_physical_lock LANDSCAPE "9.81:0:0" true
 run_case landscape_physical_auto AUTO "9.81:0:0" false

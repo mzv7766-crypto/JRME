@@ -112,6 +112,18 @@ class DashcamService : LifecycleService() {
     private var lastRotationSwitch = 0L
     private var analysisUseCase: ImageAnalysis? = null
 
+    /** The on-screen preview must follow the DISPLAY rotation (the activity rotates without being recreated). */
+    private val displayListener = object : android.hardware.display.DisplayManager.DisplayListener {
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId != android.view.Display.DEFAULT_DISPLAY) return
+            val r = displayRotation()
+            preview?.let { if (it.targetRotation != r) { it.targetRotation = r; Log.i(LOG, "preview rotation → $r") } }
+            onOrientationMaybeChanged()
+        }
+        override fun onDisplayAdded(displayId: Int) = Unit
+        override fun onDisplayRemoved(displayId: Int) = Unit
+    }
+
     private fun displayRotation(): Int = runCatching {
         getSystemService(android.hardware.display.DisplayManager::class.java).getDisplay(android.view.Display.DEFAULT_DISPLAY).rotation
     }.getOrDefault(Surface.ROTATION_0)
@@ -313,6 +325,7 @@ class DashcamService : LifecycleService() {
         }.also { if (it.canDetectOrientation()) it.enable() }
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(processObserver)
+        getSystemService(android.hardware.display.DisplayManager::class.java).registerDisplayListener(displayListener, main)
 
         val future = ProcessCameraProvider.getInstance(this)
         future.addListener({
@@ -330,7 +343,10 @@ class DashcamService : LifecycleService() {
         // Attach / detach the on-screen preview offered by the UI (never opens the camera itself).
         driveJobs += lifecycleScope.launch {
             DashcamController.previewSurface.collect { sp ->
-                runCatching { preview?.setSurfaceProvider(ContextCompat.getMainExecutor(this@DashcamService), sp) }
+                runCatching {
+                    preview?.targetRotation = displayRotation()
+                    preview?.setSurfaceProvider(ContextCompat.getMainExecutor(this@DashcamService), sp)
+                }
             }
         }
         // Keep notification + floating button in sync.
@@ -374,6 +390,7 @@ class DashcamService : LifecycleService() {
         main.removeCallbacks(metricsTick); DashcamController.metrics.value = null
         floating.hide()
         orientationListener?.disable(); orientationListener = null; analysisUseCase = null
+        runCatching { getSystemService(android.hardware.display.DisplayManager::class.java).unregisterDisplayListener(displayListener) }
         ProcessLifecycleOwner.get().lifecycle.removeObserver(processObserver)
         val rec = activeRecording
         if (rec != null) {
@@ -421,7 +438,7 @@ class DashcamService : LifecycleService() {
             }.build().also { it.targetRotation = desiredRotation() }
         }
 
-        val newPreview = Preview.Builder().build()
+        val newPreview = Preview.Builder().build().also { it.targetRotation = displayRotation() }
         val analysis = ImageAnalysis.Builder()
             .setResolutionSelector(
                 ResolutionSelector.Builder().setResolutionStrategy(
