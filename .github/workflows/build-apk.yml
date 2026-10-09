@@ -21,7 +21,7 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           chmod +x gradlew
           set -o pipefail
-          ./gradlew testDebugUnitTest assembleDebug bundleRelease --no-daemon 2>&1 | tee build.log
+          ./gradlew testDebugUnitTest assembleDebug bundleRelease $([ "$GITHUB_REF_NAME" = demo ] && echo assembleRelease) --no-daemon 2>&1 | tee build.log
       - name: Report compile errors as annotations
         if: failure()
         run: |
@@ -34,7 +34,7 @@ jobs:
       - name: Publish APK to apk-build branch
         if: success()
         run: |
-          mkdir out && cp app/build/outputs/apk/debug/app-debug.apk out/Jeremy.apk && cp app/build/outputs/bundle/release/app-release.aab out/Jeremy-unsigned.aab
+          mkdir out && if [ "$GITHUB_REF_NAME" = demo ]; then cp app/build/outputs/apk/release/app-release.apk out/Jeremy.apk; else cp app/build/outputs/apk/debug/app-debug.apk out/Jeremy.apk; fi && cp app/build/outputs/bundle/release/app-release.aab out/Jeremy-unsigned.aab
           cd out
           git init -q -b apk-build
           git config user.name "github-actions"; git config user.email "actions@github.com"
