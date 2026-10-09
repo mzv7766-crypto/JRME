@@ -66,8 +66,10 @@ adb shell settings put system accelerometer_rotation 0; adb shell settings put s
 adb shell am start -n $PKG/.MainActivity >/dev/null; sleep 9
 for i in 1 2 3; do tap_text "Start"; sleep 6; adb shell dumpsys activity services $PKG | grep -q isForeground=true && break; done
 tap_text "Camera"; sleep 5; shot preview_1_portrait
-adb shell settings put system user_rotation 1; sleep 6; shot preview_2_landscape
-adb shell settings put system user_rotation 0; sleep 6; shot preview_3_portrait_again
+adb shell wm user-rotation lock 1 || adb shell cmd window user-rotation lock 1; sleep 7; shot preview_2_landscape
+info "display after lock 1: $(adb shell dumpsys display | grep -oE 'mOverrideDisplayInfo=.*rotation [0-9]' | grep -oE 'rotation [0-9]' | head -1)"
+adb shell wm user-rotation lock 3 || adb shell cmd window user-rotation lock 3; sleep 7; shot preview_3_landscape_other_side
+adb shell wm user-rotation lock 0 || adb shell cmd window user-rotation lock 0; sleep 7; shot preview_4_portrait_again
 adb logcat -d -s Jeremy:I | grep -E "preview rotation" | head -4 | sed 's/^/    /' | tee -a $SUM
 adb shell am force-stop $PKG
 echo done >> $SUM
