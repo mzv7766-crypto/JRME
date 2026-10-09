@@ -45,6 +45,12 @@ data class EventRecord(
     val kind: RecordKind = RecordKind.EVENT,
     /** Drive id (drive start time) – groups the trip clips of one drive. */
     val tripId: Long = 0L,
+    // PRO (demo)
+    val lat: Double? = null,
+    val lon: Double? = null,
+    val speedKmh: Float? = null,
+    val plates: List<String> = emptyList(),
+    val platesChecked: Boolean = false,
 ) {
     val isTrip get() = kind == RecordKind.TRIP
     val endTime get() = videoStartTime + durationMs
@@ -89,6 +95,8 @@ object EventRepository {
             enforceLocked()
         }
     }
+
+    fun setPlates(id: String, plates: List<String>) = mutate(id) { it.copy(plates = plates, platesChecked = true) }
 
     fun rename(id: String, name: String) = mutate(id) { it.copy(name = name.trim().ifEmpty { null }) }
     fun setLocked(id: String, locked: Boolean) = mutate(id) { it.copy(locked = locked) }
@@ -183,6 +191,11 @@ object EventRepository {
                 peakG = if (o.has("peakG")) o.getDouble("peakG").toFloat() else null,
                 kind = if (o.optString("kind") == "TRIP") RecordKind.TRIP else RecordKind.EVENT,
                 tripId = o.optLong("tripId"),
+                lat = if (o.has("lat")) o.getDouble("lat") else null,
+                lon = if (o.has("lon")) o.getDouble("lon") else null,
+                speedKmh = if (o.has("speed")) o.getDouble("speed").toFloat() else null,
+                plates = o.optJSONArray("plates")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList(),
+                platesChecked = o.optBoolean("platesChecked"),
             )
         }
     }.getOrElse { Log.e(TAG, "index read failed", it); emptyList() }
@@ -197,6 +210,8 @@ object EventRepository {
                 put("locked", r.locked); put("size", r.sizeBytes)
                 r.peakG?.let { put("peakG", it.toDouble()) }
                 put("kind", r.kind.name); put("tripId", r.tripId)
+                r.lat?.let { put("lat", it) }; r.lon?.let { put("lon", it) }; r.speedKmh?.let { put("speed", it.toDouble()) }
+                put("plates", JSONArray(r.plates)); put("platesChecked", r.platesChecked)
             })
         }
         val tmp = File(indexFile.parentFile, "events.json.tmp")

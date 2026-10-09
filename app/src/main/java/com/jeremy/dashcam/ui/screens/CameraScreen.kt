@@ -230,6 +230,8 @@ private fun TopInfo(s: AppSettings, eventActive: Boolean, audio: Boolean, modifi
         if (eventActive) Chip(stringResource(R.string.rec), leading = { Icon(Icons.Filled.FiberManualRecord, null, tint = J.Red, modifier = Modifier.size(12.dp)) })
         val land = DashcamController.state.collectAsStateWithLifecycle().value.recordingLandscape
         if (land != null) Chip(stringResource(if (land) R.string.rec_landscape else R.string.rec_portrait))
+        val fix = com.jeremy.dashcam.core.pro.LocationTracker.latest.collectAsStateWithLifecycle().value
+        if (fix?.speedKmh != null) Chip("${fix.speedKmh.toInt()} קמ״ש")
         Chip(
             "${s.resolution.height}P • ${s.fps} FPS",
             leading = { Icon(if (audio) Icons.Filled.Mic else Icons.Filled.MicOff, null, tint = Color.White, modifier = Modifier.size(14.dp)) },

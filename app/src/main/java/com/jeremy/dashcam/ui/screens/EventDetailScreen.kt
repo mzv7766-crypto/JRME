@@ -106,6 +106,38 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
                 if (e.locked) Toast.makeText(ctx, lockedMsg, Toast.LENGTH_SHORT).show() else confirmDelete = true
             }
         }
+        val proInfo: @Composable () -> Unit = {
+            if (e.lat != null && e.lon != null) {
+                Row(
+                    Modifier.fillMaxWidth().clickable {
+                        val uri = android.net.Uri.parse("geo:${e.lat},${e.lon}?q=${e.lat},${e.lon}(Jeremy)")
+                        runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                    }.padding(horizontal = 18.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("📍 " + String.format(java.util.Locale.US, "%.5f, %.5f", e.lat, e.lon) + (e.speedKmh?.let { "  •  ${it.toInt()} קמ״ש" } ?: ""), color = J.Text, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    Text("פתח במפה", color = J.Mint, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            if (e.plates.isNotEmpty()) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("לוחיות: ", color = J.TextDim, fontSize = 13.sp)
+                    e.plates.take(4).forEach { pl ->
+                        Text(
+                            pl, color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(end = 6.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFFFFD000))
+                                .clickable {
+                                    val cm = ctx.getSystemService(android.content.ClipboardManager::class.java)
+                                    cm?.setPrimaryClip(android.content.ClipData.newPlainText("plate", pl))
+                                    Toast.makeText(ctx, "הועתק: $pl", Toast.LENGTH_SHORT).show()
+                                }.padding(horizontal = 6.dp, vertical = 2.dp),
+                        )
+                    }
+                }
+            } else if (e.platesChecked) {
+                Text("לא זוהו לוחיות רישוי באירוע", color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 18.dp))
+            }
+        }
         val details: @Composable () -> Unit = {
             if (info) {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp)) {
@@ -136,6 +168,7 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
                 VideoPlayer(e)
             }
             details()
+            proInfo()
             Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 actions(Modifier.weight(1f))
             }

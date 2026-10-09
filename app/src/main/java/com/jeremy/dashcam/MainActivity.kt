@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_ROUTE = "route"
         const val EXTRA_EVENT_ID = "event_id"
+        const val EXTRA_AUTO_START = "auto_start"
     }
 
     private val pendingNav = MutableStateFlow<Pair<String?, String?>?>(null)
@@ -107,6 +108,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleIntent(i: Intent?) {
+        // PRO: car Bluetooth connected → start drive, then step back so the driver stays in Waze etc.
+        if (i?.getBooleanExtra(EXTRA_AUTO_START, false) == true) {
+            i.removeExtra(EXTRA_AUTO_START)
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                com.jeremy.dashcam.core.DashcamController.startDrive(this)
+                window.decorView.postDelayed({ moveTaskToBack(true) }, 1500)
+            }
+        }
         val route = i?.getStringExtra(EXTRA_ROUTE) ?: return
         pendingNav.value = route to i.getStringExtra(EXTRA_EVENT_ID)
         i.removeExtra(EXTRA_ROUTE)

@@ -12,6 +12,7 @@ import com.jeremy.dashcam.core.DashcamController
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -367,24 +368,153 @@ private fun ProSettingsCard(onOpenPro: () -> Unit) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = J.TextDim)
         }
     }
+    ProFeaturesSection(p.isPro, onOpenPro)
+}
+
+
+/** PRO features (demo). When not Pro every row shows a lock and opens the Pro screen. */
+@Composable
+private fun ProFeaturesSection(isPro: Boolean, onOpenPro: () -> Unit) {
+    val ctx = LocalContext.current
+    val st by SettingsStore.state.collectAsStateWithLifecycle()
+    var pickCar by remember { mutableStateOf(false) }
+    var editSos by remember { mutableStateOf(false) }
+
+    val locPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { r ->
+        if (r.values.any { it }) SettingsStore.update { it.copy(proSpeedLocation = true) }
+    }
+    val btPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { ok -> if (ok) pickCar = true }
+    val callPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { _ -> editSos = true }
+    fun has(p: String) = androidx.core.content.ContextCompat.checkSelfPermission(ctx, p) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    @Composable
+    fun Locked(label: String) {
+        Row(Modifier.fillMaxWidth().clickable(onClick = onOpenPro).padding(horizontal = 16.dp, vertical = 15.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(label, color = J.Text, fontSize = 15.sp, modifier = Modifier.weight(1f))
+            Icon(Icons.Filled.Lock, null, tint = J.Amber, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(4.dp))
+            Text("PRO", color = J.Amber, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+        }
+        HorizontalDivider(color = J.Stroke, modifier = Modifier.padding(horizontal = 16.dp))
+    }
+
     Section("תכונות Pro") {
-        listOf("זיהוי חכם עם בינה מלאכותית", "גיבוי אוטומטי ל־Google Drive").forEachIndexed { i, label ->
-            Row(
-                Modifier.fillMaxWidth().clickable {
-                    if (p.isPro) android.widget.Toast.makeText(ctx, "בהדגמה: התכונה תתווסף בהמשך", android.widget.Toast.LENGTH_SHORT).show()
-                    else onOpenPro()
-                }.padding(horizontal = 16.dp, vertical = 15.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(label, color = J.Text, fontSize = 15.sp, modifier = Modifier.weight(1f))
-                if (p.isPro) Text("פעיל", color = J.Mint, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                else Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(androidx.compose.material.icons.Icons.Filled.Lock, null, tint = J.Amber, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("PRO", color = J.Amber, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
-                }
-            }
-            if (i == 0) HorizontalDivider(color = J.Stroke, modifier = Modifier.padding(horizontal = 16.dp))
+        if (!isPro) {
+            Locked("מהירות ומיקום בסרטון")
+            Locked("הפעלה אוטומטית עם ה־Bluetooth של הרכב")
+            Locked("קריאת לוחיות רישוי באירועים")
+            Locked("התראת חירום עם חיוג")
+            Locked("זיהוי חכם עם בינה מלאכותית (בקרוב)")
+            Locked("גיבוי ל־Google Drive (בקרוב)")
+            return@Section
+        }
+        Toggle("מהירות ומיקום בסרטון", st.proSpeedLocation && has(android.Manifest.permission.ACCESS_FINE_LOCATION)) { v ->
+            if (v && !has(android.Manifest.permission.ACCESS_FINE_LOCATION))
+                locPerm.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION))
+            else SettingsStore.update { it.copy(proSpeedLocation = v) }
+        }
+        Nav("הפעלה אוטומטית ברכב", st.carBtName ?: "כבוי") {
+            if (android.os.Build.VERSION.SDK_INT >= 31 && !has(android.Manifest.permission.BLUETOOTH_CONNECT)) btPerm.launch(android.Manifest.permission.BLUETOOTH_CONNECT)
+            else pickCar = true
+        }
+        Toggle("קריאת לוחיות רישוי באירועים", st.proPlates) { v -> SettingsStore.update { it.copy(proPlates = v) } }
+        Nav("התראת חירום", if (st.sosEnabled && st.sosNumber.isNotBlank()) "${st.sosName.ifBlank { st.sosNumber }} • ${st.sosSeconds} שנ׳" else "כבוי", last = true) {
+            if (!has(android.Manifest.permission.CALL_PHONE)) callPerm.launch(android.Manifest.permission.CALL_PHONE) else editSos = true
         }
     }
+    Text(
+        "הפעלה אוטומטית ברכב והתראת חירום עובדות גם כשהאפליקציה סגורה, בתנאי שהרשאת \"הצגה מעל אפליקציות\" מאושרת.",
+        color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+    )
+
+    if (pickCar) CarPicker(onDismiss = { pickCar = false })
+    if (editSos) SosDialog(st, onDismiss = { editSos = false })
 }
+
+@android.annotation.SuppressLint("MissingPermission")
+@Composable
+private fun CarPicker(onDismiss: () -> Unit) {
+    val ctx = LocalContext.current
+    val devices = remember {
+        runCatching {
+            ctx.getSystemService(android.bluetooth.BluetoothManager::class.java)?.adapter?.bondedDevices?.map { (it.name ?: it.address) to it.address }
+        }.getOrNull().orEmpty().sortedBy { it.first }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = J.Surface,
+        title = { Text("בחר את הרכב") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text("Jeremy תתחיל לצלם כשהטלפון מתחבר אליו, ותסיים כשהוא מתנתק.", color = J.TextDim, fontSize = 13.sp)
+                Spacer(Modifier.height(8.dp))
+                if (devices.isEmpty()) Text("לא נמצאו מכשירי Bluetooth מותאמים. חבר קודם את הטלפון לרכב בהגדרות ה־Bluetooth.", color = J.Text)
+                devices.forEach { (name, addr) ->
+                    Text(name, color = J.Text, fontSize = 16.sp, modifier = Modifier.fillMaxWidth().clickable {
+                        SettingsStore.update { it.copy(carBtAddress = addr, carBtName = name) }; onDismiss()
+                    }.padding(vertical = 12.dp))
+                }
+            }
+        },
+        confirmButton = { TextButton({ SettingsStore.update { it.copy(carBtAddress = null, carBtName = null) }; onDismiss() }) { Text("כבה") } },
+        dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+@Composable
+private fun SosDialog(st: com.jeremy.dashcam.data.AppSettings, onDismiss: () -> Unit) {
+    var name by remember { mutableStateOf(st.sosName) }
+    var number by remember { mutableStateOf(st.sosNumber) }
+    var secs by remember { mutableStateOf(st.sosSeconds) }
+    var g by remember { mutableStateOf(st.sosMinG) }
+    var on by remember { mutableStateOf(st.sosEnabled || st.sosNumber.isBlank()) }
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = J.Surface,
+        title = { Text("התראת חירום") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("אחרי מכה חזקה יופיע מסך אדום עם ספירה לאחור. אם לא תלחץ \"אני בסדר\", Jeremy תחייג אוטומטית למספר הזה.", color = J.TextDim, fontSize = 13.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("פעיל", color = J.Text, modifier = Modifier.weight(1f))
+                    Switch(on, { on = it }, colors = SwitchDefaults.colors(checkedTrackColor = J.Green))
+                }
+                OutlinedTextField(name, { name = it }, label = { Text("שם איש הקשר") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    number, { number = it }, label = { Text("מספר טלפון") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
+                )
+                Text("המתנה לפני חיוג", color = J.Text)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(15, 30, 60).forEach { v -> ChoiceChip("$v שנ׳", secs == v) { secs = v } }
+                }
+                Text("עוצמת מכה שמפעילה", color = J.Text)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(2.5f to "רגישה", 3.5f to "בינונית", 5f to "חזקה בלבד").forEach { (v, l) -> ChoiceChip(l, g == v) { g = v } }
+                }
+                val ctx = LocalContext.current
+                TextButton({
+                    SettingsStore.update { it.copy(sosName = name, sosNumber = number, sosSeconds = secs, sosMinG = g, sosEnabled = on && number.isNotBlank()) }
+                    com.jeremy.dashcam.service.DashcamService.instance?.testSos()
+                        ?: android.widget.Toast.makeText(ctx, "הפעל נסיעה כדי לבדוק", android.widget.Toast.LENGTH_SHORT).show()
+                }) { Text("בדיקה (בלי חיוג)", color = J.Amber) }
+            }
+        },
+        confirmButton = {
+            TextButton({
+                SettingsStore.update { it.copy(sosName = name.trim(), sosNumber = number.trim(), sosSeconds = secs, sosMinG = g, sosEnabled = on && number.isNotBlank()) }
+                onDismiss()
+            }) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+@Composable
+private fun ChoiceChip(text: String, selected: Boolean, onClick: () -> Unit) {
+    Text(
+        text, color = if (selected) J.Mint else J.Text, fontSize = 14.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+        modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(if (selected) J.Green.copy(alpha = 0.22f) else J.Card)
+            .border(1.dp, if (selected) J.Green else J.Stroke, RoundedCornerShape(12.dp)).clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    )
+}
+

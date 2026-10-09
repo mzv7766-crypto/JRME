@@ -45,6 +45,8 @@ import java.util.Locale
 class EventExporter(private val context: Context) {
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
     private var gen = 0
+    /** PRO: extra text burned next to the date/time for a given wall-clock moment (speed, position). */
+    var infoAt: ((Long) -> String?)? = null
     private var active: Transformer? = null
 
     /**
@@ -148,7 +150,7 @@ class EventExporter(private val context: Context) {
                 }.build()
             val overlays = ImmutableList.builder<TextureOverlay>()
             overlays.add(brandOverlay(brandPx))
-            if (showDateTime) overlays.add(TimestampOverlay(p.wallStartMs + p.clipStartMs, timePx))
+            if (showDateTime || infoAt != null) overlays.add(TimestampOverlay(p.wallStartMs + p.clipStartMs, timePx, showDateTime, infoAt))
             val videoEffects = ImmutableList.of<Effect>(OverlayEffect(overlays.build()))
             EditedMediaItem.Builder(media)
                 .setRemoveAudio(!withAudio)
@@ -177,7 +179,10 @@ class EventExporter(private val context: Context) {
      * wall-clock time is [wallStartMs]; every later frame adds its offset. So the burned time is the
      * time the frame was filmed, not the export time.
      */
-    private class TimestampOverlay(private val wallStartMs: Long, private val px: Int) : TextOverlay() {
+    private class TimestampOverlay(
+        private val wallStartMs: Long, private val px: Int,
+        private val showTime: Boolean = true, private val info: ((Long) -> String?)? = null,
+    ) : TextOverlay() {
         private val fmt = SimpleDateFormat("yyyy-MM-dd  HH:mm:ss", Locale.US)
         private var basePtsUs = Long.MIN_VALUE
         private val settings = OverlaySettings.Builder()
@@ -188,7 +193,8 @@ class EventExporter(private val context: Context) {
         override fun getText(presentationTimeUs: Long): SpannableString {
             if (basePtsUs == Long.MIN_VALUE || presentationTimeUs < basePtsUs) basePtsUs = presentationTimeUs
             val wall = wallStartMs + (presentationTimeUs - basePtsUs) / 1000
-            return SpannableString(" " + fmt.format(Date(wall)) + " ").apply {
+            val parts = listOfNotNull(if (showTime) fmt.format(Date(wall)) else null, info?.invoke(wall))
+            return SpannableString(" " + parts.joinToString("  •  ") + " ").apply {
                 span(ForegroundColorSpan(Color.WHITE)); span(StyleSpan(Typeface.BOLD)); span(AbsoluteSizeSpan(px))
                 span(BackgroundColorSpan(Color.argb(120, 0, 0, 0)))
             }

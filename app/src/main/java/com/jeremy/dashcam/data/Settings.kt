@@ -40,6 +40,16 @@ data class AppSettings(
     val orientation: ScreenOrientation = ScreenOrientation.AUTO,
     val autoStop: Boolean = true,
     val autoStopSeconds: Int = 20,
+    // PRO (demo)
+    val proSpeedLocation: Boolean = true,
+    val carBtAddress: String? = null,
+    val carBtName: String? = null,
+    val proPlates: Boolean = true,
+    val sosEnabled: Boolean = false,
+    val sosName: String = "",
+    val sosNumber: String = "",
+    val sosSeconds: Int = 30,
+    val sosMinG: Float = 3.5f,
 )
 
 /** Simple, synchronous settings store observable via StateFlow (shared by UI and service). */
@@ -90,6 +100,15 @@ object SettingsStore {
             orientation = enumOr(getString("orient", null), ScreenOrientation.AUTO),
             autoStop = getBoolean("autoStop", true),
             autoStopSeconds = getInt("autoStopSec", 20),
+            proSpeedLocation = getBoolean("proLoc", true),
+            carBtAddress = getString("carBt", null),
+            carBtName = getString("carBtName", null),
+            proPlates = getBoolean("proPlates", true),
+            sosEnabled = getBoolean("sos", false),
+            sosName = getString("sosName", "") ?: "",
+            sosNumber = getString("sosNumber", "") ?: "",
+            sosSeconds = getInt("sosSec", 30),
+            sosMinG = getFloat("sosG", 3.5f),
         )
     }
 
@@ -123,6 +142,15 @@ object SettingsStore {
             .putString("orient", s.orientation.name)
             .putBoolean("autoStop", s.autoStop)
             .putInt("autoStopSec", s.autoStopSeconds)
+            .putBoolean("proLoc", s.proSpeedLocation)
+            .putString("carBt", s.carBtAddress)
+            .putString("carBtName", s.carBtName)
+            .putBoolean("proPlates", s.proPlates)
+            .putBoolean("sos", s.sosEnabled)
+            .putString("sosName", s.sosName)
+            .putString("sosNumber", s.sosNumber)
+            .putInt("sosSec", s.sosSeconds)
+            .putFloat("sosG", s.sosMinG)
             .apply()
     }
 

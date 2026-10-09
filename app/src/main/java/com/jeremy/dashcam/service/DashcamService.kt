@@ -327,6 +327,7 @@ class DashcamService : LifecycleService() {
 
         // React to settings while driving.
         driveJobs += lifecycleScope.launch { SettingsStore.state.collect { applySettings(it) } }
+        driveJobs += lifecycleScope.launch { com.jeremy.dashcam.data.ProStore.state.collect { applyProFeatures() } }
         // Attach / detach the on-screen preview offered by the UI (never opens the camera itself).
         driveJobs += lifecycleScope.launch {
             DashcamController.previewSurface.collect { sp ->
@@ -350,6 +351,7 @@ class DashcamService : LifecycleService() {
             type = ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
             // Declare microphone whenever permitted, so toggling audio/voice mid-drive keeps working in background.
             if (hasAudioPermission()) type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            if (proLocationWanted()) type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         }
         ServiceCompat.startForeground(this, Notifications.ID_DRIVE, Notifications.drive(this, state.value), type)
     }
@@ -371,6 +373,7 @@ class DashcamService : LifecycleService() {
         driveJobs.forEach { it.cancel() }; driveJobs.clear()
         main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable); main.removeCallbacks(autoStopRunnable)
         shock.stop(); motion.enabled = false; voice.stop()
+        com.jeremy.dashcam.core.pro.LocationTracker.stop(); sosOverlay.dismiss()
         main.removeCallbacks(metricsTick); DashcamController.metrics.value = null
         floating.hide()
         orientationListener?.disable(); orientationListener = null; analysisUseCase = null
@@ -596,7 +599,47 @@ class DashcamService : LifecycleService() {
      *    sensors felt a noticeable horizontal force (≥ 0.35 g) within ±1.5 s. This removes most false
      *    alarms from passing traffic, shadows and wipers while still catching near-misses.
      */
+    // ================= PRO (demo) =================
+    private val isPro get() = com.jeremy.dashcam.data.ProStore.state.value.isPro
+    private fun hasLocationPermission() =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    private fun proLocationWanted() = isPro && settings.proSpeedLocation && hasLocationPermission()
+    private val sosOverlay by lazy { EmergencyOverlay(this) }
+
+    private fun applyProFeatures() {
+        if (running && proLocationWanted()) com.jeremy.dashcam.core.pro.LocationTracker.start(this)
+        else com.jeremy.dashcam.core.pro.LocationTracker.stop()
+        exporter.infoAt = if (proLocationWanted()) { t -> com.jeremy.dashcam.core.pro.LocationTracker.at(t)?.let { com.jeremy.dashcam.core.pro.LocationTracker.label(it) } } else null
+    }
+
+    /** Strong impact → countdown over every app → call the emergency contact unless "I'm OK". */
+    private fun maybeSos(d: ImpactAlgorithm.Detection) {
+        val s = settings
+        if (!isPro || !s.sosEnabled || s.sosNumber.isBlank() || d.type != ImpactAlgorithm.Type.IMPACT || d.peakG < s.sosMinG) return
+        Log.i(LOG, "SOS countdown (peak ${d.peakG}g)")
+        sosOverlay.show(s.sosSeconds, s.sosName, s.sosNumber, test = false, onSpeak = { voice.initTts(); voice.speak(it) }) {
+            EmergencyOverlay.call(this, s.sosNumber)
+        }
+    }
+
+    fun testSos() {
+        val s = settings
+        sosOverlay.show(10, s.sosName, s.sosNumber, test = true, onSpeak = { voice.initTts(); voice.speak(it) }) {}
+    }
+
+    /** After an event is saved: read licence plates in the background (on the phone). */
+    private fun readPlatesLater(r: EventRecord) {
+        if (!isPro || !settings.proPlates) return
+        Thread {
+            val trigOffset = (r.triggerTime - r.videoStartTime).coerceAtLeast(0)
+            val plates = com.jeremy.dashcam.core.pro.PlateReader.read(r.file, trigOffset - 6000, trigOffset + 12000)
+            Log.i(LOG, "plates for ${r.id}: $plates")
+            EventRepository.setPlates(r.id, plates.map { it.text })
+        }.start()
+    }
+
     private fun onImpact(d: ImpactAlgorithm.Detection) {
+        maybeSos(d)
         if (!running || !settings.shockDetection) return
         if (state.value.eventActive) { extendAutoStop(); return }   // still unusual → keep recording a bit longer
         val trigger = if (d.type == ImpactAlgorithm.Type.IMPACT) Trigger.SHOCK else Trigger.HARSH
@@ -701,6 +744,7 @@ class DashcamService : LifecycleService() {
         val eventStart = s.eventStartTime
         val trigger = s.eventTrigger ?: Trigger.MANUAL
         val peakG = s.eventPeakG
+        val fixAtEvent = if (proLocationWanted()) com.jeremy.dashcam.core.pro.LocationTracker.at(s.eventStartTime) else null
         val preMs = settings.preEventSeconds * 1000L
         val showDateTime = settings.showDateTime
         main.removeCallbacks(autoStopRunnable)
@@ -728,6 +772,7 @@ class DashcamService : LifecycleService() {
                                 id = UUID.randomUUID().toString(), filePath = it.file.absolutePath, name = null,
                                 videoStartTime = it.videoStartWall, triggerTime = eventStart, durationMs = it.durationMs,
                                 trigger = trigger, locked = false, sizeBytes = it.sizeBytes, peakG = peakG,
+                                lat = fixAtEvent?.lat, lon = fixAtEvent?.lon, speedKmh = fixAtEvent?.speedKmh,
                             )
                         }
                         onExportFinished(record, out)
@@ -793,7 +838,7 @@ class DashcamService : LifecycleService() {
 
     private fun onExportFinished(record: EventRecord?, out: File?) {
         Thread {
-            if (record != null) EventRepository.add(record) // also creates thumbnail + applies auto-delete
+            if (record != null) { EventRepository.add(record); readPlatesLater(record) } // thumbnail + auto-delete + plates
             main.post {
                 state.update { it.copy(savingCount = (it.savingCount - 1).coerceAtLeast(0)) }
                 if (record != null) {
@@ -813,6 +858,7 @@ class DashcamService : LifecycleService() {
 
     private fun applySettings(s: AppSettings) {
         if (!running) return
+        applyProFeatures()
         if (s.shockDetection) shock.start(s.shockSensitivity) else shock.stop()
         main.removeCallbacks(metricsTick); main.post(metricsTick)
         onOrientationMaybeChanged()
