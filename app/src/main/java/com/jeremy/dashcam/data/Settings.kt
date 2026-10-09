@@ -40,6 +40,7 @@ data class AppSettings(
     val orientation: ScreenOrientation = ScreenOrientation.AUTO,
     val autoStop: Boolean = true,
     val autoStopSeconds: Int = 20,
+    val diagNoStab: Boolean = false,
 )
 
 /** Simple, synchronous settings store observable via StateFlow (shared by UI and service). */
@@ -90,6 +91,7 @@ object SettingsStore {
             orientation = enumOr(getString("orient", null), ScreenOrientation.AUTO),
             autoStop = getBoolean("autoStop", true),
             autoStopSeconds = getInt("autoStopSec", 20),
+            diagNoStab = getBoolean("diagNoStab", false),
         )
     }
 
@@ -123,6 +125,7 @@ object SettingsStore {
             .putString("orient", s.orientation.name)
             .putBoolean("autoStop", s.autoStop)
             .putInt("autoStopSec", s.autoStopSeconds)
+            .putBoolean("diagNoStab", s.diagNoStab)
             .apply()
     }
 

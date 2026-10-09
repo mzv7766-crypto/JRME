@@ -205,6 +205,14 @@ private fun PreviewOverlays(s: AppSettings, now: Long, eventActive: Boolean, eve
             "Jeremy", color = Color.White.copy(alpha = 0.92f), fontSize = 22.sp, fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.BottomEnd),
         )
+        // DIAGNOSTIC BUILD ONLY
+        val diag = DashcamController.diag.collectAsStateWithLifecycle().value
+        if (diag.isNotEmpty()) Text(
+            diag, color = Color(0xFFFFEB3B), fontSize = 10.sp, lineHeight = 12.sp,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+            modifier = Modifier.align(Alignment.CenterStart).padding(top = 40.dp)
+                .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(6.dp)).padding(6.dp),
+        )
         val autoAt = DashcamController.state.collectAsStateWithLifecycle().value.autoStopAt
         if (eventActive && autoAt > 0) {
             Text(

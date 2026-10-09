@@ -83,6 +83,10 @@ fun SettingsScreen() {
         ScreenHeader(stringResource(R.string.settings_title))
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 14.dp)) {
 
+            Section("בדיקה (גרסת אבחון בלבד)") {
+                Toggle("כבה ייצוב של הטלפון (כולל נעילה אופקית)", s.diagNoStab, last = true) { v -> SettingsStore.update { it.copy(diagNoStab = v) } }
+            }
+
             Section(stringResource(R.string.sec_video)) {
                 Nav(stringResource(R.string.pre_event), secFmt.format(s.preEventSeconds)) {
                     choice = Choice(ctx.getString(R.string.pre_event), SettingsStore.PRE_EVENT_OPTIONS, { secFmt.format(it) }, s.preEventSeconds) { v ->

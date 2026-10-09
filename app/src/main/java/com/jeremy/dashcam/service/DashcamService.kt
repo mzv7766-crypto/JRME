@@ -10,6 +10,12 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraMetadata
+import android.hardware.camera2.CaptureRequest
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import android.util.Log
 import android.util.Range
 import android.util.Size
@@ -112,6 +118,61 @@ class DashcamService : LifecycleService() {
     private var lastRotationSwitch = 0L
     private var analysisUseCase: ImageAnalysis? = null
 
+    // ================= DIAGNOSTIC BUILD ONLY =================
+    private var boundCamera: androidx.camera.core.Camera? = null
+    private var diagStatic = ""
+    @Volatile private var diagResult = ""
+    private var diagLastResult = 0L
+
+    /** Reads what the phone's camera reports – incl. any Samsung vendor keys about stabilisation / horizon / rotation. */
+    @androidx.annotation.OptIn(ExperimentalCamera2Interop::class)
+    private fun readCharacteristics() {
+        val info = boundCamera?.cameraInfo ?: return
+        val c = runCatching { Camera2CameraInfo.from(info) }.getOrNull() ?: return
+        val sb = StringBuilder()
+        sb.append("camId=").append(c.cameraId)
+        sb.append(" sensorOrient=").append(c.getCameraCharacteristic(CameraCharacteristics.SENSOR_ORIENTATION))
+        sb.append("\nvideoStabModes=").append(c.getCameraCharacteristic(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES)?.joinToString(","))
+        sb.append(" ois=").append(c.getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION)?.joinToString(","))
+        val raw = runCatching { getSystemService(android.hardware.camera2.CameraManager::class.java).getCameraCharacteristics(c.cameraId) }.getOrNull()
+        val vendor = raw?.keys?.map { it.name }?.filter { Regex("(?i)stab|horizon|level|lock|rotat|gimbal|super").containsMatchIn(it) && !it.startsWith("android.") }
+        if (!vendor.isNullOrEmpty()) sb.append("\nvendorKeys=").append(vendor.joinToString(" | ") { it.substringAfterLast('.') + "@" + it.substringBeforeLast('.').substringAfterLast('.') })
+        diagStatic = sb.toString()
+        Log.i(LOG, "DIAG static: $diagStatic  allVendor=${raw?.keys?.map { it.name }?.filter { !it.startsWith("android.") }}")
+        publishDiag()
+    }
+
+    private val diagCallback = object : android.hardware.camera2.CameraCaptureSession.CaptureCallback() {
+        override fun onCaptureCompleted(session: android.hardware.camera2.CameraCaptureSession, request: CaptureRequest, result: android.hardware.camera2.TotalCaptureResult) {
+            val now = SystemClock.elapsedRealtime()
+            if (now - diagLastResult < 1000) return
+            diagLastResult = now
+            val sb = StringBuilder()
+            sb.append("activeVideoStab=").append(result.get(android.hardware.camera2.CaptureResult.CONTROL_VIDEO_STABILIZATION_MODE))
+            sb.append(" activeOis=").append(result.get(android.hardware.camera2.CaptureResult.LENS_OPTICAL_STABILIZATION_MODE))
+            val crop = result.get(android.hardware.camera2.CaptureResult.SCALER_CROP_REGION)
+            if (crop != null) sb.append(" crop=").append(crop.width()).append("x").append(crop.height())
+            val vendor = result.keys.filter { Regex("(?i)stab|horizon|level|lock|rotat|gimbal|super").containsMatchIn(it.name) && !it.name.startsWith("android.") }
+            for (k in vendor.take(6)) {
+                val v = runCatching { result.get(k) }.getOrNull()
+                val txt = when (v) { is IntArray -> v.joinToString(","); is FloatArray -> v.joinToString(","); is ByteArray -> v.joinToString(","); else -> v.toString() }
+                sb.append("\n").append(k.name.substringAfterLast('.')).append("=").append(txt)
+            }
+            diagResult = sb.toString()
+            main.post { publishDiag() }
+        }
+    }
+
+    private fun publishDiag() {
+        val rotName = { r: Int? -> when (r) { null -> "?"; Surface.ROTATION_0 -> "0"; Surface.ROTATION_90 -> "90"; Surface.ROTATION_180 -> "180"; else -> "270" } }
+        DashcamController.diag.value = buildString {
+            append("DIAG  noStab=").append(settings.diagNoStab).append(" setting=").append(settings.orientation)
+            append("\ndisplay=").append(rotName(displayRotation())).append(" phone=").append(rotName(physicalRotation))
+            append(" previewTarget=").append(rotName(preview?.targetRotation)).append(" recording=").append(rotName(segmentRotation))
+            append("\n").append(diagStatic).append("\n").append(diagResult)
+        }
+    }
+
     private fun displayRotation(): Int = runCatching {
         getSystemService(android.hardware.display.DisplayManager::class.java).getDisplay(android.view.Display.DEFAULT_DISPLAY).rotation
     }.getOrDefault(Surface.ROTATION_0)
@@ -132,6 +193,7 @@ class DashcamService : LifecycleService() {
     /** Apply a new orientation quickly: start a fresh segment now (never in the middle of an event). */
     private fun onOrientationMaybeChanged() {
         if (!running) return
+        publishDiag()
         val want = desiredRotation()
         analysisUseCase?.targetRotation = want
         if (want == segmentRotation || state.value.eventActive) return
@@ -398,9 +460,10 @@ class DashcamService : LifecycleService() {
 
     // ---------------------------------------------------------------- camera
 
-    private fun videoKey(s: AppSettings) = "${s.resolution}/${s.fps}/${s.recordAudio}/${state.value.lensFacing}"
+    private fun videoKey(s: AppSettings) = "${s.resolution}/${s.fps}/${s.recordAudio}/${state.value.lensFacing}/${s.diagNoStab}"
 
     @SuppressLint("RestrictedApi")
+    @androidx.annotation.OptIn(ExperimentalCamera2Interop::class)
     private fun bindCamera() {
         val p = provider ?: return
         val s = settings
@@ -418,10 +481,24 @@ class DashcamService : LifecycleService() {
             val recorder = Recorder.Builder().setQualitySelector(qualitySelector).build()
             return VideoCapture.Builder(recorder).apply {
                 if (withFps) setTargetFrameRate(Range(s.fps, s.fps))
+                if (s.diagNoStab) {
+                    setVideoStabilizationEnabled(false)
+                    Camera2Interop.Extender(this)
+                        .setCaptureRequestOption(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CameraMetadata.CONTROL_VIDEO_STABILIZATION_MODE_OFF)
+                        .setCaptureRequestOption(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_OFF)
+                }
             }.build().also { it.targetRotation = desiredRotation() }
         }
 
-        val newPreview = Preview.Builder().build()
+        val previewBuilder = Preview.Builder()
+        if (s.diagNoStab) {
+            previewBuilder.setPreviewStabilizationEnabled(false)
+            Camera2Interop.Extender(previewBuilder)
+                .setCaptureRequestOption(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CameraMetadata.CONTROL_VIDEO_STABILIZATION_MODE_OFF)
+                .setCaptureRequestOption(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_OFF)
+        }
+        Camera2Interop.Extender(previewBuilder).setSessionCaptureCallback(diagCallback)
+        val newPreview = previewBuilder.build()
         val analysis = ImageAnalysis.Builder()
             .setResolutionSelector(
                 ResolutionSelector.Builder().setResolutionStrategy(
@@ -445,7 +522,7 @@ class DashcamService : LifecycleService() {
             if (withAnalysis) cases += analysis
             try {
                 p.unbindAll()
-                p.bindToLifecycle(this, lensSelector, *cases.toTypedArray())
+                boundCamera = p.bindToLifecycle(this, lensSelector, *cases.toTypedArray())
                 bound = vc
                 break
             } catch (e: Exception) {
@@ -460,6 +537,7 @@ class DashcamService : LifecycleService() {
         appliedVideoKey = videoKey(s)
         newPreview.setSurfaceProvider(ContextCompat.getMainExecutor(this), DashcamController.previewSurface.value)
         motion.reset()
+        readCharacteristics()
         consecutiveFailures = 0
         state.update { it.copy(phase = DrivePhase.RUNNING, audioActive = s.recordAudio && hasAudioPermission(), error = null) }
         startSegment()

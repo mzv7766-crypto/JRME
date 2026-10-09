@@ -1,7 +1,7 @@
 name: Build Jeremy APK
 on:
   push:
-    branches: [main]
+    branches: [main, diag]
   workflow_dispatch:
 permissions:
   contents: write
@@ -39,9 +39,9 @@ jobs:
           git init -q -b apk-build
           git config user.name "github-actions"; git config user.email "actions@github.com"
           git add Jeremy.apk Jeremy-unsigned.aab && git commit -qm "APK from ${GITHUB_SHA::7}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" apk-build
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:${{ github.ref_name == 'main' && 'apk-build' || 'apk-diag' }}
       - name: Publish release
-        if: success()
+        if: success() && github.ref_name == 'main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

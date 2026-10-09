@@ -52,6 +52,9 @@ object DashcamController {
     /** Live detector readings for the settings screen (null when drive mode is off). */
     val metrics = MutableStateFlow<DetectionMetrics?>(null)
 
+    /** DIAGNOSTIC BUILD ONLY: live camera / orientation information shown on the camera screen. */
+    val diag = MutableStateFlow("")
+
     /** Emits an event id when an event has been saved (UI may navigate to it). */
     val lastSavedEventId = MutableStateFlow<String?>(null)
 
