@@ -48,7 +48,7 @@ android {
 }
 
 dependencies {
-    val camerax = "1.4.0"
+    val camerax = "1.5.0"
     val media3 = "1.4.1"
     val lifecycle = "2.8.6"
 
