@@ -105,6 +105,13 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
                 Toggle(stringResource(R.string.show_datetime), s.showDateTime, last = true) { v -> SettingsStore.update { it.copy(showDateTime = v) } }
             }
 
+            Section("שיתוף") {
+                var shareOpen by remember { mutableStateOf(false) }
+                var shareSummary by remember { mutableStateOf(com.jeremy.dashcam.data.SharePrefs.summary(ctx)) }
+                Nav("מה נשלח יחד עם הסרטון", shareSummary, last = true) { shareOpen = true }
+                if (shareOpen) SharePrefsDialog(onDismiss = { shareOpen = false; shareSummary = com.jeremy.dashcam.data.SharePrefs.summary(ctx) })
+            }
+
             Section(stringResource(R.string.sec_detect)) {
                 Toggle(stringResource(R.string.shock_detect), s.shockDetection) { v -> SettingsStore.update { it.copy(shockDetection = v) } }
                 Nav(stringResource(R.string.shock_sens), sensLabel(s.shockSensitivity), enabled = s.shockDetection) {
@@ -513,6 +520,35 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
     if (burnDialog) BurnDialog(st, isPro, onOpenPro = { burnDialog = false; onOpenPro() }, onDismiss = { burnDialog = false })
     if (pickCar) CarPicker(onDismiss = { pickCar = false })
     if (editSos) SosDialog(st, onDismiss = { editSos = false })
+}
+
+/** Settings: which details go with a shared video (sharing itself never asks). */
+@Composable
+private fun SharePrefsDialog(onDismiss: () -> Unit) {
+    val ctx = LocalContext.current
+    val state = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>().apply {
+        com.jeremy.dashcam.data.SharePrefs.options.forEach { put(it.key, com.jeremy.dashcam.data.SharePrefs.isOn(ctx, it.key)) }
+    } }
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = J.Surface,
+        title = { Text("מה נשלח יחד עם הסרטון") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text("כשלוחצים \"שיתוף\" באירוע, הסרטון נשלח מיד יחד עם הפרטים שסימנת כאן (כהודעה לצידו). אם לא מסמנים כלום – נשלח רק הסרטון.",
+                    color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
+                com.jeremy.dashcam.data.SharePrefs.options.forEach { o ->
+                    val on = state[o.key] == true
+                    val toggle = { v: Boolean -> state[o.key] = v; com.jeremy.dashcam.data.SharePrefs.set(ctx, o.key, v) }
+                    Row(Modifier.fillMaxWidth().clickable { toggle(!on) }.padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Checkbox(on, { toggle(it) }, colors = androidx.compose.material3.CheckboxDefaults.colors(checkedColor = J.Green))
+                        Text(o.label, color = J.Text, fontSize = 15.sp)
+                    }
+                }
+                Text("מיקום, מהירות, לוחיות ו־AI נשלחים רק כשהם קיימים באירוע (תכונות Pro).", color = J.TextDim, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+            }
+        },
+        confirmButton = { TextButton(onDismiss) { Text("סגור") } },
+    )
 }
 
 private fun burnSummary(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean): String = listOfNotNull(
