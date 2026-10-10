@@ -68,6 +68,12 @@
             android:exported="false"
             android:foregroundServiceType="camera|microphone|location" />
 
+        <!-- PRO car auto-start enters through this NON-exported alias, so no other app can start recording -->
+        <activity-alias
+            android:name=".AutoStart"
+            android:targetActivity=".MainActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".service.CarBluetoothReceiver"
             android:exported="true"

@@ -56,7 +56,9 @@ object ProStore {
             email = prefs.getString("email", null),
             name = prefs.getString("name", null),
             isFreeAccount = prefs.getBoolean("free", false),
-            subscribed = prefs.getBoolean("subscribed", false),
+            // a cached subscription is trusted for 7 days without a fresh confirmation from Google Play
+            subscribed = prefs.getBoolean("subscribed", false) &&
+                System.currentTimeMillis() - prefs.getLong("verifiedAt", 0L) < 7L * 24 * 60 * 60 * 1000,
             autoRenewing = prefs.getBoolean("autoRenew", false),
         )
         Account.init(app)
@@ -76,4 +78,7 @@ object ProStore {
     }
 
     fun message(text: String?) = update { it.copy(message = text) }
+
+    /** Google Play just confirmed the subscription state. */
+    fun markVerified() = prefs.edit().putLong("verifiedAt", System.currentTimeMillis()).apply()
 }

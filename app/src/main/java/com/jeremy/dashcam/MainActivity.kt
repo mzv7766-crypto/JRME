@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
         const val EXTRA_ROUTE = "route"
         const val EXTRA_EVENT_ID = "event_id"
         const val EXTRA_AUTO_START = "auto_start"
+        const val AUTO_START_ALIAS = "com.jeremy.dashcam.AutoStart"
     }
 
     private val pendingNav = MutableStateFlow<Pair<String?, String?>?>(null)
@@ -111,7 +112,10 @@ class MainActivity : AppCompatActivity() {
         // PRO: car Bluetooth connected → start drive, then step back so the driver stays in Waze etc.
         if (i?.getBooleanExtra(EXTRA_AUTO_START, false) == true) {
             i.removeExtra(EXTRA_AUTO_START)
-            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            // Only honoured when it came through our own non-exported alias, and only for a Pro user with a car set up.
+            val trusted = i.component?.className == AUTO_START_ALIAS &&
+                com.jeremy.dashcam.data.ProStore.current.isPro && !com.jeremy.dashcam.data.SettingsStore.current.carBtAddress.isNullOrEmpty()
+            if (trusted && androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 com.jeremy.dashcam.core.DashcamController.startDrive(this)
                 window.decorView.postDelayed({ moveTaskToBack(true) }, 1500)
             }

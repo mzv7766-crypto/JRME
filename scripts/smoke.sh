@@ -80,6 +80,7 @@ XML
 <map>
     <boolean name="subscribed" value="true" />
     <boolean name="autoRenew" value="true" />
+    <long name="verifiedAt" value="$(date +%s)000" />
 </map>
 XML
 }
@@ -169,6 +170,15 @@ PY
 )
 [ -n "$FIRST" ] && adb shell input tap $FIRST && sleep 4 && shot 13_event_detail && pass "Opened event detail / player" || fail "No event row found"
 adb shell input keyevent KEYCODE_BACK; sleep 2
+
+# 9b. settings sweep: tap every setting while recording (switches twice, dialogs opened and closed)
+tap_text "Settings" >/dev/null; sleep 3
+adb shell input swipe $((W/2)) $((H/3)) $((W/2)) $((H*3/4)) 300; sleep 1   # to the top
+python3 scripts/settings_sweep.py | tee -a $OUT/sweep_out.txt
+P=$(grep -oE "problems=[0-9]+" $OUT/sweep_out.txt | cut -d= -f2); R=$(grep -oE "rows=[0-9]+" $OUT/sweep_out.txt | cut -d= -f2)
+[ "${P:-1}" = "0" ] && [ "${R:-0}" -ge 15 ] && pass "Settings sweep: $R settings tapped, no crash" || fail "Settings sweep: rows=$R problems=$P (see settings_sweep.md)"
+svc_fg && pass "Recording survived the settings sweep" || fail "Recording stopped during the settings sweep"
+adb shell am start -n $PKG/.MainActivity >/dev/null; sleep 2
 
 # 10. long-press bubble to stop everything
 adb shell input keyevent KEYCODE_HOME; sleep 3

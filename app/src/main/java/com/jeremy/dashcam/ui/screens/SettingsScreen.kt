@@ -64,6 +64,7 @@ import com.jeremy.dashcam.data.ScreenOrientation
 import com.jeremy.dashcam.data.Sensitivity
 import com.jeremy.dashcam.data.SettingsStore
 import com.jeremy.dashcam.data.DriveMode
+import com.jeremy.dashcam.data.AppSettings
 import com.jeremy.dashcam.ui.components.JCard
 import com.jeremy.dashcam.ui.components.ScreenHeader
 import com.jeremy.dashcam.ui.theme.J
@@ -82,6 +83,23 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
     val gbFmt = stringResource(R.string.gb_fmt)
     val minFmt = stringResource(R.string.min_fmt)
     val sensLabel: (Sensitivity) -> String = { ctx.getString(it.labelRes) }
+    var pendingMic by remember { mutableStateOf<((AppSettings) -> AppSettings)?>(null) }
+    val micPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) pendingMic?.let { f -> SettingsStore.update(f) }
+        else android.widget.Toast.makeText(ctx, "בלי הרשאת מיקרופון אין שמע ופקודות קוליות", android.widget.Toast.LENGTH_LONG).show()
+        pendingMic = null
+    }
+    fun withMic(enable: Boolean, f: (AppSettings) -> AppSettings) {
+        val has = androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (enable && !has) { pendingMic = f; micPerm.launch(android.Manifest.permission.RECORD_AUDIO) } else SettingsStore.update(f)
+    }
+    // lowering a storage limit may delete clips – ask first
+    var confirmTrim by remember { mutableStateOf<Pair<String, () -> Unit>?>(null) }
+    fun trimThen(kind: com.jeremy.dashcam.data.RecordKind, limitGb: Int?, apply: () -> Unit) {
+        val n = if (limitGb == null) 0 else EventRepository.wouldDelete(kind, limitGb.toLong() shl 30)
+        if (n == 0) { apply(); Thread { EventRepository.enforceStorageLimit() }.start() }
+        else confirmTrim = "$n קטעים ישנים (לא נעולים) יימחקו כדי לעמוד במגבלה החדשה. להמשיך?" to { apply(); Thread { EventRepository.enforceStorageLimit() }.start() }
+    }
 
     Column(Modifier.fillMaxSize()) {
         ScreenHeader(stringResource(R.string.settings_title))
@@ -101,7 +119,7 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
                 Nav(stringResource(R.string.fps), s.fps.toString()) {
                     choice = Choice(ctx.getString(R.string.fps), SettingsStore.FPS_OPTIONS, { "$it FPS" }, s.fps) { v -> SettingsStore.update { it.copy(fps = v) } }
                 }
-                Toggle(stringResource(R.string.record_audio), s.recordAudio) { v -> SettingsStore.update { it.copy(recordAudio = v) } }
+                Toggle(stringResource(R.string.record_audio), s.recordAudio) { v -> withMic(v) { it.copy(recordAudio = v) } }
                 Toggle(stringResource(R.string.show_datetime), s.showDateTime, last = true) { v -> SettingsStore.update { it.copy(showDateTime = v) } }
             }
 
@@ -133,7 +151,7 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
             LiveSensorsCard()
 
             Section(stringResource(R.string.sec_voice)) {
-                Toggle(stringResource(R.string.voice_cmds), s.voiceCommands) { v -> SettingsStore.update { it.copy(voiceCommands = v) } }
+                Toggle(stringResource(R.string.voice_cmds), s.voiceCommands) { v -> withMic(v) { it.copy(voiceCommands = v) } }
                 Nav(stringResource(R.string.voice_start), "\"${s.voiceStartPhrase}\"") { editPhrase = true }
                 Nav(stringResource(R.string.voice_stop), "\"${s.voiceStopPhrase}\"") { editPhrase = false }
                 Toggle(stringResource(R.string.voice_feedback), s.voiceFeedback, last = true) { v -> SettingsStore.update { it.copy(voiceFeedback = v) } }
@@ -154,7 +172,7 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
                 }
                 Nav(stringResource(R.string.trip_max_storage), gbFmt.format(s.tripMaxStorageGb), enabled = s.tripRecording) {
                     choice = Choice(ctx.getString(R.string.trip_max_storage), SettingsStore.TRIP_STORAGE_OPTIONS, { gbFmt.format(it) }, s.tripMaxStorageGb) { v ->
-                        SettingsStore.update { it.copy(tripMaxStorageGb = v) }; Thread { EventRepository.enforceStorageLimit() }.start()
+                        trimThen(com.jeremy.dashcam.data.RecordKind.TRIP, v) { SettingsStore.update { it.copy(tripMaxStorageGb = v) } }
                     }
                 }
                 Toggle(stringResource(R.string.trip_burn), s.tripBurn) { v -> SettingsStore.update { it.copy(tripBurn = v) } }
@@ -168,11 +186,11 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
 
             Section(stringResource(R.string.sec_storage)) {
                 Toggle(stringResource(R.string.auto_delete), s.autoDelete) { v ->
-                    SettingsStore.update { it.copy(autoDelete = v) }; Thread { EventRepository.enforceStorageLimit() }.start()
+                    trimThen(com.jeremy.dashcam.data.RecordKind.EVENT, if (v) s.maxStorageGb else null) { SettingsStore.update { it.copy(autoDelete = v) } }
                 }
                 Nav(stringResource(R.string.max_storage), gbFmt.format(s.maxStorageGb), enabled = s.autoDelete) {
                     choice = Choice(ctx.getString(R.string.max_storage), SettingsStore.STORAGE_OPTIONS, { gbFmt.format(it) }, s.maxStorageGb) { v ->
-                        SettingsStore.update { it.copy(maxStorageGb = v) }; Thread { EventRepository.enforceStorageLimit() }.start()
+                        trimThen(com.jeremy.dashcam.data.RecordKind.EVENT, v) { SettingsStore.update { it.copy(maxStorageGb = v) } }
                     }
                 }
                 Nav(stringResource(R.string.storage_used), "%.2f GB • %d".format(events.filter { !it.isTrip }.sumOf { it.sizeBytes } / 1_073_741_824.0, events.count { !it.isTrip }), clickable = false, last = true) {}
@@ -207,6 +225,15 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
 
     @Suppress("UNCHECKED_CAST")
     (choice as Choice<Any?>?)?.let { c -> ChoiceDialog(c) { choice = null } }
+    confirmTrim?.let { (msg, go) ->
+        AlertDialog(
+            onDismissRequest = { confirmTrim = null }, containerColor = J.Surface,
+            title = { Text("למחוק סרטונים ישנים?") },
+            text = { Text(msg) },
+            confirmButton = { TextButton({ confirmTrim = null; go() }) { Text("כן, למחוק", color = J.Red) } },
+            dismissButton = { TextButton({ confirmTrim = null }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
 
     editPhrase?.let { isStart ->
         var text by remember(isStart) { mutableStateOf(if (isStart) s.voiceStartPhrase else s.voiceStopPhrase) }
@@ -394,8 +421,11 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
     var editSos by remember { mutableStateOf(false) }
 
     fun has(p: String) = androidx.core.content.ContextCompat.checkSelfPermission(ctx, p) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    var locOk by remember { mutableStateOf(has(android.Manifest.permission.ACCESS_FINE_LOCATION)) }
     val locPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { r ->
-        if (r.values.any { it }) SettingsStore.update { it.copy(proSpeedLocation = true) }
+        locOk = r[android.Manifest.permission.ACCESS_FINE_LOCATION] == true
+        if (locOk) SettingsStore.update { it.copy(proSpeedLocation = true) }
+        else android.widget.Toast.makeText(ctx, "צריך לאשר מיקום מדויק כדי להציג מהירות ומיקום", android.widget.Toast.LENGTH_LONG).show()
     }
     val btPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { ok -> if (ok) pickCar = true }
     val callPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { _ -> editSos = true }
@@ -429,8 +459,8 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
     }
 
     Section("תכונות Pro") {
-        ProRow("מהירות ומיקום בסרטון", "נצרב על הסרטון ונשמר באירוע", isPro, st.proSpeedLocation && has(android.Manifest.permission.ACCESS_FINE_LOCATION), onOpenPro) { v ->
-            if (v && !has(android.Manifest.permission.ACCESS_FINE_LOCATION))
+        ProRow("מהירות ומיקום בסרטון", "נצרב על הסרטון ונשמר באירוע", isPro, st.proSpeedLocation && locOk, onOpenPro) { v ->
+            if (v && !locOk)
                 locPerm.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION))
             else SettingsStore.update { it.copy(proSpeedLocation = v) }
         }
@@ -473,8 +503,8 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
         }
         ProRow(
             "זיהוי חכם עם בינה מלאכותית",
-            if (st.smartDetection) "מזהה רכבים והולכי רגל שמתקרבים מהר – בטלפון, בלי אינטרנט" else "יפעיל גם את \"זיהוי חכם\"",
-            isPro, st.proAi && st.smartDetection, onOpenPro,
+            if (st.smartDetection || !st.proAi) "מזהה רכבים והולכי רגל שמתקרבים מהר – בטלפון, בלי אינטרנט" else "פועל רק כש\"זיהוי חכם\" דלוק",
+            isPro, st.proAi, onOpenPro,
         ) { v -> SettingsStore.update { if (v) it.copy(proAi = true, smartDetection = true) else it.copy(proAi = false) } }
         ProRow(
             "גיבוי לגוגל דרייב",
@@ -581,7 +611,7 @@ private fun BurnDialog(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean, 
                 note?.let { Text(it, color = J.TextDim, fontSize = 12.sp) }
             }
             if (locked) Icon(Icons.Filled.Lock, null, tint = J.Amber, modifier = Modifier.size(18.dp))
-            Switch(checked && !locked && enabled, { if (locked) onOpenPro() else onChange(it) }, enabled = enabled,
+            Switch(if (locked) checked else checked && enabled, { if (locked) onOpenPro() else onChange(it) }, enabled = enabled,
                 colors = SwitchDefaults.colors(checkedTrackColor = J.Green, checkedThumbColor = Color.White, uncheckedTrackColor = J.Surface))
         }
     }
@@ -712,8 +742,7 @@ private fun SosDialog(st: com.jeremy.dashcam.data.AppSettings, onDismiss: () -> 
                 }
                 val ctx = LocalContext.current
                 TextButton({
-                    SettingsStore.update { it.copy(sosName = name, sosNumber = number, sosSeconds = secs, sosMinG = g, sosEnabled = on && number.isNotBlank()) }
-                    com.jeremy.dashcam.service.DashcamService.instance?.testSos()
+                    com.jeremy.dashcam.service.DashcamService.instance?.testSos(name, number)
                         ?: android.widget.Toast.makeText(ctx, "הפעל נסיעה כדי לבדוק", android.widget.Toast.LENGTH_SHORT).show()
                 }) { Text("בדיקה (בלי חיוג)", color = J.Amber) }
             }

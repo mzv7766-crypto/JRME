@@ -33,7 +33,7 @@ class CarBluetoothReceiver : BroadcastReceiver() {
             BluetoothDevice.ACTION_ACL_CONNECTED -> {
                 Log.i("Jeremy", "car bluetooth connected → auto start")
                 if (DashcamController.state.value.driveActive) return
-                val open = Intent(context, MainActivity::class.java)
+                val open = Intent().setClassName(context, MainActivity.AUTO_START_ALIAS)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     .putExtra(MainActivity.EXTRA_AUTO_START, true)
                 if (Settings.canDrawOverlays(context)) {

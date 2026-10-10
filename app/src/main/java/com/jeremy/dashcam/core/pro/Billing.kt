@@ -118,6 +118,7 @@ object Billing : PurchasesUpdatedListener {
         }
         if (!replace && active.isEmpty()) return
         main.post {
+            ProStore.markVerified()
             val was = ProStore.current.subscribed
             ProStore.update { it.copy(subscribed = active.isNotEmpty(), autoRenewing = active.any { p -> p.isAutoRenewing }) }
             if (!was && active.isNotEmpty() && !replace) ProStore.message("ברוך הבא ל־Jeremy Pro!")

@@ -658,9 +658,8 @@ class DashcamService : LifecycleService() {
         }
     }
 
-    fun testSos() {
-        val s = settings
-        sosOverlay.show(10, s.sosName, s.sosNumber, test = true, onSpeak = { voice.initTts(); voice.speak(it) }) {}
+    fun testSos(name: String = settings.sosName, number: String = settings.sosNumber) {
+        sosOverlay.show(10, name, number, test = true, onSpeak = { voice.initTts(); voice.speak(it) }) {}
     }
 
     /** After an event is saved: read licence plates in the background (on the phone). */
@@ -669,7 +668,7 @@ class DashcamService : LifecycleService() {
         Thread {
             val trigOffset = (r.triggerTime - r.videoStartTime).coerceAtLeast(0)
             val plates = com.jeremy.dashcam.core.pro.PlateReader.read(applicationContext, r.file, trigOffset - 6000, trigOffset + 12000)
-            Log.i(LOG, "plates for ${r.id}: $plates")
+            Log.i(LOG, "plates for ${r.id}: ${plates.size} found")
             EventRepository.setPlates(r.id, plates.map { it.text })
         }.start()
     }
@@ -768,6 +767,7 @@ class DashcamService : LifecycleService() {
         main.removeCallbacks(autoStopRunnable)
         state.update { it.copy(eventActive = false, eventTrigger = null, autoStopAt = 0L) }
         Log.i(LOG, "event discarded")
+        main.post { applyPendingVideoChange() }
         if (activeRecording != null) { main.removeCallbacks(rotateSegment); main.postDelayed(rotateSegment, 2_000) }
         pruneBuffer()
         if (settings.voiceFeedback) voice.speak(getString(R.string.tts_discarded))
@@ -798,6 +798,7 @@ class DashcamService : LifecycleService() {
         val aiTags = if (isPro && settings.proAi && settings.smartDetection) com.jeremy.dashcam.core.pro.AiSeen.between(eventStart - preMs, stopTime) else emptyList()
         main.removeCallbacks(autoStopRunnable)
         state.update { it.copy(eventActive = false, eventTrigger = null, autoStopAt = 0L, savingCount = it.savingCount + 1) }
+        main.postDelayed({ applyPendingVideoChange() }, 1500)  // video settings changed during the event
 
         val collectAndExport = {
             val from = eventStart - preMs
@@ -918,6 +919,11 @@ class DashcamService : LifecycleService() {
         if (s.voiceFeedback || s.voiceCommands) voice.initTts()
         if (s.voiceCommands && hasAudioPermission()) voice.start(s.voiceStartPhrase, s.voiceStopPhrase) else voice.stop()
         if (appliedVideoKey != null && appliedVideoKey != videoKey(s) && !state.value.eventActive) requestRebind()
+    }
+
+    /** Resolution / fps / audio / dual-camera changes are held back during an event; apply them once it ends. */
+    private fun applyPendingVideoChange() {
+        if (running && appliedVideoKey != null && appliedVideoKey != videoKey(settings) && !state.value.eventActive) requestRebind()
     }
 
     private fun syncFloating() {

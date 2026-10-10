@@ -120,6 +120,17 @@ object EventRepository {
         true
     }
 
+    /** How many unlocked clips of [kind] the auto-delete would remove to get under [limitBytes]. */
+    fun wouldDelete(kind: RecordKind, limitBytes: Long): Int {
+        var used = usedBytes(kind); var n = 0
+        if (used <= limitBytes) return 0
+        for (c in _events.value.filter { it.kind == kind && !it.locked }.sortedBy { it.triggerTime }) {
+            if (used <= limitBytes) break
+            used -= c.sizeBytes; n++
+        }
+        return n
+    }
+
     fun usedBytes(kind: RecordKind? = null): Long = _events.value.filter { kind == null || it.kind == kind }.sumOf { it.sizeBytes }
 
     /** Auto-delete: removes the oldest UNLOCKED events until under the limit. Locked events are never touched. */
