@@ -40,7 +40,7 @@ data class AppSettings(
     val orientation: ScreenOrientation = ScreenOrientation.AUTO,
     val autoStop: Boolean = true,
     val autoStopSeconds: Int = 20,
-    // PRO (demo)
+    // PRO
     val proSpeedLocation: Boolean = true,
     val carBtAddress: String? = null,
     val carBtName: String? = null,
@@ -51,7 +51,13 @@ data class AppSettings(
     val sosSeconds: Int = 30,
     val sosMinG: Float = 3.5f,
     val proDual: Boolean = false,
+    val proAi: Boolean = true,
+    val driveMode: DriveMode = DriveMode.OFF,
+    val driveCellular: Boolean = false,
 )
+
+/** PRO: Google Drive backup. */
+enum class DriveMode { OFF, EVENTS, ALL, MANUAL }
 
 /** Simple, synchronous settings store observable via StateFlow (shared by UI and service). */
 object SettingsStore {
@@ -111,6 +117,9 @@ object SettingsStore {
             sosSeconds = getInt("sosSec", 30),
             sosMinG = getFloat("sosG", 3.5f),
             proDual = getBoolean("proDual", false),
+            proAi = getBoolean("proAi", true),
+            driveMode = enumOr(getString("driveMode", null), DriveMode.OFF),
+            driveCellular = getBoolean("driveCell", false),
         )
     }
 
@@ -154,6 +163,9 @@ object SettingsStore {
             .putInt("sosSec", s.sosSeconds)
             .putFloat("sosG", s.sosMinG)
             .putBoolean("proDual", s.proDual)
+            .putBoolean("proAi", s.proAi)
+            .putString("driveMode", s.driveMode.name)
+            .putBoolean("driveCell", s.driveCellular)
             .apply()
     }
 

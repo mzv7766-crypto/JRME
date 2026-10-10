@@ -4,6 +4,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Firebase config (google-services.json) is added once the Firebase project exists; without it Pro sign-in shows "not configured".
+if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+
 android {
     namespace = "com.jeremy.dashcam"
     compileSdk = 36
@@ -12,19 +15,24 @@ android {
         applicationId = "com.jeremy.dashcam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 35
-        versionName = "1.6-demo3"
-        applicationIdSuffix = ".demo"
-        // demo: only 64-bit ARM (all current phones incl. Galaxy S26) to keep the APK small enough to send
-        ndk { abiFilters += "arm64-v8a" }
+        versionCode = 36
+        versionName = "2.0"
+    }
+
+    signingConfigs {
+        // Fixed key for the GitHub test APK, so Google sign-in (registered SHA-1) works on it.
+        // Play builds are signed separately with the private upload key.
+        getByName("debug") {
+            storeFile = file("keys/ci-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
         release {
-            // demo: shrink so the APK is small enough to send; signed with the debug key (demo only)
-            isMinifyEnabled = true
-            isShrinkResources = true
-            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -44,6 +52,7 @@ android {
     androidResources {
         @Suppress("UnstableApiUsage")
         generateLocaleConfig = false
+        noCompress += "tflite"
     }
 }
 
@@ -78,7 +87,18 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:$media3")
     implementation("androidx.media3:media3-ui:$media3")
 
-    implementation("com.google.mlkit:text-recognition:16.0.1")
+    // PRO
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1") // plates (model via Play services)
+    implementation("com.google.mediapipe:tasks-vision:0.10.35")                           // on-device AI object detection
+    implementation("com.android.billingclient:billing:8.3.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.google.android.gms:play-services-auth:21.5.1")
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
 
     testImplementation("junit:junit:4.13.2")
 }

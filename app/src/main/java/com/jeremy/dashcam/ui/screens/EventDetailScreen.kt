@@ -137,6 +137,10 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
             } else if (e.platesChecked) {
                 Text("לא זוהו לוחיות רישוי באירוע", color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 18.dp))
             }
+            if (e.aiTags.isNotEmpty()) {
+                Text("🤖 זוהו: " + e.aiTags.take(5).joinToString(", "), color = J.Text, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 18.dp, vertical = 4.dp))
+            }
+            DriveRow(e)
         }
         val details: @Composable () -> Unit = {
             if (info) {
@@ -246,4 +250,34 @@ private fun share(ctx: Context, e: EventRecord) {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     ctx.startActivity(Intent.createChooser(send, ctx.getString(R.string.share)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+}
+
+/** PRO: Google Drive backup state / manual backup button for one clip. */
+@Composable
+private fun DriveRow(e: EventRecord) {
+    val ctx = LocalContext.current
+    val pro by com.jeremy.dashcam.data.ProStore.state.collectAsStateWithLifecycle()
+    val st by com.jeremy.dashcam.data.SettingsStore.state.collectAsStateWithLifecycle()
+    val work by remember(e.id) { com.jeremy.dashcam.core.pro.DriveBackup.status(ctx, e.id) }.collectAsStateWithLifecycle(null)
+    if (!pro.isPro || pro.email == null) return
+    if (e.driveId == null && st.driveMode == com.jeremy.dashcam.data.DriveMode.OFF) return
+    val (text, action) = when {
+        e.driveId != null -> "☁ מגובה ב־Google Drive" to "פתח"
+        work == androidx.work.WorkInfo.State.RUNNING -> "☁ מעלה לדרייב…" to null
+        work == androidx.work.WorkInfo.State.ENQUEUED || work == androidx.work.WorkInfo.State.BLOCKED ->
+            (if (st.driveCellular) "☁ ממתין לאינטרנט" else "☁ ממתין ל־Wi-Fi") to "עכשיו"
+        work == androidx.work.WorkInfo.State.FAILED -> "☁ הגיבוי נכשל" to "נסה שוב"
+        else -> "☁ לא מגובה" to "גבה לדרייב"
+    }
+    Row(
+        Modifier.fillMaxWidth().clickable(enabled = action != null) {
+            if (e.driveId != null) runCatching {
+                ctx.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(com.jeremy.dashcam.core.pro.DriveBackup.openUrl(e.driveId))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            } else com.jeremy.dashcam.core.pro.DriveBackup.enqueue(ctx, e, manual = true)
+        }.padding(horizontal = 18.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text, color = J.Text, fontSize = 13.sp, modifier = Modifier.weight(1f))
+        if (action != null) Text(action, color = J.Mint, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
 }

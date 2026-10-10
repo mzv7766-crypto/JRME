@@ -18,6 +18,7 @@ import com.jeremy.dashcam.data.EventRepository
 object Notifications {
     const val CH_DRIVE = "jeremy_drive"
     const val CH_EVENTS = "jeremy_events"
+    const val CHANNEL_BACKUP = "jeremy_backup"
     const val ID_DRIVE = 1001
     private const val ID_EVENT_BASE = 2000
     private const val COLOR = 0xFF22C55E.toInt()
@@ -31,6 +32,11 @@ object Notifications {
         )
         nm.createNotificationChannel(
             NotificationChannel(CH_EVENTS, c.getString(R.string.ch_events), NotificationManager.IMPORTANCE_DEFAULT)
+        )
+        nm.createNotificationChannel(
+            NotificationChannel(CHANNEL_BACKUP, "Google Drive", NotificationManager.IMPORTANCE_LOW).apply {
+                setShowBadge(false); setSound(null, null)
+            }
         )
     }
 

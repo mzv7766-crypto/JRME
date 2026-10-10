@@ -240,7 +240,7 @@ class DashcamService : LifecycleService() {
         EventRepository.init(this)
         exporter = EventExporter(this)
         shock = ShockDetector(this) { d -> main.post { onImpact(d) } }
-        motion = MotionAnalyzer { f -> main.post { onVision(f) } }
+        motion = MotionAnalyzer(this, { f -> main.post { onVision(f) } }, { d -> main.post { onAi(d) } })
         voice = VoiceCommander(
             this,
             onStart = { if (!state.value.eventActive) startEvent(Trigger.VOICE) },
@@ -332,6 +332,7 @@ class DashcamService : LifecycleService() {
         driveJobs += lifecycleScope.launch { SettingsStore.state.collect { applySettings(it) } }
         driveJobs += lifecycleScope.launch { com.jeremy.dashcam.data.ProStore.state.collect {
             applyProFeatures()
+            motion.aiWanted = isPro && settings.proAi
             if (appliedVideoKey != null && appliedVideoKey != videoKey(settings) && !state.value.eventActive) requestRebind()
         } }
         // Attach / detach the on-screen preview offered by the UI (never opens the camera itself).
@@ -379,6 +380,7 @@ class DashcamService : LifecycleService() {
         driveJobs.forEach { it.cancel() }; driveJobs.clear()
         main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable); main.removeCallbacks(autoStopRunnable)
         shock.stop(); motion.enabled = false; voice.stop()
+        motion.aiWanted = false; runCatching { analysisExecutor?.execute { motion.release() } }
         com.jeremy.dashcam.core.pro.LocationTracker.stop(); sosOverlay.dismiss(); DashcamController.dualActive.value = false
         main.removeCallbacks(metricsTick); DashcamController.metrics.value = null
         floating.hide()
@@ -449,7 +451,7 @@ class DashcamService : LifecycleService() {
         var bound: VideoCapture<Recorder>? = null
         var lastError: Exception? = null
         DashcamController.dualActive.value = false
-        // PRO (demo): front + back at once, composed picture-in-picture into ONE recording
+        // PRO: front + back at once, composed picture-in-picture into ONE recording
         val dualOk = runCatching { p.availableConcurrentCameraInfos.isNotEmpty() }.getOrDefault(false)
         DashcamController.dualSupported.value = dualOk
         if (isPro && s.proDual && dualOk) {
@@ -628,7 +630,7 @@ class DashcamService : LifecycleService() {
      *    sensors felt a noticeable horizontal force (≥ 0.35 g) within ±1.5 s. This removes most false
      *    alarms from passing traffic, shadows and wipers while still catching near-misses.
      */
-    // ================= PRO (demo) =================
+    // ================= PRO =================
     private val isPro get() = com.jeremy.dashcam.data.ProStore.state.value.isPro
     private fun hasLocationPermission() =
         ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -665,6 +667,18 @@ class DashcamService : LifecycleService() {
             Log.i(LOG, "plates for ${r.id}: $plates")
             EventRepository.setPlates(r.id, plates.map { it.text })
         }.start()
+    }
+
+    /**
+     * PRO on-device AI: a vehicle / pedestrian in our path is closing in fast (time-to-contact below the
+     * threshold, seen twice in a row). That is a real near-miss even without any physical bump, so it
+     * starts an event on its own (auto-ends like the other automatic events).
+     */
+    private fun onAi(d: com.jeremy.dashcam.core.detect.ApproachAlgorithm.Danger) {
+        if (!running || !settings.smartDetection || !isPro || !settings.proAi) return
+        Log.i(LOG, "AI danger: ${d.label} ttc=${"%.2f".format(d.ttcSec)}s size=${"%.2f".format(d.size)}")
+        if (state.value.eventActive) { extendAutoStop(); return }
+        startEvent(Trigger.AI)
     }
 
     private fun onImpact(d: ImpactAlgorithm.Detection) {
@@ -734,7 +748,7 @@ class DashcamService : LifecycleService() {
         if (!running || state.value.phase != DrivePhase.RUNNING || state.value.eventActive) return
         main.removeCallbacks(rotateSegment) // keep the current segment running for the whole event
         val now = System.currentTimeMillis()
-        val auto = trigger == Trigger.SHOCK || trigger == Trigger.HARSH || trigger == Trigger.MOTION
+        val auto = trigger == Trigger.SHOCK || trigger == Trigger.HARSH || trigger == Trigger.MOTION || trigger == Trigger.AI
         val stopAt = if (auto && settings.autoStop) now + settings.autoStopSeconds * 1000L else 0L
         state.update { it.copy(eventActive = true, eventStartTime = now, eventTrigger = trigger, eventPeakG = peakG, autoStopAt = stopAt) }
         if (stopAt > 0) scheduleAutoStop(stopAt)
@@ -776,6 +790,7 @@ class DashcamService : LifecycleService() {
         val fixAtEvent = if (proLocationWanted()) com.jeremy.dashcam.core.pro.LocationTracker.at(s.eventStartTime) else null
         val preMs = settings.preEventSeconds * 1000L
         val showDateTime = settings.showDateTime
+        val aiTags = if (isPro && settings.proAi && settings.smartDetection) com.jeremy.dashcam.core.pro.AiSeen.between(eventStart - preMs, stopTime) else emptyList()
         main.removeCallbacks(autoStopRunnable)
         state.update { it.copy(eventActive = false, eventTrigger = null, autoStopAt = 0L, savingCount = it.savingCount + 1) }
 
@@ -802,6 +817,7 @@ class DashcamService : LifecycleService() {
                                 videoStartTime = it.videoStartWall, triggerTime = eventStart, durationMs = it.durationMs,
                                 trigger = trigger, locked = false, sizeBytes = it.sizeBytes, peakG = peakG,
                                 lat = fixAtEvent?.lat, lon = fixAtEvent?.lon, speedKmh = fixAtEvent?.speedKmh,
+                                aiTags = aiTags,
                             )
                         }
                         onExportFinished(record, out)
@@ -893,6 +909,7 @@ class DashcamService : LifecycleService() {
         onOrientationMaybeChanged()
         motion.sensitivity = s.smartSensitivity
         motion.enabled = s.smartDetection
+        motion.aiWanted = isPro && s.proAi
         if (s.voiceFeedback || s.voiceCommands) voice.initTts()
         if (s.voiceCommands && hasAudioPermission()) voice.start(s.voiceStartPhrase, s.voiceStopPhrase) else voice.stop()
         if (appliedVideoKey != null && appliedVideoKey != videoKey(s) && !state.value.eventActive) requestRebind()

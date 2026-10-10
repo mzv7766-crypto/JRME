@@ -11,6 +11,7 @@ class JeremyApp : Application() {
         SettingsStore.init(this)
         com.jeremy.dashcam.data.ProStore.init(this)
         EventRepository.init(this)
+        EventRepository.onAdded = { r -> com.jeremy.dashcam.core.pro.DriveBackup.onRecordAdded(this, r) }
         Notifications.createChannels(this)
         Thread { EventRepository.enforceStorageLimit() }.start()
     }

@@ -1,7 +1,7 @@
 name: Build Jeremy APK
 on:
   push:
-    branches: [main, demo]
+    branches: [main, demo, pro]
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,6 +15,11 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v5
+      - name: Download AI model (EfficientDet-Lite0, Apache-2.0)
+        run: |
+          mkdir -p app/src/main/assets
+          curl -fsSL --retry 3 -o app/src/main/assets/efficientdet_lite0.tflite https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite
+          ls -la app/src/main/assets
       - name: Build APK
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
@@ -31,6 +36,23 @@ jobs:
             msg=$(sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g' "$f")
             echo "::error::$msg"
           done
+      - name: Check native libraries for 16 KB page size (Google Play requirement)
+        if: success()
+        run: |
+          mkdir -p so && cd so && unzip -q -o ../app/build/outputs/apk/debug/app-debug.apk 'lib/arm64-v8a/*' || true
+          python3 - <<'PY'
+          import glob, struct
+          bad = []
+          for f in sorted(glob.glob('lib/arm64-v8a/*.so')):
+              d = open(f, 'rb').read()
+              phoff = struct.unpack_from('<Q', d, 0x20)[0]; phentsize, phnum = struct.unpack_from('<HH', d, 0x36)
+              aligns = [struct.unpack_from('<Q', d, phoff + i * phentsize + 0x30)[0] for i in range(phnum) if struct.unpack_from('<I', d, phoff + i * phentsize)[0] == 1]
+              ok = min(aligns) >= 16384
+              print(('OK   ' if ok else 'BAD  ') + f, aligns)
+              if not ok: bad.append(f.split('/')[-1])
+          if bad: print('::warning::not 16KB aligned: ' + ', '.join(bad))
+          else: print('::notice::all native libraries are 16KB aligned')
+          PY
       - name: Publish APK to apk-build branch
         if: success()
         run: |
@@ -39,7 +61,7 @@ jobs:
           git init -q -b apk-build
           git config user.name "github-actions"; git config user.email "actions@github.com"
           git add Jeremy.apk Jeremy-unsigned.aab && git commit -qm "APK from ${GITHUB_SHA::7}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:${{ github.ref_name == 'main' && 'apk-build' || 'apk-demo' }}
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:${{ github.ref_name == 'main' && 'apk-build' || format('apk-{0}', github.ref_name) }}
       - name: Publish release
         if: success() && github.ref_name == 'main'
         env:

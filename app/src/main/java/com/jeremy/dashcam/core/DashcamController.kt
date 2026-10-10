@@ -55,9 +55,9 @@ object DashcamController {
     /** Emits an event id when an event has been saved (UI may navigate to it). */
     val lastSavedEventId = MutableStateFlow<String?>(null)
 
-    /** PRO demo: whether this device supports front+back concurrent cameras (null = not checked yet). */
+    /** PRO: whether this device supports front+back concurrent cameras (null = not checked yet). */
     val dualSupported = MutableStateFlow<Boolean?>(null)
-    /** PRO demo: true while the dual camera is actually bound. */
+    /** PRO: true while the dual camera is actually bound. */
     val dualActive = MutableStateFlow(false)
 
     fun startDrive(context: Context) {

@@ -23,6 +23,7 @@ enum class Trigger(val labelRes: Int) {
     SHOCK(R.string.trigger_shock),
     HARSH(R.string.trigger_harsh),
     MOTION(R.string.trigger_motion),
+    AI(R.string.trigger_ai),
 }
 
 enum class RecordKind { EVENT, TRIP }
@@ -45,12 +46,16 @@ data class EventRecord(
     val kind: RecordKind = RecordKind.EVENT,
     /** Drive id (drive start time) – groups the trip clips of one drive. */
     val tripId: Long = 0L,
-    // PRO (demo)
+    // PRO
     val lat: Double? = null,
     val lon: Double? = null,
     val speedKmh: Float? = null,
     val plates: List<String> = emptyList(),
     val platesChecked: Boolean = false,
+    /** Google Drive file id once backed up. */
+    val driveId: String? = null,
+    /** On-device AI: what was seen around the event (Hebrew labels). */
+    val aiTags: List<String> = emptyList(),
 ) {
     val isTrip get() = kind == RecordKind.TRIP
     val endTime get() = videoStartTime + durationMs
@@ -94,9 +99,14 @@ object EventRepository {
             writeIndex()
             enforceLocked()
         }
+        if (get(record.id) != null) runCatching { onAdded?.invoke(record) }
     }
 
     fun setPlates(id: String, plates: List<String>) = mutate(id) { it.copy(plates = plates, platesChecked = true) }
+    fun setDrive(id: String, driveId: String) = mutate(id) { it.copy(driveId = driveId) }
+
+    /** Called (on a background thread) after a new event or trip clip was saved – used for Drive auto-backup. */
+    @Volatile var onAdded: ((EventRecord) -> Unit)? = null
 
     fun rename(id: String, name: String) = mutate(id) { it.copy(name = name.trim().ifEmpty { null }) }
     fun setLocked(id: String, locked: Boolean) = mutate(id) { it.copy(locked = locked) }
@@ -196,6 +206,8 @@ object EventRepository {
                 speedKmh = if (o.has("speed")) o.getDouble("speed").toFloat() else null,
                 plates = o.optJSONArray("plates")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList(),
                 platesChecked = o.optBoolean("platesChecked"),
+                driveId = o.optString("driveId").takeIf { it.isNotEmpty() },
+                aiTags = o.optJSONArray("ai")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList(),
             )
         }
     }.getOrElse { Log.e(TAG, "index read failed", it); emptyList() }
@@ -212,6 +224,7 @@ object EventRepository {
                 put("kind", r.kind.name); put("tripId", r.tripId)
                 r.lat?.let { put("lat", it) }; r.lon?.let { put("lon", it) }; r.speedKmh?.let { put("speed", it.toDouble()) }
                 put("plates", JSONArray(r.plates)); put("platesChecked", r.platesChecked)
+                r.driveId?.let { put("driveId", it) }; if (r.aiTags.isNotEmpty()) put("ai", JSONArray(r.aiTags))
             })
         }
         val tmp = File(indexFile.parentFile, "events.json.tmp")

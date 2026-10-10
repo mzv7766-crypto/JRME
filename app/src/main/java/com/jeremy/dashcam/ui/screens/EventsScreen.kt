@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Lock
@@ -232,6 +233,7 @@ fun triggerIcon(t: Trigger): Pair<ImageVector, Color> = when (t) {
     Trigger.SHOCK -> Icons.Filled.DirectionsCar to J.Red
     Trigger.HARSH -> Icons.Filled.Speed to J.Amber
     Trigger.MOTION -> Icons.Filled.Sensors to J.Amber
+    Trigger.AI -> Icons.Filled.AutoAwesome to J.Red
     Trigger.VOICE -> Icons.Filled.Mic to J.Mint
     Trigger.VOLUME -> Icons.Filled.VolumeUp to J.Mint
     Trigger.FLOATING -> Icons.Filled.TouchApp to J.Mint

@@ -35,6 +35,7 @@
     <string name="trigger_notification">מההתראה</string>
     <string name="trigger_voice">פקודה קולית</string>
     <string name="trigger_shock">זוהתה מכה</string>
+    <string name="trigger_ai">זיהוי AI</string>
     <string name="trigger_motion">זוהתה תנועה חריגה</string>
     <string name="share">שיתוף</string>
     <string name="rename">שינוי שם</string>

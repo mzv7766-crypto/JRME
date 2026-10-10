@@ -34,6 +34,7 @@
     <string name="trigger_notification">From notification</string>
     <string name="trigger_voice">Voice command</string>
     <string name="trigger_shock">Impact detected</string>
+    <string name="trigger_ai">AI detection</string>
     <string name="trigger_motion">Unusual motion</string>
     <string name="share">Share</string>
     <string name="rename">Rename</string>

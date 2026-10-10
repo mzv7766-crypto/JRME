@@ -63,6 +63,7 @@ import com.jeremy.dashcam.data.Resolution
 import com.jeremy.dashcam.data.ScreenOrientation
 import com.jeremy.dashcam.data.Sensitivity
 import com.jeremy.dashcam.data.SettingsStore
+import com.jeremy.dashcam.data.DriveMode
 import com.jeremy.dashcam.ui.components.JCard
 import com.jeremy.dashcam.ui.components.ScreenHeader
 import com.jeremy.dashcam.ui.theme.J
@@ -339,7 +340,7 @@ private fun Meter(label: String, value: String, fraction: Float, marker: Float, 
     }
 }
 
-/** DEMO: Pro entry point + Pro-only features (locked unless Pro). */
+/** Pro entry point + Pro-only features (locked unless Pro). */
 @Composable
 private fun ProSettingsCard(onOpenPro: () -> Unit) {
     val p by com.jeremy.dashcam.data.ProStore.state.collectAsStateWithLifecycle()
@@ -357,10 +358,10 @@ private fun ProSettingsCard(onOpenPro: () -> Unit) {
                 Text(
                     when {
                         p.isAdmin -> "מנהל • Pro מלא"
-                        p.isFreeAccount -> "חשבון חינם • Pro מלא"
-                        p.trialActive -> "תקופת ניסיון • נותרו ${com.jeremy.dashcam.data.ProStore.daysLeft(p.trialEndsAt)} ימים"
-                        p.isPro -> "Pro פעיל"
-                        else -> "${com.jeremy.dashcam.data.ProStore.TRIAL_DAYS} ימי ניסיון חינם, אחר כך ${com.jeremy.dashcam.data.ProStore.PRICE} לחודש"
+                        p.isFreeAccount && p.email != null -> "חשבון חינם • Pro מלא"
+                        p.subscribed && p.autoRenewing -> "Pro פעיל"
+                        p.subscribed -> "המנוי בוטל • פעיל עד סוף התקופה"
+                        else -> "${com.jeremy.dashcam.data.ProStore.TRIAL_DAYS} ימי ניסיון חינם, אחר כך ${p.price} לחודש"
                     },
                     color = J.TextDim, fontSize = 13.sp,
                 )
@@ -368,16 +369,16 @@ private fun ProSettingsCard(onOpenPro: () -> Unit) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = J.TextDim)
         }
     }
-    ProFeaturesSection(p.isPro, onOpenPro)
+    ProFeaturesSection(p.isPro, p.email != null, onOpenPro)
 }
 
 
 /**
- * PRO features (demo). Every feature has its own on/off switch and a PRO badge – shown to everyone.
+ * PRO features. Every feature has its own on/off switch and a PRO badge – shown to everyone.
  * Pro users: the switches work. Others: the switches are locked and tapping opens the Pro screen.
  */
 @Composable
-private fun ProFeaturesSection(isPro: Boolean, onOpenPro: () -> Unit) {
+private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () -> Unit) {
     val ctx = LocalContext.current
     val st by SettingsStore.state.collectAsStateWithLifecycle()
     val dualSupported by DashcamController.dualSupported.collectAsStateWithLifecycle()
@@ -392,6 +393,32 @@ private fun ProFeaturesSection(isPro: Boolean, onOpenPro: () -> Unit) {
     val btPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { ok -> if (ok) pickCar = true }
     val callPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { _ -> editSos = true }
     val camPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { _ -> }
+
+    // Google Drive: ask for access (consent screen) before turning backup on
+    val needsDriveAuth by com.jeremy.dashcam.core.pro.DriveBackup.needsAuth.collectAsStateWithLifecycle()
+    var pickDrive by remember { mutableStateOf(false) }
+    var pendingDrive by remember { mutableStateOf<DriveMode?>(null) }
+    val toast = { m: String -> android.widget.Toast.makeText(ctx, m, android.widget.Toast.LENGTH_LONG).show() }
+    val driveConsent = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()) { res ->
+        val ok = res.resultCode == android.app.Activity.RESULT_OK && com.jeremy.dashcam.core.pro.DriveBackup.resultFromIntent(ctx, res.data)?.accessToken != null
+        if (ok) {
+            com.jeremy.dashcam.core.pro.DriveBackup.needsAuth.value = false
+            pendingDrive?.let { m -> SettingsStore.update { it.copy(driveMode = m) } }
+        } else toast("לא ניתנה גישה ל־Google Drive")
+        pendingDrive = null
+    }
+    fun setDrive(mode: DriveMode) {
+        if (mode == DriveMode.OFF) { SettingsStore.update { it.copy(driveMode = DriveMode.OFF) }; return }
+        if (!signedIn) { toast("כדי לגבות לדרייב צריך להתחבר עם Google במסך Pro"); onOpenPro(); return }
+        val act = ctx.findActivity() ?: return
+        pendingDrive = mode
+        com.jeremy.dashcam.core.pro.DriveBackup.authorize(
+            act,
+            launch = { pi -> driveConsent.launch(androidx.activity.result.IntentSenderRequest.Builder(pi.intentSender).build()) },
+            onGranted = { SettingsStore.update { it.copy(driveMode = mode) }; pendingDrive = null },
+            onError = { toast(it); pendingDrive = null },
+        )
+    }
 
     Section("תכונות Pro") {
         ProRow("מהירות ומיקום בסרטון", "נצרב על הסרטון ונשמר באירוע", isPro, st.proSpeedLocation && has(android.Manifest.permission.ACCESS_FINE_LOCATION), onOpenPro) { v ->
@@ -435,17 +462,61 @@ private fun ProFeaturesSection(isPro: Boolean, onOpenPro: () -> Unit) {
         if (isPro) Nav("הגדרות חירום", if (st.sosNumber.isBlank()) "לא הוגדר" else st.sosNumber) {
             if (!has(android.Manifest.permission.CALL_PHONE)) callPerm.launch(android.Manifest.permission.CALL_PHONE) else editSos = true
         }
-        ProRow("זיהוי חכם עם בינה מלאכותית", "בקרוב", isPro, false, onOpenPro, soon = true) {}
-        ProRow("גיבוי ל־Google Drive", "בקרוב", isPro, false, onOpenPro, soon = true, last = true) {}
+        ProRow(
+            "זיהוי חכם עם בינה מלאכותית",
+            if (st.smartDetection) "מזהה רכבים והולכי רגל שמתקרבים מהר – בטלפון, בלי אינטרנט" else "יפעיל גם את \"זיהוי חכם\"",
+            isPro, st.proAi && st.smartDetection, onOpenPro,
+        ) { v -> SettingsStore.update { if (v) it.copy(proAi = true, smartDetection = true) else it.copy(proAi = false) } }
+        ProRow(
+            "גיבוי ל־Google Drive",
+            when (st.driveMode) {
+                DriveMode.OFF -> "האירועים נשמרים גם בדרייב שלך, בתיקייה Jeremy"
+                DriveMode.EVENTS -> "אירועים – אוטומטית" + if (st.driveCellular) "" else " • רק ב־Wi-Fi"
+                DriveMode.ALL -> "אירועים + נסיעות – אוטומטית" + if (st.driveCellular) "" else " • רק ב־Wi-Fi"
+                DriveMode.MANUAL -> "ידני – כפתור \"גבה לדרייב\" בכל אירוע"
+            },
+            isPro, st.driveMode != DriveMode.OFF, onOpenPro, last = !(isPro && st.driveMode != DriveMode.OFF),
+        ) { v -> if (v) pickDrive = true else setDrive(DriveMode.OFF) }
+        if (isPro && st.driveMode != DriveMode.OFF) {
+            if (needsDriveAuth) Nav("⚠ נדרש אישור מחדש לדרייב", "אשר") { setDrive(st.driveMode) }
+            Nav("מה לגבות", driveLabel(st.driveMode)) { pickDrive = true }
+            Toggle("להעלות גם בחבילת גלישה", st.driveCellular, last = true) { v -> SettingsStore.update { it.copy(driveCellular = v) } }
+        }
     }
     Text(
-        if (isPro) "הפעלה אוטומטית ברכב והתראת חירום עובדות גם כשהאפליקציה סגורה, בתנאי שהרשאת \"הצגה מעל אפליקציות\" מאושרת. במצב מצלמה כפולה הזיהוי החזותי כבוי (החיישנים ממשיכים לעבוד)."
+        if (isPro) "הפעלה אוטומטית ברכב והתראת חירום עובדות גם כשהאפליקציה סגורה, בתנאי שהרשאת \"הצגה מעל אפליקציות\" מאושרת. במצב מצלמה כפולה הזיהוי החזותי וה־AI כבויים (החיישנים ממשיכים לעבוד)."
         else "התכונות המסומנות ב־PRO זמינות למנויי Jeremy Pro. לחץ על אחת מהן כדי להתחיל ${com.jeremy.dashcam.data.ProStore.TRIAL_DAYS} ימי ניסיון חינם.",
         color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
     )
 
+    if (pickDrive) AlertDialog(
+        onDismissRequest = { pickDrive = false }, containerColor = J.Surface,
+        title = { Text("גיבוי ל־Google Drive") },
+        text = {
+            Column {
+                listOf(DriveMode.EVENTS, DriveMode.ALL, DriveMode.MANUAL).forEach { m ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { pickDrive = false; setDrive(m) }.padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(st.driveMode == m, { pickDrive = false; setDrive(m) }, colors = RadioButtonDefaults.colors(selectedColor = J.Green))
+                        Text(driveLabel(m), color = J.Text)
+                    }
+                }
+                Text("הקבצים נשמרים בדרייב שלך בתיקייה Jeremy. Jeremy רואה רק את הקבצים שהיא עצמה העלתה.", color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+            }
+        },
+        confirmButton = { TextButton({ pickDrive = false }) { Text(stringResource(R.string.cancel)) } },
+    )
     if (pickCar) CarPicker(onDismiss = { pickCar = false })
     if (editSos) SosDialog(st, onDismiss = { editSos = false })
+}
+
+private fun driveLabel(m: DriveMode) = when (m) {
+    DriveMode.OFF -> "כבוי"
+    DriveMode.EVENTS -> "אירועים אוטומטית"
+    DriveMode.ALL -> "אירועים + נסיעות"
+    DriveMode.MANUAL -> "ידני בלבד"
 }
 
 /** A Pro feature row: title, subtitle, PRO badge and an on/off switch (locked when not Pro). */
