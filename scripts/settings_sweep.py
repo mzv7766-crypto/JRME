@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 PKG = "com.jeremy.dashcam"
 OUT = "results"
 SKIP = ("Language", "שפה", "Screen orientation", "כיוון מסך", "Layout", "כיוון תצוגה", "Auto by language",
-        "Settings", "Home", "Events", "Camera", "Guide", "הגדרות", "ראשי", "אירועים", "מצלמה", "הדרכה")
+        "Settings", "Home", "Events", "Camera", "Guide", "Show camera", "Turn off camera", "Start", "Stop", "הגדרות", "ראשי", "אירועים", "מצלמה", "הדרכה")
 
 
 def sh(*a, timeout=30):
@@ -111,11 +111,13 @@ def main():
                 if system_dialog_open(r2) or t2 & {"Cancel", "ביטול", "Close", "סגור"}:
                     sh("shell", "input", "keyevent", "KEYCODE_BACK"); time.sleep(1.2)
             else:
-                # a dialog or another screen opened → close it
+                # close only if a dialog or another screen actually opened (BACK on Settings itself would leave it)
                 texts = {c.get("text") for c in (r.iter("node") if r is not None else [])}
-                if texts & {"Cancel", "ביטול", "Close", "סגור", "OK"} or "Jeremy Pro" in texts:
+                on_settings = bool(texts & {"Settings", "הגדרות"})
+                dialog = bool(texts & {"Cancel", "ביטול", "Close", "סגור", "OK", "Save", "שמור"})
+                if dialog or not on_settings:
                     what += " → dialog/screen (closed)"
-                sh("shell", "input", "keyevent", "KEYCODE_BACK"); time.sleep(1.2)
+                    sh("shell", "input", "keyevent", "KEYCODE_BACK"); time.sleep(1.2)
             r3 = dump()
             if system_dialog_open(r3):
                 sh("shell", "input", "keyevent", "KEYCODE_BACK"); time.sleep(1.0)
@@ -131,6 +133,14 @@ def main():
             r4 = dump()
             if r4 is not None and not any((n.get("text") or "") in ("Settings", "הגדרות") for n in r4.iter("node")):
                 sh("shell", "input", "keyevent", "KEYCODE_BACK"); time.sleep(1.2)
+            r5 = dump()
+            if r5 is not None and not any((n.get("text") or "") in ("Settings", "הגדרות") for n in r5.iter("node")):
+                # still not on settings (e.g. we left it) – go back to the settings tab via the bottom bar
+                for n in r5.iter("node"):
+                    if (n.get("text") or "") in ("Settings", "הגדרות"):
+                        bx1, by1, bx2, by2 = bounds(n); sh("shell", "input", "tap", str((bx1 + bx2) // 2), str((by1 + by2) // 2)); time.sleep(1.5); break
+                else:
+                    sh("shell", "am", "start", "-n", f"{PKG}/.MainActivity"); time.sleep(3)
         sh("shell", "input", "swipe", str(W // 2), str(int(H * 0.75)), str(W // 2), str(int(H * 0.35)), "500")
         time.sleep(1.2)
     report.insert(1, f"rows tapped: {len(seen)}, problems: {problems}")
