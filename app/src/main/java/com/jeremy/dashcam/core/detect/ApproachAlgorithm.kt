@@ -43,7 +43,7 @@ class ApproachAlgorithm {
     /** smallest TTC seen on the last update (for diagnostics / UI), null if nothing approaching */
     @Volatile var lastTtc: Float? = null; private set
 
-    private val ttcThreshold get() = when (sensitivity) { Level.HIGH -> 1.6f; Level.MEDIUM -> 1.2f; Level.LOW -> 0.9f }
+    private val ttcThreshold get() = when (sensitivity) { Level.HIGH -> 1.8f; Level.MEDIUM -> 1.3f; Level.LOW -> 1.0f }
 
     fun reset() { tracks.clear(); lastTtc = null }
 
@@ -87,18 +87,24 @@ class ApproachAlgorithm {
         return null
     }
 
-    /** TTC = size / d(size)/dt, with the growth rate from a least-squares fit over the recent history. */
+    /**
+     * TTC = size / d(size)/dt = 1 / d(ln size)/dt. The growth rate comes from a least-squares fit of ln(size)
+     * over the recent history, which is exact for an object closing at constant speed and robust to box jitter.
+     */
     private fun ttc(h: ArrayDeque<Pair<Long, Float>>): Float? {
         val n = h.size
         val t0 = h.first().first
-        var st = 0.0; var ss = 0.0; var stt = 0.0; var sts = 0.0
-        for ((t, s) in h) { val x = (t - t0) / 1000.0; st += x; ss += s; stt += x * x; sts += x * s }
-        val den = n * stt - st * st
+        var sx = 0.0; var sy = 0.0; var sxx = 0.0; var sxy = 0.0
+        for ((t, s) in h) {
+            if (s <= 0f) return null
+            val x = (t - t0) / 1000.0; val y = kotlin.math.ln(s.toDouble())
+            sx += x; sy += y; sxx += x * x; sxy += x * y
+        }
+        val den = n * sxx - sx * sx
         if (den <= 1e-9) return null
-        val slope = (n * sts - st * ss) / den              // size units per second
-        if (slope <= 0) return null
-        val now = h.last().second
-        return (now / slope).toFloat()
+        val rate = (n * sxy - sx * sy) / den          // 1/s
+        if (rate <= 0) return null
+        return (1.0 / rate).toFloat()
     }
 
     private fun sameKind(a: String, b: String): Boolean {
