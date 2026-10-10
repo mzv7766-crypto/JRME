@@ -198,7 +198,7 @@ object DriveBackup {
     fun notification(context: Context, pct: Int): Notification =
         NotificationCompat.Builder(context, com.jeremy.dashcam.service.Notifications.CHANNEL_BACKUP)
             .setSmallIcon(R.drawable.ic_stat_jeremy)
-            .setContentTitle("מגבה ל־Google Drive")
+            .setContentTitle("מגבה לגוגל דרייב")
             .setProgress(100, pct, pct <= 0)
             .setOngoing(true).setSilent(true)
             .build()

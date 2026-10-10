@@ -81,7 +81,7 @@ fun Context.findActivity(): Activity? {
 
 private val proFeatures = listOf(
     Triple(Icons.Filled.AutoAwesome, "זיהוי חכם עם בינה מלאכותית", "מזהה רכבים והולכי רגל שמתקרבים מהר – ישירות בטלפון"),
-    Triple(Icons.Filled.CloudUpload, "גיבוי ל־Google Drive", "האירועים (ואם תרצה גם הנסיעות) נשמרים בדרייב שלך"),
+    Triple(Icons.Filled.CloudUpload, "גיבוי לגוגל דרייב", "האירועים (ואם תרצה גם הנסיעות) נשמרים בדרייב שלך"),
     Triple(Icons.Filled.Speed, "מהירות ומיקום בסרטון", "נצרבים על הסרטון ונשמרים עם האירוע"),
     Triple(Icons.Filled.Videocam, "מצלמה כפולה", "הכביש והנהג בסרטון אחד (במכשירים תומכים)"),
     Triple(Icons.Filled.Bluetooth, "הפעלה אוטומטית ברכב", "מתחיל לצלם כשהטלפון מתחבר לרכב"),
@@ -141,7 +141,7 @@ fun ProScreen(onBack: () -> Unit) {
                     "ההרשמה ל־Pro תיפתח בקרוב.", color = J.TextDim, fontSize = 14.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
                 )
                 s.email == null && !s.subscribed -> BigButton("התחבר עם Google כדי להמשיך", onClick = signIn)
-                s.subscribed -> OutlineButton("ניהול המנוי ב־Google Play") { runCatching { ctx.startActivity(Billing.manageIntent()) } }
+                s.subscribed -> OutlineButton("ניהול המנוי בגוגל פליי") { runCatching { ctx.startActivity(Billing.manageIntent()) } }
                 s.isAdmin || s.isFreeAccount -> Unit
                 !s.productAvailable -> Text(
                     "המנוי עדיין לא זמין בחנות. נסה שוב בעוד כמה דקות.", color = J.TextDim, fontSize = 14.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),

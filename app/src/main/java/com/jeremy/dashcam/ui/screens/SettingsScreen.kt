@@ -404,7 +404,7 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
         if (ok) {
             com.jeremy.dashcam.core.pro.DriveBackup.needsAuth.value = false
             pendingDrive?.let { m -> SettingsStore.update { it.copy(driveMode = m) } }
-        } else toast("לא ניתנה גישה ל־Google Drive")
+        } else toast("לא ניתנה גישה לגוגל דרייב")
         pendingDrive = null
     }
     fun setDrive(mode: DriveMode) {
@@ -468,7 +468,7 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
             isPro, st.proAi && st.smartDetection, onOpenPro,
         ) { v -> SettingsStore.update { if (v) it.copy(proAi = true, smartDetection = true) else it.copy(proAi = false) } }
         ProRow(
-            "גיבוי ל־Google Drive",
+            "גיבוי לגוגל דרייב",
             when (st.driveMode) {
                 DriveMode.OFF -> "האירועים נשמרים גם בדרייב שלך, בתיקייה Jeremy"
                 DriveMode.EVENTS -> "אירועים – אוטומטית" + if (st.driveCellular) "" else " • רק ב־Wi-Fi"
@@ -491,7 +491,7 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
 
     if (pickDrive) AlertDialog(
         onDismissRequest = { pickDrive = false }, containerColor = J.Surface,
-        title = { Text("גיבוי ל־Google Drive") },
+        title = { Text("גיבוי לגוגל דרייב") },
         text = {
             Column {
                 listOf(DriveMode.EVENTS, DriveMode.ALL, DriveMode.MANUAL).forEach { m ->

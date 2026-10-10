@@ -262,7 +262,7 @@ private fun DriveRow(e: EventRecord) {
     if (!pro.isPro || pro.email == null) return
     if (e.driveId == null && st.driveMode == com.jeremy.dashcam.data.DriveMode.OFF) return
     val (text, action) = when {
-        e.driveId != null -> "☁ מגובה ב־Google Drive" to "פתח"
+        e.driveId != null -> "☁ מגובה בגוגל דרייב" to "פתח"
         work == androidx.work.WorkInfo.State.RUNNING -> "☁ מעלה לדרייב…" to null
         work == androidx.work.WorkInfo.State.ENQUEUED || work == androidx.work.WorkInfo.State.BLOCKED ->
             (if (st.driveCellular) "☁ ממתין לאינטרנט" else "☁ ממתין ל־Wi-Fi") to "עכשיו"
