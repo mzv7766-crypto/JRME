@@ -54,6 +54,10 @@ data class AppSettings(
     val proAi: Boolean = true,
     val driveMode: DriveMode = DriveMode.OFF,
     val driveCellular: Boolean = false,
+    // what is burned into the video (PRO)
+    val burnSpeed: Boolean = true,
+    val burnLocation: Boolean = true,
+    val burnBrand: Boolean = true,
 )
 
 /** PRO: Google Drive backup. */
@@ -120,6 +124,9 @@ object SettingsStore {
             proAi = getBoolean("proAi", true),
             driveMode = enumOr(getString("driveMode", null), DriveMode.OFF),
             driveCellular = getBoolean("driveCell", false),
+            burnSpeed = getBoolean("burnSpeed", true),
+            burnLocation = getBoolean("burnLoc", true),
+            burnBrand = getBoolean("burnBrand", true),
         )
     }
 
@@ -166,6 +173,9 @@ object SettingsStore {
             .putBoolean("proAi", s.proAi)
             .putString("driveMode", s.driveMode.name)
             .putBoolean("driveCell", s.driveCellular)
+            .putBoolean("burnSpeed", s.burnSpeed)
+            .putBoolean("burnLoc", s.burnLocation)
+            .putBoolean("burnBrand", s.burnBrand)
             .apply()
     }
 

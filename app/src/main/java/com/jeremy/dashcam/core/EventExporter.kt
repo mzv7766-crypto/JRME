@@ -47,6 +47,8 @@ class EventExporter(private val context: Context) {
     private var gen = 0
     /** PRO: extra text burned next to the date/time for a given wall-clock moment (speed, position). */
     var infoAt: ((Long) -> String?)? = null
+    /** PRO users may hide the Jeremy logo. */
+    @Volatile var showBrand = true
     private var active: Transformer? = null
 
     /**
@@ -149,7 +151,7 @@ class EventExporter(private val context: Context) {
                     )
                 }.build()
             val overlays = ImmutableList.builder<TextureOverlay>()
-            overlays.add(brandOverlay(brandPx))
+            if (showBrand) overlays.add(brandOverlay(brandPx))
             if (showDateTime || infoAt != null) overlays.add(TimestampOverlay(p.wallStartMs + p.clipStartMs, timePx, (shortSide * 0.92f).toInt(), showDateTime, infoAt))
             val videoEffects = ImmutableList.of<Effect>(OverlayEffect(overlays.build()))
             EditedMediaItem.Builder(media)

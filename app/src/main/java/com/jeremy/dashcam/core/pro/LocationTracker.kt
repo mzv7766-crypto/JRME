@@ -57,8 +57,8 @@ object LocationTracker {
     }
 
     /** Text burned into the video, e.g. "87 קמ״ש  •  31.77612, 35.21371". */
-    fun label(f: Fix): String {
-        val sp = f.speedKmh?.let { "${it.toInt()} קמ״ש  •  " } ?: ""
-        return sp + String.format(Locale.US, "%.5f, %.5f", f.lat, f.lon)
-    }
+    fun label(f: Fix, speed: Boolean = true, location: Boolean = true): String? = listOfNotNull(
+        if (speed) f.speedKmh?.let { "${it.toInt()} קמ״ש" } else null,
+        if (location) String.format(Locale.US, "%.5f, %.5f", f.lat, f.lon) else null,
+    ).joinToString("  •  ").ifEmpty { null }
 }

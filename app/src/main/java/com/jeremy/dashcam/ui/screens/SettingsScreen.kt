@@ -397,6 +397,7 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
     // Google Drive: ask for access (consent screen) before turning backup on
     val needsDriveAuth by com.jeremy.dashcam.core.pro.DriveBackup.needsAuth.collectAsStateWithLifecycle()
     var pickDrive by remember { mutableStateOf(false) }
+    var burnDialog by remember { mutableStateOf(false) }
     var pendingDrive by remember { mutableStateOf<DriveMode?>(null) }
     val toast = { m: String -> android.widget.Toast.makeText(ctx, m, android.widget.Toast.LENGTH_LONG).show() }
     val driveConsent = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()) { res ->
@@ -426,6 +427,7 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
                 locPerm.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION))
             else SettingsStore.update { it.copy(proSpeedLocation = v) }
         }
+        Nav("מה מופיע על הסרטון", burnSummary(st, isPro)) { burnDialog = true }
         ProRow(
             "מצלמה כפולה (קדמית + אחורית)",
             when {
@@ -508,8 +510,61 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
         },
         confirmButton = { TextButton({ pickDrive = false }) { Text(stringResource(R.string.cancel)) } },
     )
+    if (burnDialog) BurnDialog(st, isPro, onOpenPro = { burnDialog = false; onOpenPro() }, onDismiss = { burnDialog = false })
     if (pickCar) CarPicker(onDismiss = { pickCar = false })
     if (editSos) SosDialog(st, onDismiss = { editSos = false })
+}
+
+private fun burnSummary(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean): String = listOfNotNull(
+    if (st.showDateTime) "תאריך ושעה" else null,
+    if (isPro && st.proSpeedLocation && st.burnSpeed) "מהירות" else null,
+    if (isPro && st.proSpeedLocation && st.burnLocation) "מיקום" else null,
+    if (!isPro || st.burnBrand) "לוגו" else null,
+    if (isPro && st.proDual) "מצלמה קדמית" else null,
+).joinToString(", ").ifEmpty { "כלום" }
+
+/** What is burned into the saved videos. Date/time is free; the rest is PRO. */
+@Composable
+private fun BurnDialog(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean, onOpenPro: () -> Unit, onDismiss: () -> Unit) {
+    @Composable
+    fun Row2(label: String, checked: Boolean, pro: Boolean, enabled: Boolean = true, note: String? = null, onChange: (Boolean) -> Unit) {
+        val locked = pro && !isPro
+        Row(
+            Modifier.fillMaxWidth().clickable(enabled = enabled) { if (locked) onOpenPro() else onChange(!checked) }.padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(label, color = J.Text.copy(alpha = if (enabled) 1f else 0.5f), fontSize = 15.sp)
+                    if (pro) {
+                        Spacer(Modifier.width(6.dp))
+                        Text("PRO", color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(if (isPro) J.Mint else J.Amber).padding(horizontal = 6.dp, vertical = 1.dp))
+                    }
+                }
+                note?.let { Text(it, color = J.TextDim, fontSize = 12.sp) }
+            }
+            if (locked) Icon(Icons.Filled.Lock, null, tint = J.Amber, modifier = Modifier.size(18.dp))
+            Switch(checked && !locked && enabled, { if (locked) onOpenPro() else onChange(it) }, enabled = enabled,
+                colors = SwitchDefaults.colors(checkedTrackColor = J.Green, checkedThumbColor = Color.White, uncheckedTrackColor = J.Surface))
+        }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = J.Surface,
+        title = { Text("מה מופיע על הסרטון") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text("נצרב בתוך הסרטונים שנשמרים מעכשיו (לא משנה סרטונים קיימים).", color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
+                Row2("תאריך ושעה", st.showDateTime, pro = false) { v -> SettingsStore.update { it.copy(showDateTime = v) } }
+                val locOn = st.proSpeedLocation
+                Row2("מהירות", st.burnSpeed, pro = true, enabled = locOn || !isPro, note = if (isPro && !locOn) "דורש להפעיל \"מהירות ומיקום\"" else null) { v -> SettingsStore.update { it.copy(burnSpeed = v) } }
+                Row2("מיקום (קואורדינטות)", st.burnLocation, pro = true, enabled = locOn || !isPro, note = if (isPro && !locOn) "דורש להפעיל \"מהירות ומיקום\"" else null) { v -> SettingsStore.update { it.copy(burnLocation = v) } }
+                Row2("לוגו Jeremy", st.burnBrand || !isPro, pro = true, note = if (!isPro) "הסתרת הלוגו זמינה ב־Pro" else null) { v -> SettingsStore.update { it.copy(burnBrand = v) } }
+                Row2("חלון המצלמה הקדמית", st.proDual, pro = true, note = "המצלמה הכפולה") { v -> SettingsStore.update { it.copy(proDual = v) } }
+            }
+        },
+        confirmButton = { TextButton(onDismiss) { Text("סגור") } },
+    )
 }
 
 private fun driveLabel(m: DriveMode) = when (m) {

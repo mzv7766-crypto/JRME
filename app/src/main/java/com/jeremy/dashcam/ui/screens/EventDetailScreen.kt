@@ -74,6 +74,7 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
     var rename by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     var info by remember { mutableStateOf(false) }
+    var shareDialog by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -96,7 +97,7 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
         val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
         val lockedMsg = stringResource(R.string.delete_locked)
         val actions: @Composable (Modifier) -> Unit = { m ->
-            ActionTile(Icons.Filled.Share, stringResource(R.string.share), m) { share(ctx, e) }
+            ActionTile(Icons.Filled.Share, stringResource(R.string.share), m) { shareDialog = true }
             ActionTile(Icons.Filled.Edit, stringResource(R.string.rename), m) { rename = true }
             ActionTile(
                 if (e.locked) Icons.Filled.LockOpen else Icons.Filled.Lock,
@@ -189,6 +190,7 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
             dismissButton = { TextButton({ rename = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
+    if (shareDialog && e != null) ShareDialog(e, onDismiss = { shareDialog = false })
     if (confirmDelete && e != null) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false }, containerColor = J.Surface,
@@ -242,11 +244,12 @@ private fun VideoPlayer(e: EventRecord) {
 }
 
 /** Shares exactly ONE continuous MP4 file. */
-private fun share(ctx: Context, e: EventRecord) {
+private fun share(ctx: Context, e: EventRecord, text: String? = null) {
     val uri = FileProvider.getUriForFile(ctx, ctx.packageName + ".files", e.file)
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "video/mp4"
         putExtra(Intent.EXTRA_STREAM, uri)
+        if (!text.isNullOrBlank()) putExtra(Intent.EXTRA_TEXT, text)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     ctx.startActivity(Intent.createChooser(send, ctx.getString(R.string.share)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -280,4 +283,59 @@ private fun DriveRow(e: EventRecord) {
         Text(text, color = J.Text, fontSize = 13.sp, modifier = Modifier.weight(1f))
         if (action != null) Text(action, color = J.Mint, fontSize = 13.sp, fontWeight = FontWeight.Bold)
     }
+}
+
+/** Share: the video plus the details the user ticks (sent as a message next to the video). Choices are remembered. */
+@Composable
+private fun ShareDialog(e: EventRecord, onDismiss: () -> Unit) {
+    val ctx = LocalContext.current
+    val prefs = remember { ctx.getSharedPreferences("jeremy_share", Context.MODE_PRIVATE) }
+    val reason = if (e.isTrip) stringResource(R.string.trip_clip) else stringResource(e.trigger.labelRes)
+    data class Item(val key: String, val label: String, val text: String)
+    val items = remember(e) {
+        listOfNotNull(
+            Item("time", "תאריך ושעה", "🕒 " + formatDateTime(e.triggerTime)),
+            Item("reason", "סיבת האירוע", "⚠️ " + reason + (e.peakG?.let { " (%.1fG)".format(it) } ?: "")),
+            if (e.lat != null && e.lon != null) Item("map", "מיקום (קישור למפה)",
+                "📍 https://maps.google.com/?q=" + String.format(java.util.Locale.US, "%.6f,%.6f", e.lat, e.lon)) else null,
+            e.speedKmh?.let { Item("speed", "מהירות", "🚗 ${it.toInt()} קמ״ש") },
+            if (e.plates.isNotEmpty()) Item("plates", "לוחיות רישוי", "🔢 " + e.plates.joinToString(", ")) else null,
+            if (e.aiTags.isNotEmpty()) Item("ai", "מה זוהה (AI)", "🤖 " + e.aiTags.joinToString(", ")) else null,
+            e.name?.let { Item("name", "שם האירוע", "📝 $it") },
+        )
+    }
+    val checked = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>().apply { items.forEach { put(it.key, prefs.getBoolean(it.key, true)) } } }
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = J.Surface,
+        title = { Text("מה לשתף עם הסרטון") },
+        text = {
+            Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+                Text("הסרטון נשלח תמיד. הפרטים שתסמן יישלחו כהודעה לצידו.", color = J.TextDim, fontSize = 12.sp)
+                items.forEach { it2 ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { checked[it2.key] = !(checked[it2.key] ?: true) }.padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        androidx.compose.material3.Checkbox(checked[it2.key] ?: true, { v -> checked[it2.key] = v },
+                            colors = androidx.compose.material3.CheckboxDefaults.colors(checkedColor = J.Green))
+                        Column {
+                            Text(it2.label, color = J.Text, fontSize = 15.sp)
+                            Text(it2.text, color = J.TextDim, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                }
+                Text("תאריך, שעה, מהירות ומיקום שנצרבו בתוך התמונה נשארים בסרטון. מה ייצרב בסרטונים הבאים – בהגדרות ← \"מה מופיע על הסרטון\".",
+                    color = J.TextDim, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+            }
+        },
+        confirmButton = {
+            TextButton({
+                prefs.edit().apply { checked.forEach { (k, v) -> putBoolean(k, v) } }.apply()
+                val text = items.filter { checked[it.key] == true }.joinToString("\n") { it.text }
+                share(ctx, e, if (text.isBlank()) null else "Jeremy\n$text")
+                onDismiss()
+            }) { Text(stringResource(R.string.share), color = J.Mint, fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }

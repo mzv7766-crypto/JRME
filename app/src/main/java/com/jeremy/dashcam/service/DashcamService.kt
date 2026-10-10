@@ -640,7 +640,12 @@ class DashcamService : LifecycleService() {
     private fun applyProFeatures() {
         if (running && proLocationWanted()) com.jeremy.dashcam.core.pro.LocationTracker.start(this)
         else com.jeremy.dashcam.core.pro.LocationTracker.stop()
-        exporter.infoAt = if (proLocationWanted()) { t -> com.jeremy.dashcam.core.pro.LocationTracker.at(t)?.let { com.jeremy.dashcam.core.pro.LocationTracker.label(it) } } else null
+        val st = settings
+        val burnSpeed = st.burnSpeed; val burnLoc = st.burnLocation
+        exporter.infoAt = if (proLocationWanted() && (burnSpeed || burnLoc)) { t ->
+            com.jeremy.dashcam.core.pro.LocationTracker.at(t)?.let { com.jeremy.dashcam.core.pro.LocationTracker.label(it, burnSpeed, burnLoc) }
+        } else null
+        exporter.showBrand = !(isPro && !st.burnBrand)
     }
 
     /** Strong impact → countdown over every app → call the emergency contact unless "I'm OK". */
