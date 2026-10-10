@@ -17,6 +17,8 @@ android {
         targetSdk = 36
         versionCode = 36
         versionName = "2.0"
+        // test APK sent directly (not via Play): 64-bit ARM only, to keep the download small
+        if (project.hasProperty("arm64Only")) ndk { abiFilters += "arm64-v8a" }
     }
 
     signingConfigs {
@@ -32,7 +34,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 shrinking: much smaller download (the Play AAB and the test APK are built from the same code)
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

@@ -26,7 +26,17 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           chmod +x gradlew
           set -o pipefail
-          ./gradlew testDebugUnitTest assembleDebug bundleRelease $([ "$GITHUB_REF_NAME" = demo ] && echo assembleRelease) --no-daemon 2>&1 | tee build.log
+          if [ "$GITHUB_REF_NAME" = demo ]; then
+            ./gradlew testDebugUnitTest assembleDebug bundleRelease assembleRelease --no-daemon 2>&1 | tee build.log
+          else
+            # Play AAB (all ABIs, unsigned – signed locally with the upload key) + small test APK (arm64, signed with the fixed CI key)
+            ./gradlew testDebugUnitTest bundleRelease --no-daemon 2>&1 | tee build.log
+            ./gradlew assembleRelease -Parm64Only --no-daemon 2>&1 | tee -a build.log
+            BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+            $BT/apksigner sign --ks app/keys/ci-debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android \
+              --out app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/app-release-unsigned.apk
+            $BT/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk | head -3
+          fi
       - name: Report compile errors as annotations
         if: failure()
         run: |
@@ -39,10 +49,11 @@ jobs:
       - name: Check native libraries for 16 KB page size (Google Play requirement)
         if: success()
         run: |
-          mkdir -p so && cd so && unzip -q -o ../app/build/outputs/apk/debug/app-debug.apk 'lib/arm64-v8a/*' || true
+          mkdir -p so && cd so && unzip -q -o ../app/build/outputs/apk/release/app-release.apk 'lib/arm64-v8a/*' || unzip -q -o ../app/build/outputs/apk/debug/app-debug.apk 'lib/arm64-v8a/*' || true
           python3 - <<'PY'
           import glob, struct
           bad = []
+          if not glob.glob('lib/arm64-v8a/*.so'): print('::warning::no native libraries found to check')
           for f in sorted(glob.glob('lib/arm64-v8a/*.so')):
               d = open(f, 'rb').read()
               phoff = struct.unpack_from('<Q', d, 0x20)[0]; phentsize, phnum = struct.unpack_from('<HH', d, 0x36)
@@ -56,7 +67,7 @@ jobs:
       - name: Publish APK to apk-build branch
         if: success()
         run: |
-          mkdir out && if [ "$GITHUB_REF_NAME" = demo ]; then cp app/build/outputs/apk/release/app-release.apk out/Jeremy.apk; else cp app/build/outputs/apk/debug/app-debug.apk out/Jeremy.apk; fi && cp app/build/outputs/bundle/release/app-release.aab out/Jeremy-unsigned.aab
+          mkdir out && cp app/build/outputs/apk/release/app-release.apk out/Jeremy.apk && cp app/build/outputs/bundle/release/app-release.aab out/Jeremy-unsigned.aab
           cd out
           git init -q -b apk-build
           git config user.name "github-actions"; git config user.email "actions@github.com"
@@ -68,4 +79,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest -y --cleanup-tag || true
-          gh release create latest app/build/outputs/apk/debug/app-debug.apk#Jeremy.apk -t "Jeremy (latest build)" -n "Built from ${GITHUB_SHA::7}" --latest
+          gh release create latest app/build/outputs/apk/release/app-release.apk#Jeremy.apk -t "Jeremy (latest build)" -n "Built from ${GITHUB_SHA::7}" --latest
