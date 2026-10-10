@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "653041426419",
+    "project_id": "jeremy-13bb9",
+    "storage_bucket": "jeremy-13bb9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:653041426419:android:c34393fbb9aa11bfb7fc86",
+        "android_client_info": {
+          "package_name": "com.jeremy.dashcam"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "653041426419-frhu5nmf4edobn47egm8ck367ploorrn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jeremy.dashcam",
+            "certificate_hash": "165af974e30d526b334ed396b8b5adbca5d2c8cd"
+          }
+        },
+        {
+          "client_id": "653041426419-s34qdavlsjllrmcfmorhe6i81nqn3d91.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jeremy.dashcam",
+            "certificate_hash": "2a053c13fdf4eded779565644de96cf9c4e97002"
+          }
+        },
+        {
+          "client_id": "653041426419-tfdeggqlluokoveuto2808sd6ib0435g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jeremy.dashcam",
+            "certificate_hash": "6304c722a08d1ce199b14e91e9df133b59c15308"
+          }
+        },
+        {
+          "client_id": "653041426419-rlqgpd1jabttd8p7rc88tcjlr9fdgbji.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDtD6okx45v0Jcpij8SAHw_te2x05ZVEA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "653041426419-rlqgpd1jabttd8p7rc88tcjlr9fdgbji.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
