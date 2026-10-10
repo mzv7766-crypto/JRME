@@ -1,0 +1,15 @@
+name: Probe
+on:
+  push:
+    branches: [probe]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          for a in com/google/mediapipe/tasks-vision com/google/mlkit/text-recognition com/android/billingclient/billing-ktx; do
+            v=$(curl -s https://dl.google.com/android/maven2/$a/maven-metadata.xml | grep -o '<version>[^<]*</version>' | sed 's/<[^>]*>//g' | tr '\n' ' ')
+            echo "::warning::$a = $v"
+          done
+          curl -s -o tv.aar https://dl.google.com/android/maven2/com/google/mediapipe/tasks-vision/1.1.0/tasks-vision-1.1.0.aar; ls -la tv.aar; unzip -l tv.aar | grep -E "\.so|jni" | head
+          curl -s -o tv.pom https://dl.google.com/android/maven2/com/google/mediapipe/tasks-vision/1.1.0/tasks-vision-1.1.0.pom; echo "::warning::$(tr '\n' ' ' < tv.pom | head -c 3000)"
