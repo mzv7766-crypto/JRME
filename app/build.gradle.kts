@@ -37,6 +37,8 @@ android {
             // R8 shrinking: much smaller download (the Play AAB and the test APK are built from the same code)
             isMinifyEnabled = true
             isShrinkResources = true
+            // emulator smoke test of the exact shrunk build: debuggable (run-as) + signed with the CI key
+            if (project.hasProperty("smoke")) { isDebuggable = true; signingConfig = signingConfigs.getByName("debug") }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

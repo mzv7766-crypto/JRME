@@ -74,6 +74,14 @@ set_prefs() {  # $1 = extra xml lines
     $1
 </map>
 XML
+  # Pro unlocked (cached subscription) so the Pro code paths – on-device AI etc. – run in the shrunk build
+  adb shell "run-as $PKG sh -c 'cat > shared_prefs/jeremy_pro.xml'" <<XML
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="subscribed" value="true" />
+    <boolean name="autoRenew" value="true" />
+</map>
+XML
 }
 set_prefs ""
 
@@ -103,6 +111,15 @@ N=$(seg_count); [ "$N" -ge 2 ] && pass "Rolling buffer writing segments ($N file
 for t in Events Guide Settings; do tap_text "$t" >/dev/null && sleep 2 && shot "04_tab_$t" || fail "Tab $t not found"; done
 tap_text "Camera" >/dev/null; sleep 3; shot 05_camera_portrait
 svc_fg && pass "Navigation through all tabs while recording" || fail "Service died while navigating"
+
+# 4b. Pro screen + on-device AI
+tap_text "Settings" >/dev/null; sleep 2
+if tap_text "Jeremy Pro" >/dev/null; then sleep 3; shot 04b_pro_screen; adb shell input keyevent KEYCODE_BACK; sleep 2; pass "Pro screen opens"; else fail "Pro card not found in settings"; fi
+adb shell input swipe $((W/2)) $((H*3/4)) $((W/2)) $((H/4)) 400; sleep 1; adb shell input swipe $((W/2)) $((H*3/4)) $((W/2)) $((H/4)) 400; sleep 2; shot 04c_pro_settings
+adb logcat -d | grep -E "JeremyAI|mediapipe|MediaPipe" | head -20 > $OUT/ai_log.txt
+grep -q "AI detector on" $OUT/ai_log.txt && pass "On-device AI detector loaded (MediaPipe, shrunk build)" || fail "AI detector not loaded: $(head -c 300 $OUT/ai_log.txt)"
+grep -q "AI frame failed\|unavailable" $OUT/ai_log.txt && fail "AI errors: $(grep -m2 'failed\|unavailable' $OUT/ai_log.txt | head -c 300)" || pass "AI runs on camera frames without errors"
+tap_text "Camera" >/dev/null; sleep 2
 
 # 5. in-app event save (pre-event buffer)
 BTN=$(find_text "Save event")
