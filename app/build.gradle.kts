@@ -18,7 +18,10 @@ android {
         versionCode = 36
         versionName = "2.0"
         // test APK sent directly (not via Play): 64-bit ARM only, to keep the download small
-        if (project.hasProperty("arm64Only")) ndk { abiFilters += "arm64-v8a" }
+        // Play bundle: phones only (ARM); x86 is emulators / a few Chromebooks and doubles the bundle size
+        if (!project.hasProperty("smoke")) ndk {   // the emulator smoke test needs x86_64
+            if (project.hasProperty("arm64Only")) abiFilters += "arm64-v8a" else abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
     }
 
     signingConfigs {
