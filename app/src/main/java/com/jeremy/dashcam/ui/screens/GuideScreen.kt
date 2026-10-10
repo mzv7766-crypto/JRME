@@ -272,6 +272,18 @@ private val tips = listOf(
         ))),
 )
 
+/** The original "how to use Jeremy" guide (title, body), shown as one topic at the end. */
+private val appGuide = listOf(
+    R.string.g_quick to R.string.g_quick_body,
+    R.string.g_drive to R.string.g_drive_body,
+    R.string.g_event to R.string.g_event_body,
+    R.string.g_trip to R.string.g_trip_body,
+    R.string.g_float to R.string.g_float_body,
+    R.string.g_voice to R.string.g_voice_body,
+    R.string.g_share to R.string.g_share_body,
+    R.string.g_settings to R.string.g_settings_body,
+)
+
 @Composable
 fun GuideScreen() {
     var open by remember { mutableIntStateOf(-1) }
@@ -322,6 +334,29 @@ fun GuideScreen() {
                                 }
                             }
                         }
+                    }
+                }
+            }
+            // last topic: how to use Jeremy itself
+            val appIdx = tips.size
+            JCard(Modifier.fillMaxWidth().animateContentSize(), onClick = { open = if (open == appIdx) -1 else appIdx }) {
+                Column(Modifier.padding(14.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(J.Green.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Filled.PlayArrow, null, tint = J.Green, modifier = Modifier.size(28.dp))
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(if (he) "איך משתמשים ב־Jeremy" else "How to use Jeremy", color = J.Text, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text(if (he) "נסיעה, אירועים, כפתור צף, פקודות קוליות ועוד" else "Drive, events, floating button, voice and more", color = J.TextDim, fontSize = 13.sp)
+                        }
+                        Icon(if (open == appIdx) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null, tint = J.TextDim)
+                    }
+                    if (open == appIdx) appGuide.forEach { (title, body) ->
+                        Spacer(Modifier.height(12.dp))
+                        Text(stringResource(title), color = J.Mint, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(stringResource(body), color = J.Text, fontSize = 15.sp, lineHeight = 22.sp)
                     }
                 }
             }
