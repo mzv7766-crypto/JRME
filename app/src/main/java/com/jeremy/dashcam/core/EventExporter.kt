@@ -150,7 +150,7 @@ class EventExporter(private val context: Context) {
                 }.build()
             val overlays = ImmutableList.builder<TextureOverlay>()
             overlays.add(brandOverlay(brandPx))
-            if (showDateTime || infoAt != null) overlays.add(TimestampOverlay(p.wallStartMs + p.clipStartMs, timePx, showDateTime, infoAt))
+            if (showDateTime || infoAt != null) overlays.add(TimestampOverlay(p.wallStartMs + p.clipStartMs, timePx, (shortSide * 0.92f).toInt(), showDateTime, infoAt))
             val videoEffects = ImmutableList.of<Effect>(OverlayEffect(overlays.build()))
             EditedMediaItem.Builder(media)
                 .setRemoveAudio(!withAudio)
@@ -178,26 +178,41 @@ class EventExporter(private val context: Context) {
      * Dynamic overlay for ONE clip: the first frame it sees is the clip start, whose real capture
      * wall-clock time is [wallStartMs]; every later frame adds its offset. So the burned time is the
      * time the frame was filmed, not the export time.
+     * Date/time and the Pro info (speed, location) go on separate lines, and each line is shrunk to fit
+     * [maxWidthPx] so nothing is cut off at the edges of a portrait video.
      */
     private class TimestampOverlay(
-        private val wallStartMs: Long, private val px: Int,
+        private val wallStartMs: Long, private val px: Int, private val maxWidthPx: Int,
         private val showTime: Boolean = true, private val info: ((Long) -> String?)? = null,
     ) : TextOverlay() {
         private val fmt = SimpleDateFormat("yyyy-MM-dd  HH:mm:ss", Locale.US)
         private var basePtsUs = Long.MIN_VALUE
+        private val paint = android.text.TextPaint().apply { typeface = Typeface.DEFAULT_BOLD }
         private val settings = OverlaySettings.Builder()
             .setBackgroundFrameAnchor(0f, 0.90f) // top-centre of the video
             .setOverlayFrameAnchor(0f, 1f)
             .build()
 
+        private fun fit(line: String): Int {
+            paint.textSize = px.toFloat()
+            val w = paint.measureText(line)
+            return if (w <= maxWidthPx) px else (px * maxWidthPx / w).toInt().coerceAtLeast(10)
+        }
+
         override fun getText(presentationTimeUs: Long): SpannableString {
             if (basePtsUs == Long.MIN_VALUE || presentationTimeUs < basePtsUs) basePtsUs = presentationTimeUs
             val wall = wallStartMs + (presentationTimeUs - basePtsUs) / 1000
-            val parts = listOfNotNull(if (showTime) fmt.format(Date(wall)) else null, info?.invoke(wall))
-            return SpannableString(" " + parts.joinToString("  •  ") + " ").apply {
-                span(ForegroundColorSpan(Color.WHITE)); span(StyleSpan(Typeface.BOLD)); span(AbsoluteSizeSpan(px))
-                span(BackgroundColorSpan(Color.argb(120, 0, 0, 0)))
+            val lines = listOfNotNull(if (showTime) fmt.format(Date(wall)) else null, info?.invoke(wall)?.takeIf { it.isNotBlank() })
+                .map { " $it " }.ifEmpty { listOf(" ") }
+            val sb = android.text.SpannableStringBuilder()
+            lines.forEachIndexed { i, line ->
+                if (i > 0) sb.append("\n")
+                val start = sb.length
+                sb.append(line)
+                sb.setSpan(AbsoluteSizeSpan(fit(line)), start, sb.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                sb.setSpan(BackgroundColorSpan(Color.argb(120, 0, 0, 0)), start, sb.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
+            return SpannableString(sb).apply { span(ForegroundColorSpan(Color.WHITE)); span(StyleSpan(Typeface.BOLD)) }
         }
 
         override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings = settings

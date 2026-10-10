@@ -152,42 +152,102 @@ object DriveBackup {
         return id
     }
 
-    /** Resumable upload of one MP4. Returns the Drive file id. */
+    private const val CHUNK = 8L * 1024 * 1024   // multiple of 256 KB, as Drive requires
+
+    /**
+     * Resumable upload of one MP4 in 8 MB chunks. The upload session is remembered, so if the job is
+     * interrupted (network loss, time limit) the next attempt continues where it stopped. Returns the Drive file id.
+     */
     fun upload(context: Context, token: String, r: EventRecord, onProgress: (Int) -> Unit): String {
         val file: File = r.file
-        val parent = folderId(context, token)
-        val start = conn("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id", "POST", token)
-        start.doOutput = true
-        start.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-        start.setRequestProperty("X-Upload-Content-Type", "video/mp4")
-        start.setRequestProperty("X-Upload-Content-Length", file.length().toString())
-        val meta = JSONObject().put("name", fileName(r)).put("parents", org.json.JSONArray().put(parent))
-            .put("description", "Jeremy dashcam" + (r.name?.let { " – $it" } ?: ""))
-        start.outputStream.use { it.write(meta.toString().toByteArray()) }
-        start.body()
-        val session = start.getHeaderField("Location") ?: throw IOException("no upload session")
+        val total = file.length()
+        val prefs = context.getSharedPreferences("jeremy_drive", Context.MODE_PRIVATE)
+        val key = "session_${r.id}"
 
-        val put = (URL(session).openConnection() as HttpURLConnection).apply {
-            requestMethod = "PUT"; doOutput = true
-            connectTimeout = 20_000; readTimeout = 120_000
-            setFixedLengthStreamingMode(file.length())
-            setRequestProperty("Content-Type", "video/mp4")
+        var session = prefs.getString(key, null)
+        var offset = 0L
+        if (session != null) {
+            when (val st = status(session, total)) {
+                is Status.Done -> { prefs.edit().remove(key).apply(); return st.id }
+                is Status.Partial -> offset = st.next
+                Status.Gone -> session = null
+            }
         }
-        val total = file.length().coerceAtLeast(1)
-        var sent = 0L; var lastPct = -1
-        file.inputStream().use { input ->
-            put.outputStream.use { out ->
-                val buf = ByteArray(256 * 1024)
-                while (true) {
-                    val n = input.read(buf); if (n < 0) break
-                    out.write(buf, 0, n); sent += n
-                    val pct = (sent * 100 / total).toInt()
-                    if (pct != lastPct) { lastPct = pct; onProgress(pct) }
+        if (session == null) {
+            val parent = folderId(context, token)
+            val start = conn("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id", "POST", token)
+            start.doOutput = true
+            start.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+            start.setRequestProperty("X-Upload-Content-Type", "video/mp4")
+            start.setRequestProperty("X-Upload-Content-Length", total.toString())
+            val meta = JSONObject().put("name", fileName(r)).put("parents", org.json.JSONArray().put(parent))
+                .put("description", "Jeremy dashcam" + (r.name?.let { " – $it" } ?: ""))
+            start.outputStream.use { it.write(meta.toString().toByteArray()) }
+            start.body()
+            session = start.getHeaderField("Location") ?: throw IOException("no upload session")
+            prefs.edit().putString(key, session).apply()
+            offset = 0L
+        }
+
+        java.io.RandomAccessFile(file, "r").use { raf ->
+            val buf = ByteArray(256 * 1024)
+            while (true) {
+                val end = minOf(offset + CHUNK, total) - 1
+                val len = end - offset + 1
+                val put = (URL(session).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "PUT"; doOutput = true
+                    connectTimeout = 20_000; readTimeout = 120_000
+                    setFixedLengthStreamingMode(len)
+                    setRequestProperty("Content-Type", "video/mp4")
+                    setRequestProperty("Content-Range", "bytes $offset-$end/$total")
+                }
+                raf.seek(offset)
+                put.outputStream.use { out ->
+                    var left = len
+                    while (left > 0) {
+                        val n = raf.read(buf, 0, minOf(buf.size.toLong(), left).toInt())
+                        if (n < 0) throw IOException("file shrank")
+                        out.write(buf, 0, n); left -= n
+                    }
+                }
+                when (put.responseCode) {
+                    200, 201 -> {
+                        prefs.edit().remove(key).apply()
+                        onProgress(100)
+                        return JSONObject(put.body()).getString("id")
+                    }
+                    308 -> {
+                        offset = put.getHeaderField("Range")?.substringAfterLast('-')?.toLongOrNull()?.plus(1) ?: (end + 1)
+                        onProgress((offset * 100 / total.coerceAtLeast(1)).toInt())
+                    }
+                    404, 410 -> { prefs.edit().remove(key).apply(); throw DriveHttpException(put.responseCode, "upload session expired") }
+                    else -> put.body() // throws DriveHttpException
                 }
             }
         }
-        return JSONObject(put.body()).getString("id")
     }
+
+    private sealed class Status {
+        data class Done(val id: String) : Status()
+        data class Partial(val next: Long) : Status()
+        object Gone : Status()
+    }
+
+    /** Asks Drive how much of an interrupted upload it already has. */
+    private fun status(session: String, total: Long): Status = try {
+        val c = (URL(session).openConnection() as HttpURLConnection).apply {
+            requestMethod = "PUT"; doOutput = true
+            connectTimeout = 20_000; readTimeout = 60_000
+            setFixedLengthStreamingMode(0)
+            setRequestProperty("Content-Range", "bytes */$total")
+        }
+        c.outputStream.close()
+        when (c.responseCode) {
+            200, 201 -> Status.Done(JSONObject(c.body()).getString("id"))
+            308 -> Status.Partial(c.getHeaderField("Range")?.substringAfterLast('-')?.toLongOrNull()?.plus(1) ?: 0L)
+            else -> Status.Gone
+        }
+    } catch (e: IOException) { Status.Gone }
 
     private fun fileName(r: EventRecord): String {
         val ts = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date(r.triggerTime))
@@ -211,30 +271,20 @@ class DriveUploadWorker(context: Context, params: WorkerParameters) : CoroutineW
         val r = EventRepository.get(id) ?: return Result.success()          // deleted meanwhile
         if (r.driveId != null || !r.file.exists()) return Result.success()
         if (!ProStore.current.isPro || ProStore.current.email == null) return Result.success()
-        runCatching { setForeground(foreground(0)) }
         return try {
             val token = DriveBackup.token(applicationContext) ?: return Result.failure()
-            var lastShown = 0
-            val fileId = DriveBackup.upload(applicationContext, token, r) { pct ->
-                if (pct - lastShown >= 5) { lastShown = pct; runCatching { setForegroundAsync(foreground(pct)) } }
-            }
+            val fileId = DriveBackup.upload(applicationContext, token, r) { pct -> setProgressAsync(workDataOf("pct" to pct)) }
             EventRepository.setDrive(id, fileId)
             Log.i("JeremyDrive", "uploaded ${r.id} → $fileId")
             Result.success()
         } catch (e: DriveBackup.DriveHttpException) {
             Log.w("JeremyDrive", "upload failed", e)
             if (e.code == 401 || e.code == 403) DriveBackup.needsAuth.value = e.code == 401
-            if (runAttemptCount < 6 && e.code != 404) Result.retry() else Result.failure()
+            if (runAttemptCount < 12) Result.retry() else Result.failure()
         } catch (e: Exception) {
             Log.w("JeremyDrive", "upload failed", e)
-            if (runAttemptCount < 8) Result.retry() else Result.failure()
+            if (runAttemptCount < 12) Result.retry() else Result.failure()
         }
     }
 
-    private fun foreground(pct: Int): ForegroundInfo {
-        val n = DriveBackup.notification(applicationContext, pct)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            ForegroundInfo(4207, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        else ForegroundInfo(4207, n)
-    }
 }

@@ -463,7 +463,7 @@ class DashcamService : LifecycleService() {
                     CompositionSettings.Builder().setAlpha(1f).setOffset(0f, 0f).setScale(1f, 1f).build(), this)
                 val secondary = ConcurrentCamera.SingleCameraConfig(
                     CameraSelector.DEFAULT_FRONT_CAMERA, group,
-                    CompositionSettings.Builder().setAlpha(1f).setOffset(-0.62f, 0.62f).setScale(0.33f, 0.33f).build(), this)
+                    CompositionSettings.Builder().setAlpha(1f).setOffset(-0.62f, -0.52f).setScale(0.33f, 0.33f).build(), this)
                 p.unbindAll()
                 p.bindToLifecycle(listOf(primary, secondary))
                 bound = vc
@@ -663,7 +663,7 @@ class DashcamService : LifecycleService() {
         if (!isPro || !settings.proPlates) return
         Thread {
             val trigOffset = (r.triggerTime - r.videoStartTime).coerceAtLeast(0)
-            val plates = com.jeremy.dashcam.core.pro.PlateReader.read(r.file, trigOffset - 6000, trigOffset + 12000)
+            val plates = com.jeremy.dashcam.core.pro.PlateReader.read(applicationContext, r.file, trigOffset - 6000, trigOffset + 12000)
             Log.i(LOG, "plates for ${r.id}: $plates")
             EventRepository.setPlates(r.id, plates.map { it.text })
         }.start()
