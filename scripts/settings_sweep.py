@@ -16,8 +16,9 @@ import xml.etree.ElementTree as ET
 
 PKG = "com.jeremy.dashcam"
 OUT = "results"
+HOME = {"Show camera", "Turn off camera", "Start", "Stop", "Start\nDrive", "Save event"}
 SKIP = ("Language", "שפה", "Screen orientation", "כיוון מסך", "Layout", "כיוון תצוגה", "Auto by language",
-        "Settings", "Home", "Events", "Camera", "Guide", "Show camera", "Turn off camera", "Start", "Stop", "הגדרות", "ראשי", "אירועים", "מצלמה", "הדרכה")
+        "Settings", "Home", "Events", "Camera", "Guide", "הגדרות", "ראשי", "אירועים", "מצלמה", "הדרכה")
 
 
 def sh(*a, timeout=30):
@@ -84,7 +85,8 @@ def main():
             if y1 < int(H * 0.08) or y2 > nav_top or (x2 - x1) < W * 0.5:
                 continue
             lab = label_of(n)
-            if not lab or lab in seen or any(s in lab for s in SKIP):
+            first = lab.split(" | ")[0]
+            if not lab or lab in seen or any(s in lab for s in SKIP) or first in HOME or first.startswith("Start\n"):
                 continue
             is_switch = any(c.get("class", "").endswith("Switch") or c.get("checkable") == "true" for c in n.iter("node"))
             rows.append((lab, (x1 + x2) // 2, (y1 + y2) // 2, is_switch))
