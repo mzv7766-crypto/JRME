@@ -122,7 +122,10 @@ fun AccountScreen(onBack: () -> Unit, onOpenControl: () -> Unit) {
                 ProCard(onSignIn = signIn)
             }
 
-            if (s.isAdmin) { SectionLabel(stringResource(R.string.admin_free_title)); AdminFree() }
+            if (s.isAdmin) {
+                SectionLabel(stringResource(R.string.admin_orgs_title)); AdminOrgs()
+                SectionLabel(stringResource(R.string.admin_free_title)); AdminFree()
+            }
             Spacer(Modifier.height(28.dp))
         }
     }
@@ -253,6 +256,56 @@ private fun Feature(icon: ImageVector, title: String, sub: String) {
             Text(title, color = S.Text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             Text(sub, color = S.TextDim, fontSize = 12.sp, lineHeight = 16.sp)
         }
+    }
+}
+
+/** System admin: every company, and how many devices it gets for free (pilots, friends, testing). */
+@Composable
+private fun AdminOrgs() {
+    val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
+    var orgs by remember { mutableStateOf<List<OrgStore.AdminOrg>>(emptyList()) }
+    var edit by remember { mutableStateOf<OrgStore.AdminOrg?>(null) }
+    LaunchedEffect(Unit) { orgs = OrgStore.adminList() }
+    SCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(stringResource(R.string.admin_orgs_sub), color = S.TextDim, fontSize = 12.sp, lineHeight = 16.sp)
+            if (orgs.isEmpty()) Text(stringResource(R.string.admin_no_orgs), color = S.TextDim, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+            orgs.forEach { o ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(o.name, color = S.Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("${o.owner} • ${o.members}/${o.seats}" + (o.source?.let { " • $it" } ?: ""), color = S.TextDim, fontSize = 12.sp)
+                    }
+                    TextButton({ edit = o }) { Text(stringResource(R.string.admin_set_seats), color = S.Amber, fontWeight = FontWeight.Bold) }
+                }
+            }
+        }
+    }
+    edit?.let { o ->
+        var n by remember { mutableStateOf(o.seats.toString()) }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { edit = null }, containerColor = S.Surface,
+            title = { Text(o.name) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.admin_seats_q), color = S.TextDim, fontSize = 13.sp)
+                    OutlinedTextField(n, { n = it.filter(Char::isDigit).take(4) }, singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
+                }
+            },
+            confirmButton = {
+                TextButton({
+                    val seats = n.toIntOrNull() ?: return@TextButton
+                    edit = null
+                    scope.launch {
+                        if (OrgStore.adminSetSeats(o.id, seats)) orgs = OrgStore.adminList()
+                        else Toast.makeText(ctx, ctx.getString(R.string.action_failed), Toast.LENGTH_LONG).show()
+                    }
+                }) { Text(stringResource(R.string.save), color = S.Amber) }
+            },
+            dismissButton = { TextButton({ edit = null }) { Text(stringResource(R.string.cancel), color = S.TextDim) } },
+        )
     }
 }
 

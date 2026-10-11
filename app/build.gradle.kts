@@ -16,8 +16,8 @@ android {
         applicationId = "com.shomer.bodycam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
         // -Pemulator: talk to the local Firebase emulators (end-to-end tests only)
         buildConfigField("boolean", "EMULATOR", if (project.hasProperty("emulator")) "true" else "false")
         // the local emulators speak plain HTTP; real builds never allow cleartext traffic

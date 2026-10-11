@@ -355,4 +355,9 @@
     <string name="drive_sign_in_first">התחבר קודם עם Google (חשבון ומנויים)</string>
     <string name="drive_auth_failed">האישור מול Google נכשל. בדוק חיבור לאינטרנט.</string>
     <string name="drive_uploading">מגבה לגוגל דרייב</string>
+    <string name="admin_orgs_title">חברות – מכשירים בחינם (מנהל המערכת)</string>
+    <string name="admin_orgs_sub">כאן נותנים לחברה מכשירים בלי תשלום: לפיילוט, ללקוח שמשלם בהעברה, או לבדיקה שלך. מאבטחי החברה מקבלים את כל יכולות ה־Pro.</string>
+    <string name="admin_no_orgs">עוד אין חברות. פתח חברה למעלה (\"חברת אבטחה\") והיא תופיע כאן.</string>
+    <string name="admin_set_seats">מכשירים</string>
+    <string name="admin_seats_q">כמה מכשירים לתת לחברה בחינם?</string>
 </resources>

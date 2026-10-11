@@ -197,6 +197,24 @@ object OrgStore {
         return runCatching { Cloud.org(org.id).set(mapOf("policy" to p.toMap()), SetOptions.merge()).await(); true }.getOrDefault(false)
     }
 
+    // ------------------------------------------------------------------ system admin
+
+    data class AdminOrg(val id: String, val name: String, val owner: String, val seats: Int, val members: Int, val source: String?)
+
+    suspend fun adminList(): List<AdminOrg> = runCatching {
+        Cloud.db.collection("shomer_orgs").get().await().documents.map { d ->
+            @Suppress("UNCHECKED_CAST") val plan = d.get("plan") as? Map<String, Any?>
+            AdminOrg(d.id, d.getString("name").orEmpty(), d.getString("ownerEmail").orEmpty(),
+                d.getLong("seats")?.toInt() ?: 0, d.getLong("memberCount")?.toInt() ?: 0, plan?.get("source") as? String)
+        }.sortedBy { it.name }
+    }.onFailure { Log.w(Cloud.TAG, "admin list", it) }.getOrDefault(emptyList())
+
+    /** Free devices for a company (the rules allow this only for the system admin). */
+    suspend fun adminSetSeats(orgId: String, seats: Int): Boolean = runCatching {
+        Cloud.org(orgId).update(mapOf("seats" to seats, "plan" to mapOf("source" to "admin", "by" to email, "at" to System.currentTimeMillis()))).await()
+        true
+    }.onFailure { Log.w(Cloud.TAG, "admin seats", it) }.getOrDefault(false)
+
     // ------------------------------------------------------------------ control-room data (manager screens)
 
     data class Member(val email: String, val name: String, val badge: String)

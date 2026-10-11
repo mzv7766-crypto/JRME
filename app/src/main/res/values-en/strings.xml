@@ -355,4 +355,9 @@
     <string name="drive_sign_in_first">Sign in with Google first (Account and plans)</string>
     <string name="drive_auth_failed">Google approval failed. Check the internet connection.</string>
     <string name="drive_uploading">Backing up to Google Drive</string>
+    <string name="admin_orgs_title">Companies – free devices (system admin)</string>
+    <string name="admin_orgs_sub">Give a company devices without payment: for a pilot, a customer paying by bank transfer, or your own testing. The company\'s guards get all Pro features.</string>
+    <string name="admin_no_orgs">No companies yet. Open one above (\"Security company\") and it will appear here.</string>
+    <string name="admin_set_seats">Devices</string>
+    <string name="admin_seats_q">How many devices to give this company for free?</string>
 </resources>
