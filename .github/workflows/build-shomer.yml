@@ -20,9 +20,11 @@ jobs:
       - run: npm install --no-audit --no-fund
       - name: Firestore rules tests (emulator)
         run: npm test 2>&1 | tee rules.log
-      - name: Report failures
-        if: failure()
-        run: grep -E "not ok|Error|expected|✖" rules.log | head -30 | while IFS= read -r l; do echo "::error::$l"; done
+      - name: Summary
+        if: always()
+        run: |
+          echo "::notice::rules tests: $(grep -E '^# (tests|pass|fail)' rules.log | tr '\n' ' ')"
+          grep -E "not ok|✖|Error:" rules.log | head -30 | while IFS= read -r l; do echo "::error::$l"; done
   build:
     runs-on: ubuntu-24.04
     steps:

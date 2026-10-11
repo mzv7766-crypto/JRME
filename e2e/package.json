@@ -1,0 +1,11 @@
+{
+  "name": "shomer-e2e",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^4.0.0",
+    "firebase": "^11.0.0",
+    "firebase-tools": "^13.29.0",
+    "playwright": "1.47.2"
+  }
+}

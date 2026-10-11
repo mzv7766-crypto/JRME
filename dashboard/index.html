@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shomer Control</title>
+<meta name="theme-color" content="#101216">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5' y='4' width='14' height='17' rx='3' fill='%23FF9F0A'/%3E%3Ccircle cx='12' cy='10' r='4' fill='%2315171C'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- sign in -->
+  <section id="login" class="screen">
+    <div class="login-card">
+      <div class="mark"><span class="lens"></span><span class="rec"></span></div>
+      <h1>SHOMER <span>CONTROL</span></h1>
+      <p>חדר הבקרה של Shomer Team: מיקום חי, שידור מהמצלמה, הפעלת תיעוד מרחוק והתראות נפילה.</p>
+      <button id="btn-google" class="btn primary">התחבר עם Google</button>
+      <form id="emu-login" class="hidden"><input id="emu-email" placeholder="email (emulator)"><button class="btn">emu sign-in</button></form>
+      <p id="login-msg" class="muted"></p>
+    </div>
+  </section>
+
+  <!-- no company yet -->
+  <section id="noorg" class="screen hidden">
+    <div class="login-card">
+      <h2>אין עדיין חברה בחשבון הזה</h2>
+      <p>פותחים חשבון חברה באפליקציית Shomer: הגדרות ← חשבון ומנויים ← חברת אבטחה. שם גם קונים את חבילת המכשירים (Google Play). אחר כך הכול מופיע כאן.</p>
+      <p class="muted" id="noorg-email"></p>
+      <button class="btn" data-signout>התנתק</button>
+      <div id="admin-entry" class="hidden"><button class="btn primary" id="btn-admin">ניהול מערכת</button></div>
+    </div>
+  </section>
+
+  <!-- control room -->
+  <section id="app" class="hidden">
+    <header class="top">
+      <div class="brand"><span class="dot"></span>SHOMER <b>CONTROL</b></div>
+      <div class="org"><span id="org-name"></span><span class="chip" id="org-seats"></span></div>
+      <nav class="tabs" id="tabs">
+        <button data-tab="board" class="on">מפה חיה</button>
+        <button data-tab="alerts">התראות <span class="badge hidden" id="alert-count"></span></button>
+        <button data-tab="team">צוות</button>
+        <button data-tab="rules">כללים</button>
+        <button data-tab="plan">חבילה</button>
+        <button data-tab="admin" class="hidden" id="tab-admin">מערכת</button>
+      </nav>
+      <div class="me"><span id="me-email"></span><button class="link" data-signout>התנתק</button></div>
+    </header>
+
+    <div id="alarm" class="alarm hidden">
+      <div class="alarm-box">
+        <div class="alarm-title">⚠ זוהתה נפילה</div>
+        <div id="alarm-text"></div>
+        <div class="row">
+          <button class="btn primary" id="alarm-watch">צפה במצלמה</button>
+          <button class="btn" id="alarm-map">הצג במפה</button>
+          <button class="btn" id="alarm-ack">טופל</button>
+        </div>
+      </div>
+    </div>
+
+    <main>
+      <div class="pane on" id="pane-board">
+        <aside class="guards">
+          <div class="guards-head"><span>מאבטחים</span><span class="muted" id="online-count"></span></div>
+          <div id="guard-list"></div>
+        </aside>
+        <div class="mapwrap"><div id="map"></div>
+          <div class="detail hidden" id="detail">
+            <button class="x" id="detail-close">×</button>
+            <div class="d-name" id="d-name"></div>
+            <div class="d-sub" id="d-sub"></div>
+            <div class="video hidden" id="video-box">
+              <video id="video" autoplay playsinline muted></video>
+              <div class="v-state" id="v-state">מתחבר…</div>
+              <div class="v-live">● LIVE</div>
+            </div>
+            <div class="d-actions">
+              <button class="btn primary" id="d-watch">צפייה חיה</button>
+              <button class="btn rec" id="d-rec">התחל תיעוד</button>
+            </div>
+            <div class="note">וידאו בלבד, בלי קול. המאבטח מקבל רטט והודעה כשצופים בו או מפעילים אצלו תיעוד.</div>
+            <div class="d-events" id="d-events"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane" id="pane-alerts"><div class="list" id="event-list"></div></div>
+
+      <div class="pane" id="pane-team">
+        <div class="card form">
+          <h3>הוספת מאבטח</h3>
+          <p class="muted">לפי מייל Google של המאבטח. כשיתחבר באפליקציה, הטלפון שלו יחובר לחברה אוטומטית.</p>
+          <form id="add-form" class="row wrap">
+            <input id="add-email" type="email" placeholder="מייל Google" required>
+            <input id="add-name" placeholder="שם">
+            <input id="add-badge" placeholder="מספר תג">
+            <button class="btn primary">הוסף</button>
+          </form>
+          <p id="add-msg" class="muted"></p>
+        </div>
+        <div class="list" id="member-list"></div>
+      </div>
+
+      <div class="pane" id="pane-rules">
+        <div class="card form">
+          <h3>כללים לכל הטלפונים של החברה</h3>
+          <p class="muted">המאבטחים לא יכולים לשנות אותם. השינוי מגיע לטלפונים תוך שניות.</p>
+          <label>זמן לפני לחיצה<select id="r-pre"><option value="">לפי המאבטח</option><option>10</option><option>15</option><option>30</option><option>60</option><option>120</option></select></label>
+          <label class="sw"><input type="checkbox" id="r-audio"> הקלטת קול</label>
+          <label class="sw"><input type="checkbox" id="r-fall"> זיהוי נפילה</label>
+          <label class="sw"><input type="checkbox" id="r-lock"> נעילה אוטומטית של כל תיעוד</label>
+          <label class="sw"><input type="checkbox" id="r-discard"> מאבטח יכול לבטל תיעוד</label>
+          <label class="sw"><input type="checkbox" id="r-delete"> מאבטח יכול למחוק תיעודים</label>
+          <button class="btn primary" id="r-save">שמור כללים</button> <span class="muted" id="r-msg"></span>
+          <p class="muted small">קבוע: מיקום פעיל במשמרת, והמאבטח תמיד מקבל הודעה כשצופים בו.</p>
+        </div>
+      </div>
+
+      <div class="pane" id="pane-plan">
+        <div class="card">
+          <h3>החבילה</h3>
+          <div class="big" id="plan-big"></div>
+          <p id="plan-sub" class="muted"></p>
+          <p>קנייה ושדרוג של חבילה (5, 10, 25 או 50 מכשירים) נעשים באפליקציית Shomer בטלפון של המנהל: לשונית <b>בקרה</b> ← <b>חבילה</b>. התשלום דרך Google Play.</p>
+        </div>
+      </div>
+
+      <div class="pane" id="pane-admin">
+        <div class="card"><h3>חברות במערכת</h3><p class="muted">מנהל המערכת יכול להקצות מכשירים בחינם (למשל לפיילוט).</p><div class="list" id="org-list"></div></div>
+      </div>
+    </main>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
