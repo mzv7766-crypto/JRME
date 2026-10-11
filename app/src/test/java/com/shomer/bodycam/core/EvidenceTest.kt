@@ -6,7 +6,7 @@ import java.io.File
 
 class EvidenceTest {
     @Test fun sha256MatchesTheStandardValue() {
-        val f = File.createTempFile("ev", ".bin")
+        val f = File.createTempFile("evidence", ".bin")
         f.writeText("abc")
         assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", Evidence.sha256(f))
         f.writeText("abd")   // one byte changed → completely different fingerprint
