@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+: plain graphite system splash that flows straight into Shomer's own opening. -->
+    <style name="Theme.Shomer" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/shomer_bg</item>
+        <item name="android:statusBarColor">@color/shomer_bg</item>
+        <item name="android:navigationBarColor">@color/shomer_bg</item>
+        <item name="colorPrimary">@color/shomer_amber</item>
+        <item name="colorAccent">@color/shomer_amber_soft</item>
+        <item name="android:windowSplashScreenBackground">@color/shomer_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_blank</item>
+    </style>
+</resources>

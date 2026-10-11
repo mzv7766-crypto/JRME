@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- chest clip -->
+    <path android:fillColor="#FF3A3F4A" android:pathData="M45,24h18a2,2 0,0 1,2 2v6h-22v-6a2,2 0,0 1,2 -2z"/>
+    <!-- body -->
+    <path android:fillColor="#FFFFA51F" android:pathData="M42,30h24a9,9 0,0 1,9 9v32a9,9 0,0 1,-9 9h-24a9,9 0,0 1,-9 -9v-32a9,9 0,0 1,9 -9z"/>
+    <path android:fillColor="#FFE58A00" android:pathData="M33,62h42v9a9,9 0,0 1,-9 9h-24a9,9 0,0 1,-9 -9z"/>
+    <!-- lens -->
+    <path android:fillColor="#FF15171C" android:pathData="M54,37a13,13 0,1 0,0.001 0z"/>
+    <path android:fillColor="#FF2C3A4E" android:pathData="M54,42a8,8 0,1 0,0.001 0z"/>
+    <path android:fillColor="#FF4F6D92" android:pathData="M54,45a5,5 0,1 0,0.001 0z"/>
+    <path android:fillColor="#CCFFFFFF" android:pathData="M51,45.5a1.8,1.8 0,1 0,0.001 0z"/>
+    <!-- REC light -->
+    <path android:fillColor="#FFFF3B30" android:pathData="M68.5,34a2.6,2.6 0,1 0,0.001 0z"/>
+    <!-- mic slots -->
+    <path android:fillColor="#FF15171C" android:pathData="M46,70h16a1.2,1.2 0,0 1,0 2.4h-16a1.2,1.2 0,0 1,0 -2.4z"/>
+</vector>

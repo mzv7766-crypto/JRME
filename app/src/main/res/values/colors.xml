@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="shomer_bg">#FF101216</color>
+    <color name="shomer_amber">#FFFF9F0A</color>
+    <color name="shomer_amber_soft">#FFFFC56B</color>
+    <color name="ic_launcher_background">#FF15171C</color>
+</resources>
