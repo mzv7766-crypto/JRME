@@ -18,6 +18,8 @@ import com.shomer.bodycam.data.Recording
 object Notifications {
     const val CH_SHIFT = "shomer_shift"
     const val CH_SAVED = "shomer_saved"
+    const val CH_BACKUP = "shomer_backup"
+    const val CH_CONTROL = "shomer_control"
     const val ID_SHIFT = 1001
     private const val ID_SAVED_BASE = 2000
     private const val AMBER = 0xFFFF9F0A.toInt()
@@ -32,6 +34,13 @@ object Notifications {
         )
         nm.createNotificationChannel(
             NotificationChannel(CH_SAVED, c.getString(R.string.ch_saved), NotificationManager.IMPORTANCE_DEFAULT).apply { setSound(null, null) }
+        )
+        nm.createNotificationChannel(
+            NotificationChannel(CH_BACKUP, c.getString(R.string.ch_backup), NotificationManager.IMPORTANCE_LOW).apply { setShowBadge(false); setSound(null, null) }
+        )
+        // the guard must always see when the control room watches or records him
+        nm.createNotificationChannel(
+            NotificationChannel(CH_CONTROL, c.getString(R.string.ch_control), NotificationManager.IMPORTANCE_HIGH)
         )
     }
 
@@ -57,7 +66,9 @@ object Notifications {
             s.onShift -> c.getString(R.string.n_on_shift)
             else -> "Shomer"
         }
+        val watched = com.shomer.bodycam.cloud.LiveSender.watcher.value != null
         val text = when {
+            watched -> c.getString(R.string.n_watched)
             s.recording -> c.getString(R.string.n_recording_body)
             s.savingCount > 0 || s.backgroundSaving -> c.getString(R.string.n_saving)
             else -> c.getString(R.string.n_standby_body)
@@ -109,6 +120,20 @@ object Notifications {
             .setAutoCancel(true)
             .build()
         notify(c, ID_SAVED_BASE - 1, n)
+    }
+
+    /** Messages from the control room (live view started, recording started remotely …). */
+    fun notice(c: Context, title: String, body: String) {
+        val n = NotificationCompat.Builder(c, CH_CONTROL)
+            .setSmallIcon(R.drawable.ic_stat_shomer)
+            .setColor(AMBER)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setAutoCancel(true)
+            .setContentIntent(openAppIntent(c, "camera", req = 4))
+            .build()
+        notify(c, ID_SAVED_BASE - 2 - (title.hashCode() and 0xff), n)
     }
 
     private fun notify(c: Context, id: Int, n: Notification) {

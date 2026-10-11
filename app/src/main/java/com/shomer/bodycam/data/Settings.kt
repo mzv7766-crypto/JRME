@@ -48,14 +48,26 @@ data class AppSettings(
     val fullShift: Boolean = false,
     val shiftClipMinutes: Int = 5,
     val shiftMaxStorageGb: Int = 16,
+    // Pro: Google Drive backup
+    val driveBackup: Boolean = false,
+    val driveCellular: Boolean = true,
     // app
     val language: AppLanguage = AppLanguage.SYSTEM,
     val overlayPromptShown: Boolean = false,
     val onboardingDone: Boolean = false,
 )
 
-/** Synchronous settings store observable via StateFlow (shared by UI and service). */
+/** Settings that a company can lock for its guards. */
+enum class Locked { PRE_RECORD, AUDIO, FALL, LOCATION, AUTO_LOCK, OPERATOR }
+
+/**
+ * Synchronous settings store observable via StateFlow (shared by UI and service).
+ * [state] is the EFFECTIVE configuration: what the user chose, limited to the free tier unless Pro is active,
+ * and overridden by the company's policy when the phone belongs to a company.
+ */
 object SettingsStore {
+    /** Pre-record options above this need Pro. */
+    const val FREE_MAX_PRE = 30
     val PRE_RECORD_OPTIONS = listOf(10, 15, 30, 60, 120)
     val FPS_OPTIONS = listOf(24, 30, 60)
     val STORAGE_OPTIONS = listOf(4, 8, 16, 32, 64)
@@ -63,14 +75,55 @@ object SettingsStore {
     val SOS_SECONDS_OPTIONS = listOf(15, 30, 45, 60)
 
     private lateinit var prefs: SharedPreferences
+    private var user = AppSettings()
     private val _state = MutableStateFlow(AppSettings())
     val state: StateFlow<AppSettings> = _state.asStateFlow()
     val current: AppSettings get() = _state.value
+    /** What the user picked (before Pro limits / company policy) – used by the settings screen. */
+    val chosen: AppSettings get() = user
+
+    private var policy: com.shomer.bodycam.cloud.Policy? = null
+    private var orgStamp: String? = null
+    private var pro = false
+    private val _locked = MutableStateFlow<Set<Locked>>(emptySet())
+    val locked: StateFlow<Set<Locked>> = _locked.asStateFlow()
+    private val _pro = MutableStateFlow(false)
+    /** Pro features unlocked (personal Pro, free account, or a company phone). */
+    val proActive: StateFlow<Boolean> = _pro.asStateFlow()
+
+    fun setPolicy(p: com.shomer.bodycam.cloud.Policy?, stamp: String?) { policy = p; orgStamp = stamp; recompute() }
+    fun setPro(on: Boolean) { pro = on; recompute() }
+
+    private fun recompute() {
+        var s = user
+        val p = policy
+        val isPro = pro || p != null
+        if (!isPro) {
+            s = s.copy(
+                preRecordSeconds = s.preRecordSeconds.coerceAtMost(FREE_MAX_PRE),
+                resolution = if (s.resolution == Resolution.UHD) Resolution.FHD else s.resolution,
+                fullShift = false,
+                driveBackup = false,
+            )
+        }
+        val lock = mutableSetOf<Locked>()
+        if (p != null) {
+            p.preRecordSeconds?.let { s = s.copy(preRecordSeconds = it); lock += Locked.PRE_RECORD }
+            p.recordAudio?.let { s = s.copy(recordAudio = it); lock += Locked.AUDIO }
+            p.fallDetection?.let { s = s.copy(fallDetection = it); lock += Locked.FALL }
+            s = s.copy(location = true, autoLock = p.autoLock); lock += Locked.LOCATION; lock += Locked.AUTO_LOCK
+            orgStamp?.takeIf { it.isNotBlank() }?.let { s = s.copy(operatorId = it); lock += Locked.OPERATOR }
+        }
+        _pro.value = isPro
+        _locked.value = lock
+        _state.value = s
+    }
 
     fun init(context: Context) {
         if (::prefs.isInitialized) return
         prefs = context.getSharedPreferences("shomer_settings", Context.MODE_PRIVATE)
-        _state.value = load(context)
+        user = load(context)
+        recompute()
     }
 
     private fun load(c: Context): AppSettings = with(prefs) {
@@ -105,6 +158,8 @@ object SettingsStore {
             fullShift = getBoolean("fullShift", d.fullShift),
             shiftClipMinutes = getInt("shiftMin", d.shiftClipMinutes),
             shiftMaxStorageGb = getInt("shiftGb", d.shiftMaxStorageGb),
+            driveBackup = getBoolean("drive", d.driveBackup),
+            driveCellular = getBoolean("driveCell", d.driveCellular),
             language = enumOr(getString("lang", null), d.language),
             overlayPromptShown = getBoolean("overlayPrompt", false),
             onboardingDone = getBoolean("onboarding", false),
@@ -112,8 +167,9 @@ object SettingsStore {
     }
 
     fun update(transform: (AppSettings) -> AppSettings) {
-        val s = transform(_state.value)
-        _state.value = s
+        val s = transform(user)
+        user = s
+        recompute()
         prefs.edit()
             .putInt("pre", s.preRecordSeconds)
             .putString("res", s.resolution.name)
@@ -144,6 +200,8 @@ object SettingsStore {
             .putBoolean("fullShift", s.fullShift)
             .putInt("shiftMin", s.shiftClipMinutes)
             .putInt("shiftGb", s.shiftMaxStorageGb)
+            .putBoolean("drive", s.driveBackup)
+            .putBoolean("driveCell", s.driveCellular)
             .putString("lang", s.language.name)
             .putBoolean("overlayPrompt", s.overlayPromptShown)
             .putBoolean("onboarding", s.onboardingDone)

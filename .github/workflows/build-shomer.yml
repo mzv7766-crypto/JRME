@@ -6,6 +6,23 @@ on:
 permissions:
   contents: write
 jobs:
+  rules:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: 21 }
+      - run: npm install --no-audit --no-fund
+      - name: Firestore rules tests (emulator)
+        run: npm test 2>&1 | tee rules.log
+      - name: Report failures
+        if: failure()
+        run: grep -E "not ok|Error|expected|✖" rules.log | head -30 | while IFS= read -r l; do echo "::error::$l"; done
   build:
     runs-on: ubuntu-24.04
     steps:

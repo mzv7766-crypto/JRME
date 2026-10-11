@@ -119,6 +119,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleIntent(i: Intent?) {
+        // end-to-end tests (emulator builds only): sign in as a test user / start a shift
+        if (com.shomer.bodycam.BuildConfig.EMULATOR) {
+            i?.getStringExtra("e2e_email")?.let { e ->
+                SettingsStore.update { it.copy(onboardingDone = true) }
+                lifecycleScope.launch { com.shomer.bodycam.cloud.AccountStore.signInForTest(e) }
+            }
+            if (i?.getBooleanExtra("e2e_shift", false) == true) ShiftController.startShift(this)
+        }
         val route = i?.getStringExtra(EXTRA_ROUTE) ?: return
         pendingNav.value = route to i.getStringExtra(EXTRA_ID)
         i.removeExtra(EXTRA_ROUTE)
@@ -150,23 +158,28 @@ private fun AppScaffold(pendingNav: MutableStateFlow<Pair<String?, String?>?>) {
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val pending by pendingNav.collectAsStateWithLifecycle()
     val shift by ShiftController.state.collectAsStateWithLifecycle()
+    val org by com.shomer.bodycam.cloud.OrgStore.state.collectAsStateWithLifecycle()
+    val manager = org.isManager
 
     LaunchedEffect(pending) {
         val (r, id) = pending ?: return@LaunchedEffect
         when (r) {
             "camera" -> nav.navigateTab(Routes.CAMERA)
+            "control" -> nav.navigateTab(Routes.CONTROL)
             "record" -> if (id != null) { nav.navigateTab(Routes.RECORDS); nav.navigate(Routes.record(id)) }
         }
         pendingNav.value = null
     }
 
-    val showNav = route != Routes.RECORD
+    val showNav = route != Routes.RECORD && route != Routes.ACCOUNT
     val content: @Composable (Modifier) -> Unit = { m ->
         NavHost(nav, startDestination = Routes.SHIFT, modifier = m) {
             composable(Routes.SHIFT) { ShiftScreen(onCamera = { nav.navigateTab(Routes.CAMERA) }, onOpenRecord = { nav.navigate(Routes.record(it)) }) }
             composable(Routes.CAMERA) { CameraScreen(onGoShift = { nav.navigateTab(Routes.SHIFT) }) }
             composable(Routes.RECORDS) { RecordsScreen(onOpen = { nav.navigate(Routes.record(it)) }) }
-            composable(Routes.SETTINGS) { SettingsScreen() }
+            composable(Routes.SETTINGS) { SettingsScreen(onOpenAccount = { nav.navigate(Routes.ACCOUNT) }) }
+            composable(Routes.ACCOUNT) { com.shomer.bodycam.ui.screens.AccountScreen(onBack = { nav.popBackStack() }, onOpenControl = { nav.popBackStack(); nav.navigateTab(Routes.CONTROL) }) }
+            composable(Routes.CONTROL) { com.shomer.bodycam.ui.screens.ControlScreen() }
             composable(Routes.RECORD, arguments = listOf(navArgument("id") { type = NavType.StringType })) { e ->
                 RecordDetailScreen(e.arguments?.getString("id").orEmpty(), onBack = { nav.popBackStack() })
             }
@@ -174,13 +187,13 @@ private fun AppScaffold(pendingNav: MutableStateFlow<Pair<String?, String?>?>) {
     }
     if (landscape) {
         Row(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-            if (showNav) SideRail(route, shift.recording) { nav.navigateTab(it) }
+            if (showNav) SideRail(route, shift.recording, manager) { nav.navigateTab(it) }
             Box(Modifier.weight(1f).fillMaxHeight()) { content(Modifier.fillMaxSize()) }
         }
     } else {
         Scaffold(
             containerColor = Color.Transparent,
-            bottomBar = { if (showNav) BottomBar(route, shift.recording) { nav.navigateTab(it) } },
+            bottomBar = { if (showNav) BottomBar(route, shift.recording, manager) { nav.navigateTab(it) } },
         ) { pad -> content(Modifier.padding(pad)) }
     }
 }

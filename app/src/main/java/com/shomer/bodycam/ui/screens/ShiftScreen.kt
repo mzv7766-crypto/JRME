@@ -188,6 +188,22 @@ private fun OnShift(onCamera: () -> Unit, onOpenRecord: (String) -> Unit) {
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 18.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val watcher by com.shomer.bodycam.cloud.LiveSender.watcher.collectAsStateWithLifecycle()
+        val org by com.shomer.bodycam.cloud.OrgStore.state.collectAsStateWithLifecycle()
+        if (org.activeMember) {
+            Text(stringResource(R.string.connected_to, org.org!!.name), color = S.AmberSoft, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp))
+        }
+        // the guard always sees when the control room is watching
+        if (watcher != null) {
+            Row(
+                Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(12.dp)).background(S.RedDeep).padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.Videocam, null, tint = S.Red)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.watched_banner, watcher ?: ""), color = S.Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+        }
         StatusBanner(now)
         state.error?.let { Text(it, color = S.Red, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp)) }
 

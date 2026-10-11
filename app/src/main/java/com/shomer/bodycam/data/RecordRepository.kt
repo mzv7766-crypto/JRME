@@ -24,8 +24,9 @@ enum class Trigger(val labelRes: Int) {
     VOICE(R.string.trigger_voice),
     SHAKE(R.string.trigger_shake),
     FALL(R.string.trigger_fall),
+    REMOTE(R.string.trigger_remote),
     ;
-    val automatic get() = this == FALL
+    val automatic get() = this == FALL || this == REMOTE
 }
 
 /** INCIDENT = a recording the user started (with the pre-record buffer); SHIFT = part of the full-shift recording. */
@@ -51,6 +52,8 @@ data class Recording(
     val lon: Double? = null,
     /** SHA-256 of the file, computed right after it was written. */
     val sha256: String? = null,
+    /** Google Drive file id once backed up (Pro). */
+    val driveId: String? = null,
 ) {
     val isShift get() = kind == RecordKind.SHIFT
     val endTime get() = videoStartTime + durationMs
@@ -95,12 +98,17 @@ object RecordRepository {
             writeIndex()
             enforceLocked()
         }
+        if (get(r.id) != null) runCatching { onAdded?.invoke(r) }
         return r
     }
 
     fun rename(id: String, title: String) = mutate(id) { it.copy(title = title.trim().ifEmpty { null }) }
     fun setNote(id: String, note: String) = mutate(id) { it.copy(note = note.trim().ifEmpty { null }) }
     fun setLocked(id: String, locked: Boolean) = mutate(id) { it.copy(locked = locked) }
+    fun setDrive(id: String, driveId: String) = mutate(id) { it.copy(driveId = driveId) }
+
+    /** Called (on a background thread) after a recording was saved – used for Drive auto-backup. */
+    @Volatile var onAdded: ((Recording) -> Unit)? = null
 
     fun delete(id: String): Boolean = synchronized(this) {
         val r = get(id) ?: return false
@@ -187,6 +195,7 @@ object RecordRepository {
                 lat = if (o.has("lat")) o.getDouble("lat") else null,
                 lon = if (o.has("lon")) o.getDouble("lon") else null,
                 sha256 = o.optString("sha256").takeIf { it.isNotEmpty() },
+                driveId = o.optString("driveId").takeIf { it.isNotEmpty() },
             )
         }
     }.getOrElse { Log.e(TAG, "index read failed", it); emptyList() }
@@ -203,6 +212,7 @@ object RecordRepository {
                 r.operatorId?.let { put("op", it) }
                 r.lat?.let { put("lat", it) }; r.lon?.let { put("lon", it) }
                 r.sha256?.let { put("sha256", it) }
+                r.driveId?.let { put("driveId", it) }
             })
         }
         val tmp = File(indexFile.parentFile, "records.json.tmp")

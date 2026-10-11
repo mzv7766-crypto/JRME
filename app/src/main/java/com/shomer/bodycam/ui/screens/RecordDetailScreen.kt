@@ -93,7 +93,9 @@ fun RecordDetailScreen(id: String, onBack: () -> Unit) {
                 r?.let { recordTitle(it) } ?: "", color = S.Text, fontSize = 18.sp, fontWeight = FontWeight.Bold,
                 maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).clickable(enabled = r != null) { rename = true },
             )
-            if (r != null) IconButton({ RecordRepository.setLocked(r.id, !r.locked) }) {
+            val orgH by com.shomer.bodycam.cloud.OrgStore.state.collectAsStateWithLifecycle()
+            val keeps = orgH.activeMember && orgH.org?.policy?.allowDelete != true
+            if (r != null) IconButton({ if (!(keeps && r.locked)) RecordRepository.setLocked(r.id, !r.locked) }) {
                 Icon(if (r.locked) Icons.Filled.Lock else Icons.Filled.LockOpen, null, tint = if (r.locked) S.Amber else S.TextDim)
             }
         }
@@ -105,11 +107,19 @@ fun RecordDetailScreen(id: String, onBack: () -> Unit) {
         val actions: @Composable (Modifier) -> Unit = { m ->
             ActionTile(Icons.Filled.Share, stringResource(R.string.share), m) { share(ctx, r) }
             ActionTile(Icons.Filled.EditNote, stringResource(R.string.note), m) { note = true }
-            ActionTile(if (r.locked) Icons.Filled.LockOpen else Icons.Filled.Lock, stringResource(if (r.locked) R.string.unlock else R.string.lock), m) {
-                RecordRepository.setLocked(r.id, !r.locked)
+            // a company may keep its guards from unlocking / deleting evidence
+            val org by com.shomer.bodycam.cloud.OrgStore.state.collectAsStateWithLifecycle()
+            val companyKeeps = org.activeMember && org.org?.policy?.allowDelete != true
+            val keepsMsg = stringResource(R.string.company_keeps)
+            ActionTile(if (r.locked) Icons.Filled.LockOpen else Icons.Filled.Lock, stringResource(if (r.locked) R.string.unlock else R.string.lock), m, tint = if (companyKeeps && r.locked) S.TextDim else S.Text) {
+                if (companyKeeps && r.locked) Toast.makeText(ctx, keepsMsg, Toast.LENGTH_SHORT).show() else RecordRepository.setLocked(r.id, !r.locked)
             }
-            ActionTile(Icons.Filled.Delete, stringResource(R.string.delete), m, tint = if (r.locked) S.TextDim else S.Red) {
-                if (r.locked) Toast.makeText(ctx, lockedMsg, Toast.LENGTH_SHORT).show() else confirmDelete = true
+            ActionTile(Icons.Filled.Delete, stringResource(R.string.delete), m, tint = if (r.locked || companyKeeps) S.TextDim else S.Red) {
+                when {
+                    companyKeeps -> Toast.makeText(ctx, keepsMsg, Toast.LENGTH_SHORT).show()
+                    r.locked -> Toast.makeText(ctx, lockedMsg, Toast.LENGTH_SHORT).show()
+                    else -> confirmDelete = true
+                }
             }
         }
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {

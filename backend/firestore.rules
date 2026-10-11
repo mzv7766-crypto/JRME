@@ -1,0 +1,111 @@
+rules_version = '2';
+// Rules for the Firebase project shared by Jeremy and Shomer.
+// Paste the WHOLE file in Firebase console → Firestore Database → Rules → Publish.
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    // ---------------------------------------------------------------- shared helpers
+    function signedIn() {
+      return request.auth != null && request.auth.token.email is string && request.auth.token.email_verified == true;
+    }
+    function me() { return request.auth.token.email.lower(); }
+    function isAdmin() { return signedIn() && me() == 'mzv7766@gmail.com'; }
+
+    // ---------------------------------------------------------------- Jeremy + Shomer: free Pro accounts (admin list)
+    match /freeAccounts/{email} {
+      allow get: if signedIn() && (me() == email || isAdmin());
+      allow list, write: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------- Shomer Team
+    function orgPath(o) { return /databases/$(db)/documents/shomer_orgs/$(o); }
+    function org(o) { return get(orgPath(o)).data; }
+    function orgAfter(o) { return getAfter(orgPath(o)).data; }
+    function isManager(o) { return signedIn() && (isAdmin() || (exists(orgPath(o)) && me() in org(o).managers)); }
+    function isMember(o) { return signedIn() && exists(/databases/$(db)/documents/shomer_orgs/$(o)/members/$(me())); }
+    function isSelf(email) { return signedIn() && me() == email; }
+    function onlyChanges(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+
+    // email → company lookup (one company per person)
+    match /shomer_index/{email} {
+      allow get: if isSelf(email) || isAdmin() || (resource != null && isManager(resource.data.orgId));
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['orgId', 'role'])
+        && (
+          // a manager adds a guard
+          (request.resource.data.role == 'member' && isManager(request.resource.data.orgId)
+            && existsAfter(/databases/$(db)/documents/shomer_orgs/$(request.resource.data.orgId)/members/$(email)))
+          // the owner registers himself when creating the company
+          || (request.resource.data.role == 'manager' && isSelf(email) && me() in orgAfter(request.resource.data.orgId).managers)
+          || isAdmin()
+        );
+      allow update: if isAdmin();
+      allow delete: if isSelf(email) || isAdmin() || isManager(resource.data.orgId);
+    }
+
+    match /shomer_orgs/{o} {
+      allow get: if isManager(o) || isMember(o);
+      allow list: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.ownerEmail == me()
+        && request.resource.data.managers == [me()]
+        && request.resource.data.seats == 0
+        && request.resource.data.memberCount == 0
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
+        && !('plan' in request.resource.data);
+      allow update: if isAdmin() || (isManager(o)
+        && request.resource.data.ownerEmail == resource.data.ownerEmail
+        && request.resource.data.managers.hasAll([resource.data.ownerEmail])
+        // seat counter moves only by one, together with a member being added / removed (checked there)
+        && request.resource.data.memberCount >= 0
+        && (request.resource.data.memberCount == resource.data.memberCount
+            || request.resource.data.memberCount == resource.data.memberCount + 1
+            || request.resource.data.memberCount == resource.data.memberCount - 1)
+        // seats change only through a Google Play team plan (5 / 10 / 25 / 50 devices) or by the admin
+        && (request.resource.data.seats == resource.data.seats
+            || (request.resource.data.seats in [5, 10, 25, 50] && request.resource.data.plan.source == 'play'))
+        && (!('plan' in request.resource.data) || request.resource.data.plan.source == 'play' || request.resource.data.plan == resource.data.get('plan', null)));
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerEmail == me());
+
+      match /members/{email} {
+        allow get: if isManager(o) || isSelf(email);
+        allow list: if isManager(o);
+        allow create: if isManager(o)
+          && orgAfter(o).memberCount == org(o).memberCount + 1
+          && orgAfter(o).memberCount <= orgAfter(o).seats
+          && request.resource.data.name is string && request.resource.data.name.size() <= 60
+          && request.resource.data.badge is string && request.resource.data.badge.size() <= 32;
+        allow update: if isManager(o) && onlyChanges(['name', 'badge']);
+        allow delete: if isManager(o) && orgAfter(o).memberCount == org(o).memberCount - 1;
+      }
+
+      // live status written by the guard's phone while on shift
+      match /devices/{email} {
+        allow read: if isManager(o) || isSelf(email);
+        allow create, update: if isSelf(email) && isMember(o);
+        allow delete: if isManager(o);
+      }
+
+      // commands from the control room to one phone (start / stop recording)
+      match /cmd/{email} {
+        allow read: if isManager(o) || (isSelf(email) && isMember(o));
+        allow write: if isManager(o);
+      }
+
+      // live video signalling (WebRTC offer / answer / ICE candidates)
+      match /live/{email} {
+        allow read, write: if isManager(o) || (isSelf(email) && isMember(o));
+        match /{side}/{cand} {
+          allow read, write: if isManager(o) || (isSelf(email) && isMember(o));
+        }
+      }
+
+      // timeline: shift start/end, recording saved, fall detected … (append-only)
+      match /events/{id} {
+        allow read: if isManager(o);
+        allow create: if (isMember(o) && request.resource.data.email == me()) || isManager(o);
+        allow update: if isManager(o) && onlyChanges(['ackBy', 'ackAt']);
+        allow delete: if isAdmin();
+      }
+    }
+  }
+}

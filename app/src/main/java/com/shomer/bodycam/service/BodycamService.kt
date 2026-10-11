@@ -16,7 +16,14 @@ import android.util.Range
 import android.view.OrientationEventListener
 import android.view.Surface
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCase
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import android.util.Size
+import com.shomer.bodycam.cloud.LiveSender
+import com.shomer.bodycam.cloud.Presence
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.FileOutputOptions
@@ -102,6 +109,8 @@ class BodycamService : LifecycleService() {
     private var segmentRotation = Surface.ROTATION_0
     private var lastRotationSwitch = 0L
     private var orientationListener: OrientationEventListener? = null
+    private var analysisExecutor: java.util.concurrent.ExecutorService? = null
+    private var analysisUseCase: ImageAnalysis? = null
 
     // pre-record buffer
     private val bufferDir by lazy { File(filesDir, "buffer").apply { mkdirs() } }
@@ -184,6 +193,7 @@ class BodycamService : LifecycleService() {
         instance = null
         voice.release()
         manDown.dismiss()
+        analysisExecutor?.shutdown()
         main.removeCallbacksAndMessages(null)
         if (state.value.onShift) state.value = ShiftState()
         super.onDestroy()
@@ -242,6 +252,11 @@ class BodycamService : LifecycleService() {
             state.map { Triple(it.recording, it.savingCount, it.phase) }.distinctUntilChanged().collect {
                 if (running) getSystemService(NotificationManager::class.java).notify(Notifications.ID_SHIFT, Notifications.shift(this@BodycamService, state.value))
                 syncFloating()
+            }
+        }
+        shiftJobs += lifecycleScope.launch {
+            LiveSender.watcher.collect {
+                if (running) getSystemService(NotificationManager::class.java).notify(Notifications.ID_SHIFT, Notifications.shift(this@BodycamService, state.value))
             }
         }
         Haptics.play(this, Haptics.Pattern.SHIFT_ON)
@@ -327,6 +342,7 @@ class BodycamService : LifecycleService() {
     private fun onOrientationMaybeChanged() {
         if (!running) return
         val want = desiredRotation()
+        analysisUseCase?.targetRotation = want
         if (want == segmentRotation || state.value.recording) return    // one orientation per recording
         val rec = activeRecording ?: return
         val t = SystemClock.elapsedRealtime()
@@ -348,21 +364,33 @@ class BodycamService : LifecycleService() {
         val quality = when (s.resolution) { Resolution.HD -> Quality.HD; Resolution.FHD -> Quality.FHD; Resolution.UHD -> Quality.UHD }
         val qualitySelector = QualitySelector.from(quality, FallbackStrategy.lowerQualityOrHigherThan(Quality.SD))
         val newPreview = Preview.Builder().build()
+        // small frames for live video to the control room (only used while someone is watching)
+        val analysis = ImageAnalysis.Builder()
+            .setResolutionSelector(ResolutionSelector.Builder().setResolutionStrategy(
+                ResolutionStrategy(Size(640, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER)).build())
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build().also { it.targetRotation = desiredRotation() }
+        val exec = analysisExecutor ?: java.util.concurrent.Executors.newSingleThreadExecutor().also { analysisExecutor = it }
+        analysis.setAnalyzer(exec) { img -> if (LiveSender.wantsFrames) LiveSender.onFrame(img) else img.close() }
 
         var bound: VideoCapture<Recorder>? = null
         var lastError: Exception? = null
-        for (withFps in listOf(true, false)) {
+        // richest first; a phone that can't run 3 camera streams records without live video rather than failing
+        for ((withFps, withAnalysis) in listOf(true to true, false to true, true to false, false to false)) {
             val vc = VideoCapture.Builder(Recorder.Builder().setQualitySelector(qualitySelector).build()).apply {
                 if (withFps) setTargetFrameRate(Range(s.fps, s.fps))
             }.build().also { it.targetRotation = desiredRotation() }
+            val cases = mutableListOf<UseCase>(newPreview, vc)
+            if (withAnalysis) cases += analysis
             try {
                 p.unbindAll()
-                p.bindToLifecycle(this, selector, newPreview, vc)
+                p.bindToLifecycle(this, selector, *cases.toTypedArray())
                 bound = vc
+                analysisUseCase = if (withAnalysis) analysis else null
                 break
             } catch (e: Exception) {
                 lastError = e
-                Log.w(LOG, "bind failed fps=$withFps", e)
+                Log.w(LOG, "bind failed fps=$withFps analysis=$withAnalysis", e)
             }
         }
         if (bound == null) { onCameraError(lastError ?: IllegalStateException("bind failed")); return }
@@ -513,7 +541,8 @@ class BodycamService : LifecycleService() {
         state.update { it.copy(recording = true, recordStart = now, trigger = trigger) }
         Log.i(LOG, "recording started by $trigger")
         Haptics.play(this, Haptics.Pattern.STARTED)
-        if (settings.pocketOnRecord && trigger != Trigger.FALL) ShiftController.pocket.value = true
+        Presence.event("rec_start", trigger.name)
+        if (settings.pocketOnRecord && trigger != Trigger.FALL && trigger != Trigger.REMOTE) ShiftController.pocket.value = true
     }
 
     /** Ends the running recording WITHOUT saving (only from inside the app, after confirmation). */
@@ -581,6 +610,7 @@ class BodycamService : LifecycleService() {
             main.post {
                 state.update { it.copy(savingCount = (it.savingCount - 1).coerceAtLeast(0), savedThisShift = it.savedThisShift + if (saved != null) 1 else 0) }
                 if (saved != null) {
+                    if (!saved.isShift) Presence.event("rec_saved", saved.trigger.name, mapOf("durationMs" to saved.durationMs, "sha256" to saved.sha256))
                     Notifications.saved(this, saved)
                     ShiftController.lastSavedId.value = saved.id
                     Haptics.play(this, Haptics.Pattern.SAVED)
@@ -671,9 +701,13 @@ class BodycamService : LifecycleService() {
         Log.i(LOG, "fall detected: peak ${d.peakG}g, turned ${d.angleDeg}°")
         startRecordingIfIdle(Trigger.FALL)
         Haptics.play(this, Haptics.Pattern.ALARM, force = true)
+        Presence.event("fall", "%.1fg".format(d.peakG))
         val s = settings
         if (s.sosEnabled && s.sosNumber.isNotBlank()) {
-            manDown.show(s.sosSeconds, s.sosName, s.sosNumber, test = false) { ManDownOverlay.call(this, s.sosNumber) }
+            manDown.show(s.sosSeconds, s.sosName, s.sosNumber, test = false, onOk = { Presence.event("fall_ok") }) {
+                Presence.event("sos_call", s.sosName)
+                ManDownOverlay.call(this, s.sosNumber)
+            }
         }
     }
 

@@ -103,8 +103,11 @@ fun CameraScreen(onGoShift: () -> Unit) {
         )
     }
     val leftAction: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { size ->
-        if (state.recording) RoundAction(Icons.Filled.DeleteOutline, stringResource(R.string.discard), { confirmDiscard = true }, size = size, tint = S.Red)
-        else RoundAction(Icons.Filled.Cameraswitch, stringResource(R.string.switch_camera), { ShiftController.switchCamera() }, size = size)
+        val org by com.shomer.bodycam.cloud.OrgStore.state.collectAsStateWithLifecycle()
+        val mayDiscard = !org.activeMember || org.org?.policy?.allowDiscard == true
+        if (state.recording && mayDiscard) RoundAction(Icons.Filled.DeleteOutline, stringResource(R.string.discard), { confirmDiscard = true }, size = size, tint = S.Red)
+        else if (!state.recording) RoundAction(Icons.Filled.Cameraswitch, stringResource(R.string.switch_camera), { ShiftController.switchCamera() }, size = size)
+        else Spacer(Modifier.width(76.dp))
     }
     val rightAction: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { size ->
         RoundAction(Icons.Filled.DarkMode, stringResource(R.string.pocket_mode), { ShiftController.pocket.value = true }, size = size)

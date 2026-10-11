@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Icon
@@ -59,34 +60,39 @@ object Routes {
     const val RECORDS = "records"
     const val SETTINGS = "settings"
     const val RECORD = "record/{id}"
+    const val ACCOUNT = "account"
+    const val CONTROL = "control"
     fun record(id: String) = "record/$id"
 }
 
 private data class Tab(val route: String, val label: Int, val icon: ImageVector)
 
-private val tabs = listOf(
+private val baseTabs = listOf(
     Tab(Routes.SHIFT, R.string.nav_shift, Icons.Filled.Shield),
     Tab(Routes.CAMERA, R.string.nav_camera, Icons.Filled.Videocam),
     Tab(Routes.RECORDS, R.string.nav_records, Icons.Filled.VideoLibrary),
     Tab(Routes.SETTINGS, R.string.nav_settings, Icons.Filled.Settings),
 )
+private val controlTab = Tab(Routes.CONTROL, R.string.nav_control, Icons.Filled.SettingsRemote)
+/** Managers get a "Control" tab for the company's guards. */
+private fun tabsFor(manager: Boolean) = if (manager) baseTabs.take(3) + controlTab + baseTabs.last() else baseTabs
 
 /** Bottom navigation with an amber top bar on the selected tab (like a tab on a vest). */
 @Composable
-fun BottomBar(current: String?, recording: Boolean, onSelect: (String) -> Unit) {
+fun BottomBar(current: String?, recording: Boolean, manager: Boolean, onSelect: (String) -> Unit) {
     Column(Modifier.fillMaxWidth().background(S.BgDeep).windowInsetsPadding(WindowInsets.navigationBars)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(if (recording) S.Red else S.Stroke))
         Row(Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-            tabs.forEach { t -> TabItem(t, current == t.route, Modifier.weight(1f).fillMaxHeight(), recording && t.route == Routes.CAMERA) { onSelect(t.route) } }
+            tabsFor(manager).forEach { t -> TabItem(t, current == t.route, Modifier.weight(1f).fillMaxHeight(), recording && t.route == Routes.CAMERA) { onSelect(t.route) } }
         }
     }
 }
 
 @Composable
-fun SideRail(current: String?, recording: Boolean, onSelect: (String) -> Unit) {
+fun SideRail(current: String?, recording: Boolean, manager: Boolean, onSelect: (String) -> Unit) {
     Row(Modifier.fillMaxHeight()) {
         Column(Modifier.width(84.dp).fillMaxHeight().background(S.BgDeep), verticalArrangement = Arrangement.SpaceEvenly) {
-            tabs.forEach { t -> TabItem(t, current == t.route, Modifier.fillMaxWidth().height(72.dp), recording && t.route == Routes.CAMERA) { onSelect(t.route) } }
+            tabsFor(manager).forEach { t -> TabItem(t, current == t.route, Modifier.fillMaxWidth().height(72.dp), recording && t.route == Routes.CAMERA) { onSelect(t.route) } }
         }
         Box(Modifier.width(1.dp).fillMaxHeight().background(if (recording) S.Red else S.Stroke))
     }
