@@ -36,6 +36,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="Shomer"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="${cleartext}"
         android:localeConfig="@xml/locales_config"
         android:theme="@style/Theme.Shomer"
         tools:targetApi="34">

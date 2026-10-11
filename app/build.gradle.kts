@@ -20,6 +20,8 @@ android {
         versionName = "1.1"
         // -Pemulator: talk to the local Firebase emulators (end-to-end tests only)
         buildConfigField("boolean", "EMULATOR", if (project.hasProperty("emulator")) "true" else "false")
+        // the local emulators speak plain HTTP; real builds never allow cleartext traffic
+        manifestPlaceholders["cleartext"] = if (project.hasProperty("emulator")) "true" else "false"
         if (!project.hasProperty("smoke")) ndk {
             if (project.hasProperty("arm64Only")) abiFilters += "arm64-v8a" else abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }

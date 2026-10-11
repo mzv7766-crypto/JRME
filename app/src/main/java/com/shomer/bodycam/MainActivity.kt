@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity() {
         if (com.shomer.bodycam.BuildConfig.EMULATOR) {
             i?.getStringExtra("e2e_email")?.let { e ->
                 SettingsStore.update { it.copy(onboardingDone = true) }
-                lifecycleScope.launch { com.shomer.bodycam.cloud.AccountStore.signInForTest(e) }
+                lifecycleScope.launch { runCatching { com.shomer.bodycam.cloud.AccountStore.signInForTest(e) }.onFailure { android.util.Log.e("ShomerCloud", "test sign-in", it) } }
             }
             if (i?.getBooleanExtra("e2e_shift", false) == true) ShiftController.startShift(this)
         }

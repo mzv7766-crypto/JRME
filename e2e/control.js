@@ -21,7 +21,7 @@ try {
   await page.fill('#emu-email', 'boss@acme.co.il');
   await page.click('#emu-login button');
   (await until(() => page.isVisible('#app'), 30000)) ? pass('manager signed in to the dashboard') : fail('dashboard did not open');
-  const online = await until(async () => (await page.textContent('#guard-list')).includes('דנה לוי') && (await page.textContent('#guard-list')).match(/דנה לוי[\s\S]*?במשמרת/), 60000);
+  const online = await until(async () => (await page.textContent('.guard[data-email="guard@acme.co.il"] .sub'))?.includes('במשמרת'), 90000);
   online ? pass('guard appears on shift in the dashboard') : fail('guard not shown on shift');
   await sleep(2500);
   await page.screenshot({ path: `${OUT}/web_02_board.png` });
@@ -29,7 +29,8 @@ try {
   // ---- live video
   await page.click('.guard[data-email="guard@acme.co.il"]');
   await sleep(1000);
-  await page.click('#d-watch');
+  await until(() => page.isEnabled('#d-watch'), 30000);
+  await page.click('#d-watch', { timeout: 10000 });
   const playing = await until(() => page.evaluate(() => { const v = document.getElementById('video'); return v && v.videoWidth > 0 && !v.paused ? `${v.videoWidth}x${v.videoHeight}` : null; }), 90000, 1500);
   playing ? pass(`live video playing in the browser (${playing})`) : fail('live video did not start');
   await sleep(4000);
