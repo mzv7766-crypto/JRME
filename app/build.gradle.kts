@@ -15,8 +15,8 @@ android {
         applicationId = "com.jeremy.dashcam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 43
-        versionName = "2.0.7"
+        versionCode = 44
+        versionName = "2.0.8"
         // test APK sent directly (not via Play): 64-bit ARM only, to keep the download small
         // Play bundle: phones only (ARM); x86 is emulators / a few Chromebooks and doubles the bundle size
         if (!project.hasProperty("smoke")) ndk {   // the emulator smoke test needs x86_64
@@ -40,6 +40,8 @@ android {
             // R8 shrinking: much smaller download (the Play AAB and the test APK are built from the same code)
             isMinifyEnabled = true
             isShrinkResources = true
+            // put the native symbol tables into the bundle so Play stops asking for "debug symbols" on every upload
+            ndk { debugSymbolLevel = "SYMBOL_TABLE" }
             // emulator smoke test of the exact shrunk build: debuggable (run-as) + signed with the CI key
             if (project.hasProperty("smoke")) { isDebuggable = true; signingConfig = signingConfigs.getByName("debug") }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
