@@ -129,6 +129,17 @@ fun ProScreen(onBack: () -> Unit) {
 
             AccountCard(s, onSignIn = signIn, onSignOut = { scope.launch { Account.signOut(ctx) } })
             StatusCard(s)
+            // signed in but not Pro: show why the free-account check failed, with a re-check button
+            if (s.email != null && !s.isPro && !s.subscribed) {
+                JCard(Modifier.fillMaxWidth()) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(s.freeError ?: "החשבון הזה אינו ברשימת החשבונות החינמיים", color = if (s.freeError != null) J.Amber else J.TextDim, fontSize = 13.sp)
+                        }
+                        TextButton({ scope.launch { Account.refreshFree() } }) { Text("בדוק שוב", color = J.Mint) }
+                    }
+                }
+            }
 
             JCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

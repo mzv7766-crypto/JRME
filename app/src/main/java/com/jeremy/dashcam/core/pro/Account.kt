@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.jeremy.dashcam.data.ProStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -106,11 +107,19 @@ object Account {
         if (!configured) return
         try {
             val free = FirebaseFirestore.getInstance().collection(FREE).document(email).get().awaitTask().exists()
-            ProStore.update { it.copy(isFreeAccount = free) }
+            ProStore.update { it.copy(isFreeAccount = free, freeError = null) }
             if (ProStore.current.isAdmin) loadFreeList()
         } catch (e: Exception) {
             Log.w(TAG, "free check failed", e)
+            ProStore.update { it.copy(freeError = reason(e, "בדיקת החשבון")) }
         }
+    }
+
+    private fun reason(e: Exception, action: String): String = when {
+        e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED ->
+            "$action נחסם – צריך לעדכן את כללי Firestore (לשונית Rules) וללחוץ Publish"
+        e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.UNAVAILABLE -> "אין חיבור לאינטרנט"
+        else -> "$action נכשל"
     }
 
     // ---- admin ----
@@ -122,7 +131,7 @@ object Account {
             ProStore.update { it.copy(freeAccounts = list) }
         } catch (e: Exception) {
             Log.w(TAG, "free list failed", e)
-            ProStore.message("לא ניתן לטעון את הרשימה – בדוק את כללי Firestore")
+            ProStore.message(reason(e, "טעינת הרשימה"))
         }
     }
 
@@ -134,7 +143,7 @@ object Account {
                 .set(mapOf("addedAt" to FieldValue.serverTimestamp(), "by" to ProStore.current.email)).awaitTask()
             loadFreeList(); true
         } catch (e: Exception) {
-            Log.w(TAG, "add free failed", e); ProStore.message("ההוספה נכשלה"); false
+            Log.w(TAG, "add free failed", e); ProStore.message(reason(e, "הוספת החשבון")); false
         }
     }
 
@@ -143,7 +152,7 @@ object Account {
             FirebaseFirestore.getInstance().collection(FREE).document(email).delete().awaitTask()
             loadFreeList()
         } catch (e: Exception) {
-            Log.w(TAG, "remove free failed", e); ProStore.message("ההסרה נכשלה")
+            Log.w(TAG, "remove free failed", e); ProStore.message(reason(e, "ההסרה"))
         }
     }
 }

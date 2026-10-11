@@ -31,6 +31,8 @@ data class ProState(
     val price: String = ProStore.PRICE,
     val busy: Boolean = false,
     val message: String? = null,
+    /** Why the free-account check failed (shown to a signed-in non-Pro user); null when fine. */
+    val freeError: String? = null,
     /** Admin only: e-mails with free Pro. */
     val freeAccounts: List<String> = emptyList(),
 ) {
