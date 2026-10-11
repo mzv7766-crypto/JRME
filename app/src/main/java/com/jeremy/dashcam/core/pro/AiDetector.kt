@@ -17,7 +17,18 @@ import java.util.concurrent.ConcurrentLinkedDeque
  */
 class AiDetector private constructor(private val detector: ObjectDetector) {
 
-    fun detect(frame: Bitmap, rotationDegrees: Int): List<ApproachAlgorithm.Box> {
+    @Volatile private var closed = false
+
+    /**
+     * All MediaPipe work in the app (live detection + plate reading) is serialised on one lock: two detectors
+     * running inference / closing at the same time crashed natively (SIGBUS) on Android 14.
+     */
+    fun detect(frame: Bitmap, rotationDegrees: Int): List<ApproachAlgorithm.Box> = synchronized(LOCK) {
+        if (closed) return emptyList()
+        detectLocked(frame, rotationDegrees)
+    }
+
+    private fun detectLocked(frame: Bitmap, rotationDegrees: Int): List<ApproachAlgorithm.Box> {
         val upright = if (rotationDegrees % 360 == 0) frame
         else Bitmap.createBitmap(frame, 0, 0, frame.width, frame.height, Matrix().apply { postRotate(rotationDegrees.toFloat()) }, false)
         val w = upright.width.toFloat(); val h = upright.height.toFloat()
@@ -29,12 +40,30 @@ class AiDetector private constructor(private val detector: ObjectDetector) {
         }
     }
 
-    fun close() = runCatching { detector.close() }
+    /** Releases this user's reference; the native detector is closed only when nobody uses it any more. */
+    fun close() {
+        synchronized(LOCK) {
+            if (shared !== this) return
+            refs--
+            if (refs <= 0) { refs = 0; shared = null; closed = true; runCatching { detector.close() } }
+        }
+    }
 
     companion object {
         private const val MODEL = "efficientdet_lite0.tflite"
+        private val LOCK = Any()
+        // One shared native detector for the whole app (live AI + plate reading), reference-counted.
+        private var shared: AiDetector? = null
+        private var refs = 0
 
-        fun create(context: Context): AiDetector? = try {
+        /** Returns the shared detector (creating it if needed). Every call must be balanced by [close]. */
+        fun create(context: Context): AiDetector? = synchronized(LOCK) {
+            val d = shared ?: build(context.applicationContext)?.also { shared = it }
+            if (d != null) refs++
+            d
+        }
+
+        private fun build(context: Context): AiDetector? = try {
             val opts = ObjectDetector.ObjectDetectorOptions.builder()
                 .setBaseOptions(BaseOptions.builder().setModelAssetPath(MODEL).build())
                 .setRunningMode(RunningMode.IMAGE)
