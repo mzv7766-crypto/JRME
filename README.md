@@ -21,3 +21,10 @@
 | `core/Evidence` | SHA-256, קובץ `.sha256`, בדיקת שלמות |
 
 בנייה: GitHub Actions (`.github/workflows/build-shomer.yml`) – בדיקות יחידה, AAB ו־APK לענף `apk-shomer`.
+
+## Shomer Pro / Shomer Team (גרסה 1.1)
+- **Pro (₪19.90 + 14 ימי ניסיון, `shomer_pro`):** גיבוי אוטומטי לדרייב, 60/120 שנ׳ לפני לחיצה, משמרת מלאה, 4K.
+- **Team (`shomer_team`, base plans `team-5/10/25/50`):** חברה ← מאבטחים לפי מייל ← כללים נעולים, סטטוס ומיקום חי, שידור חי (WebRTC, וידאו בלבד), תיעוד מרחוק, התראות נפילה.
+- **Backend:** Firestore בפרויקט `jeremy-13bb9` (`shomer_orgs`, `shomer_index`), כללים ב־`backend/firestore.rules` עם 15 בדיקות אמולטור.
+- **דשבורד:** `dashboard/` – אתר סטטי (GitHub Pages).
+- **בדיקת קצה לקצה:** `.github/workflows/e2e-shomer.yml` – אמולטורי Firebase + אמולטור אנדרואיד + דפדפן.
