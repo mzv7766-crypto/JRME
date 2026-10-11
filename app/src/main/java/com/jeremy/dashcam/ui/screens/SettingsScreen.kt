@@ -216,10 +216,14 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
 
             Spacer(Modifier.height(10.dp))
             PermissionsCard()
+            Section("אודות") {
+                Nav("גרסה מותקנת", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", clickable = false, last = true) {}
+            }
             Text(
                 stringResource(R.string.version_fmt, BuildConfig.VERSION_NAME), color = J.TextDim, fontSize = 12.sp,
                 modifier = Modifier.fillMaxWidth().padding(16.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
+            Spacer(Modifier.height(24.dp))
         }
     }
 
@@ -552,46 +556,30 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
     if (editSos) SosDialog(st, onDismiss = { editSos = false })
 }
 
-/** Settings: which details go with a shared video (sharing itself never asks). */
+/** Checklist: details sent as a message next to a shared video. */
 @Composable
-private fun SharePrefsDialog(onDismiss: () -> Unit) {
+fun ShareOptions() {
     val ctx = LocalContext.current
     val state = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>().apply {
         com.jeremy.dashcam.data.SharePrefs.options.forEach { put(it.key, com.jeremy.dashcam.data.SharePrefs.isOn(ctx, it.key)) }
     } }
-    AlertDialog(
-        onDismissRequest = onDismiss, containerColor = J.Surface,
-        title = { Text("מה נשלח יחד עם הסרטון") },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                Text("כשלוחצים \"שיתוף\" באירוע, הסרטון נשלח מיד יחד עם הפרטים שסימנת כאן (כהודעה לצידו). אם לא מסמנים כלום – נשלח רק הסרטון.",
-                    color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
-                com.jeremy.dashcam.data.SharePrefs.options.forEach { o ->
-                    val on = state[o.key] == true
-                    val toggle = { v: Boolean -> state[o.key] = v; com.jeremy.dashcam.data.SharePrefs.set(ctx, o.key, v) }
-                    Row(Modifier.fillMaxWidth().clickable { toggle(!on) }.padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                        androidx.compose.material3.Checkbox(on, { toggle(it) }, colors = androidx.compose.material3.CheckboxDefaults.colors(checkedColor = J.Green))
-                        Text(o.label, color = J.Text, fontSize = 15.sp)
-                    }
-                }
-                Text("מיקום, מהירות, לוחיות ו־AI נשלחים רק כשהם קיימים באירוע (תכונות Pro).", color = J.TextDim, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+    Column {
+        com.jeremy.dashcam.data.SharePrefs.options.forEach { o ->
+            val on = state[o.key] == true
+            val toggle = { v: Boolean -> state[o.key] = v; com.jeremy.dashcam.data.SharePrefs.set(ctx, o.key, v) }
+            Row(Modifier.fillMaxWidth().clickable { toggle(!on) }.padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Checkbox(on, { toggle(it) }, colors = androidx.compose.material3.CheckboxDefaults.colors(checkedColor = J.Green))
+                Text(o.label, color = J.Text, fontSize = 15.sp)
             }
-        },
-        confirmButton = { TextButton(onDismiss) { Text("סגור") } },
-    )
+        }
+    }
 }
 
-private fun burnSummary(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean): String = listOfNotNull(
-    if (st.showDateTime) "תאריך ושעה" else null,
-    if (isPro && st.proSpeedLocation && st.burnSpeed) "מהירות" else null,
-    if (isPro && st.proSpeedLocation && st.burnLocation) "מיקום" else null,
-    if (!isPro || st.burnBrand) "לוגו" else null,
-    if (isPro && st.proDual) "מצלמה קדמית" else null,
-).joinToString(", ").ifEmpty { "כלום" }
-
-/** What is burned into the saved videos. Date/time is free; the rest is PRO. */
+/** Switches: what is burned into new videos. Date/time is free; the rest is PRO. */
 @Composable
-private fun BurnDialog(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean, onOpenPro: () -> Unit, onDismiss: () -> Unit) {
+fun BurnOptions(onOpenPro: () -> Unit) {
+    val st by SettingsStore.state.collectAsStateWithLifecycle()
+    val isPro = com.jeremy.dashcam.data.ProStore.state.collectAsStateWithLifecycle().value.isPro
     @Composable
     fun Row2(label: String, checked: Boolean, pro: Boolean, enabled: Boolean = true, note: String? = null, onChange: (Boolean) -> Unit) {
         val locked = pro && !isPro
@@ -615,18 +603,50 @@ private fun BurnDialog(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean, 
                 colors = SwitchDefaults.colors(checkedTrackColor = J.Green, checkedThumbColor = Color.White, uncheckedTrackColor = J.Surface))
         }
     }
+    Column {
+        Row2("תאריך ושעה", st.showDateTime, pro = false) { v -> SettingsStore.update { it.copy(showDateTime = v) } }
+        val locOn = st.proSpeedLocation
+        Row2("מהירות", st.burnSpeed, pro = true, enabled = locOn || !isPro, note = if (isPro && !locOn) "דורש להפעיל \"מהירות ומיקום\"" else null) { v -> SettingsStore.update { it.copy(burnSpeed = v) } }
+        Row2("מיקום (קואורדינטות)", st.burnLocation, pro = true, enabled = locOn || !isPro, note = if (isPro && !locOn) "דורש להפעיל \"מהירות ומיקום\"" else null) { v -> SettingsStore.update { it.copy(burnLocation = v) } }
+        Row2("לוגו Jeremy", st.burnBrand || !isPro, pro = true, note = if (!isPro) "הסתרת הלוגו זמינה ב־Pro" else null) { v -> SettingsStore.update { it.copy(burnBrand = v) } }
+        Row2("חלון המצלמה הקדמית", st.proDual, pro = true, note = "המצלמה הכפולה") { v -> SettingsStore.update { it.copy(proDual = v) } }
+    }
+}
+
+@Composable
+private fun SharePrefsDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = J.Surface,
+        title = { Text("מה נשלח יחד עם הסרטון") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text("כשלוחצים \"שיתוף\" באירוע, הסרטון נשלח מיד יחד עם הפרטים שסימנת כאן (כהודעה לצידו). אם לא מסמנים כלום – נשלח רק הסרטון.",
+                    color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
+                ShareOptions()
+                Text("מיקום, מהירות, לוחיות ו־AI נשלחים רק כשהם קיימים באירוע (תכונות Pro).", color = J.TextDim, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+            }
+        },
+        confirmButton = { TextButton(onDismiss) { Text("סגור") } },
+    )
+}
+
+private fun burnSummary(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean): String = listOfNotNull(
+    if (st.showDateTime) "תאריך ושעה" else null,
+    if (isPro && st.proSpeedLocation && st.burnSpeed) "מהירות" else null,
+    if (isPro && st.proSpeedLocation && st.burnLocation) "מיקום" else null,
+    if (!isPro || st.burnBrand) "לוגו" else null,
+    if (isPro && st.proDual) "מצלמה קדמית" else null,
+).joinToString(", ").ifEmpty { "כלום" }
+
+@Composable
+private fun BurnDialog(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean, onOpenPro: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss, containerColor = J.Surface,
         title = { Text("מה מופיע על הסרטון") },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 Text("נצרב בתוך הסרטונים שנשמרים מעכשיו (לא משנה סרטונים קיימים).", color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
-                Row2("תאריך ושעה", st.showDateTime, pro = false) { v -> SettingsStore.update { it.copy(showDateTime = v) } }
-                val locOn = st.proSpeedLocation
-                Row2("מהירות", st.burnSpeed, pro = true, enabled = locOn || !isPro, note = if (isPro && !locOn) "דורש להפעיל \"מהירות ומיקום\"" else null) { v -> SettingsStore.update { it.copy(burnSpeed = v) } }
-                Row2("מיקום (קואורדינטות)", st.burnLocation, pro = true, enabled = locOn || !isPro, note = if (isPro && !locOn) "דורש להפעיל \"מהירות ומיקום\"" else null) { v -> SettingsStore.update { it.copy(burnLocation = v) } }
-                Row2("לוגו Jeremy", st.burnBrand || !isPro, pro = true, note = if (!isPro) "הסתרת הלוגו זמינה ב־Pro" else null) { v -> SettingsStore.update { it.copy(burnBrand = v) } }
-                Row2("חלון המצלמה הקדמית", st.proDual, pro = true, note = "המצלמה הכפולה") { v -> SettingsStore.update { it.copy(proDual = v) } }
+                BurnOptions(onOpenPro)
             }
         },
         confirmButton = { TextButton(onDismiss) { Text("סגור") } },

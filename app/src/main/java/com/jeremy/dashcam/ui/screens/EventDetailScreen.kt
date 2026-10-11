@@ -87,7 +87,7 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
                 IconButton({ EventRepository.setLocked(e.id, !e.locked) }) {
                     Icon(if (e.locked) Icons.Filled.Lock else Icons.Filled.LockOpen, null, tint = if (e.locked) J.Mint else J.TextDim)
                 }
-                IconButton({ info = !info }) { Icon(Icons.Filled.Info, null, tint = J.TextDim) }
+                IconButton({ info = true }) { Icon(Icons.Filled.Info, "מה משותף", tint = J.TextDim) }
             }
         }
         if (e == null) {
@@ -144,7 +144,7 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
             DriveRow(e)
         }
         val details: @Composable () -> Unit = {
-            if (info) {
+            if (false) {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp)) {
                     InfoLine(stringResource(R.string.reason), if (e.isTrip) stringResource(R.string.trip_clip) else stringResource(e.trigger.labelRes) + (e.peakG?.let { " • %.1fG".format(it) } ?: ""))
                     InfoLine(stringResource(R.string.duration), Notifications.formatDuration(e.durationMs))
@@ -188,6 +188,29 @@ fun EventDetailScreen(id: String, onBack: () -> Unit) {
             text = { OutlinedTextField(text, { text = it }, singleLine = true) },
             confirmButton = { TextButton({ EventRepository.rename(e.id, text); rename = false }) { Text(stringResource(R.string.save)) } },
             dismissButton = { TextButton({ rename = false }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+    if (info && e != null) {
+        AlertDialog(
+            onDismissRequest = { info = false }, containerColor = J.Surface,
+            title = { Text("מה משותף מעכשיו") },
+            text = {
+                Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+                    Text("בהודעה (נשלח לצד הסרטון בשיתוף)", color = J.Mint, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    ShareOptions()
+                    Spacer(Modifier.height(12.dp))
+                    Text("בצריבה (בתוך סרטונים חדשים)", color = J.Mint, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text("לא משנה סרטונים שכבר נשמרו.", color = J.TextDim, fontSize = 12.sp)
+                    BurnOptions(onOpenPro = { Toast.makeText(ctx, "זמין ב־Jeremy Pro – הגדרות ← Jeremy Pro", Toast.LENGTH_LONG).show() })
+                    Spacer(Modifier.height(12.dp))
+                    Text("פרטי הסרטון", color = J.Mint, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    InfoLine(stringResource(R.string.reason), if (e.isTrip) stringResource(R.string.trip_clip) else stringResource(e.trigger.labelRes) + (e.peakG?.let { " • %.1fG".format(it) } ?: ""))
+                    InfoLine(stringResource(R.string.duration), Notifications.formatDuration(e.durationMs))
+                    InfoLine(stringResource(R.string.size), "%.1f MB".format(e.sizeBytes / 1_048_576.0))
+                    InfoLine("⏱", formatDateTime(e.triggerTime))
+                }
+            },
+            confirmButton = { TextButton({ info = false }) { Text("סגור") } },
         )
     }
     if (confirmDelete && e != null) {
