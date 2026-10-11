@@ -1,0 +1,324 @@
+10-11 02:24:26.554   519   569 V BackupManagerService: [UserID:0] restoreAtInstall pkg=com.shomer.bodycam token=1 restoreSet=0
+10-11 02:24:26.787  1047  1047 D CarrierSvcBindHelper: onPackageAdded: com.shomer.bodycam
+10-11 02:24:26.984   519   803 I SdkSandboxManager: No SDKs used. Skipping SDK data reconcilation for CallingInfo{mUid=10192, mPackageName='com.shomer.bodycam, mAppProcessToken='null'}
+10-11 02:24:27.027  1047  1379 D ImsResolver: maybeAddedImsService, packageName: com.shomer.bodycam
+10-11 02:24:27.283   519   909 I AppsFilter: interaction: PackageSetting{13d7659 com.shomer.bodycam/10192} -> PackageSetting{310b21e com.google.android.gm/10147} BLOCKED
+10-11 02:24:27.688  1047  1047 D CarrierSvcBindHelper: onPackageModified: com.shomer.bodycam
+10-11 02:24:27.716  1047  1379 D ImsResolver: maybeAddedImsService, packageName: com.shomer.bodycam
+10-11 02:24:28.112  3886  3886 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:24:28.179  3886  3886 I AndroidRuntime: Using default boot image
+10-11 02:24:28.180  3886  3886 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:24:28.690  3886  3886 D AndroidRuntime: Calling main entry com.android.commands.monkey.Monkey
+10-11 02:24:28.691  3886  3886 W Monkey  : args: [-p, com.shomer.bodycam, -c, android.intent.category.LAUNCHER, 1]
+10-11 02:24:28.691  3886  3886 W Monkey  :  arg: "com.shomer.bodycam"
+10-11 02:24:28.691  3886  3886 W Monkey  : data="com.shomer.bodycam"
+10-11 02:24:28.917   835   865 V WindowManagerShell: Transition requested: android.os.BinderProxy@d4d6c8e TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.shomer.bodycam/.MainActivity } baseActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} topActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} origActivity=null realActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} numActivities=1 lastActiveTime=62860 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@4deacaf} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{9c708bc com.shomer.bodycam.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-11 02:24:28.974   519   591 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.shomer.bodycam/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+10-11 02:24:29.015   519  1110 D CoreBackPreview: Window{7fb4a61 u0 Splash Screen com.shomer.bodycam}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@4412b9d, mPriority=0, mIsAnimationCallback=false}
+10-11 02:24:29.278   519   536 V WindowManager: Sent Transition #8 createdAt=10-11 02:24:28.780 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.shomer.bodycam/.MainActivity } baseActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} topActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} origActivity=null realActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} numActivities=1 lastActiveTime=62860 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{baa4036 Task{4cf2d76 #8 type=standard A=10192:com.shomer.bodycam}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{6d1fb37 com.shomer.bodycam.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-11 02:24:29.280   519   536 V WindowManager:     info={id=8 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{baa4036 Task{4cf2d76 #8 type=standard A=10192:com.shomer.bodycam}}} m=OPEN f=NONE leash=Surface(name=Task=8)/@0x5a974f8 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0},{WCT{RemoteToken{57ce8a4 Task{ba81377 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x3893905 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}]}
+10-11 02:24:29.691   519   547 I ActivityManager: Start proc 3958:com.shomer.bodycam/u0a192 for next-top-activity {com.shomer.bodycam/com.shomer.bodycam.MainActivity}
+10-11 02:24:29.720  3886  3886 I AndroidRuntime: VM exiting with result code 0.
+10-11 02:24:30.151   519  2315 I AppsFilter: interaction: PackageSetting{6ab1bfb com.shomer.bodycam/10192} -> PackageSetting{8839418 com.google.android.settings.intelligence/10118} BLOCKED
+10-11 02:24:30.203   519  1237 I AppsFilter: interaction: PackageSetting{6ab1bfb com.shomer.bodycam/10192} -> PackageSetting{6c949c7 com.google.android.settings.intelligence/10118} BLOCKED
+10-11 02:24:30.296  3958  3958 W ziparchive: Unable to open '/data/app/~~p1sNKT3irc5FWzfEb5qhcA==/com.shomer.bodycam-VqfGsNul_i285mjYzfHuzA==/base.dm': No such file or directory
+10-11 02:24:30.296  3958  3958 W ziparchive: Unable to open '/data/app/~~p1sNKT3irc5FWzfEb5qhcA==/com.shomer.bodycam-VqfGsNul_i285mjYzfHuzA==/base.dm': No such file or directory
+10-11 02:24:30.485  3958  3958 D nativeloader: Configuring clns-6 for other apk /data/app/~~p1sNKT3irc5FWzfEb5qhcA==/com.shomer.bodycam-VqfGsNul_i285mjYzfHuzA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~p1sNKT3irc5FWzfEb5qhcA==/com.shomer.bodycam-VqfGsNul_i285mjYzfHuzA==/lib/x86_64:/data/app/~~p1sNKT3irc5FWzfEb5qhcA==/com.shomer.bodycam-VqfGsNul_i285mjYzfHuzA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.shomer.bodycam
+10-11 02:24:30.507  3958  3958 V GraphicsEnvironment: ANGLE GameManagerService for com.shomer.bodycam: false
+10-11 02:24:30.508  3958  3958 V GraphicsEnvironment: com.shomer.bodycam is not listed in per-application setting
+10-11 02:24:30.594   519   569 I AppsFilter: interaction: PackageSetting{6ab1bfb com.shomer.bodycam/10192} -> PackageSetting{69f1178 com.android.camera2/10144} BLOCKED
+10-11 02:24:30.594   519   569 I AppsFilter: interaction: PackageSetting{6ab1bfb com.shomer.bodycam/10192} -> PackageSetting{3dd3051 com.google.android.devicelockcontroller/10172} BLOCKED
+10-11 02:24:30.594   519   569 I AppsFilter: interaction: PackageSetting{6ab1bfb com.shomer.bodycam/10192} -> PackageSetting{98c70b6 com.google.android.rkpdapp/10183} BLOCKED
+10-11 02:24:30.594   519   569 I AppsFilter: interaction: PackageSetting{6ab1bfb com.shomer.bodycam/10192} -> PackageSetting{b21410c com.google.android.projection.gearhead/10123} BLOCKED
+10-11 02:24:30.594   519   569 I AppsFilter: interaction: PackageSetting{6ab1bfb com.shomer.bodycam/10192} -> PackageSetting{de7a1b7 com.google.android.apps.youtube.music/10156} BLOCKED
+10-11 02:24:30.645   519  2109 W PackageConfigPersister: App-specific configuration not found for packageName: com.shomer.bodycam and userId: 0
+10-11 02:24:31.109   519   895 D CoreBackPreview: Window{56051dc u0 com.shomer.bodycam/com.shomer.bodycam.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@a0ee0ce, mPriority=0, mIsAnimationCallback=false}
+10-11 02:24:31.714   519   923 I ImeTracker: com.shomer.bodycam:dc3043e: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
+10-11 02:24:31.714   519   923 I ImeTracker: com.shomer.bodycam:dc3043e: onCancelled at PHASE_SERVER_SHOULD_HIDE
+10-11 02:24:31.753  1550  1550 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.shomer.bodycam fieldId=0 fieldName=null extras=null}, false)
+10-11 02:24:31.942   519   536 W ziparchive: Unable to open '/data/app/~~p1sNKT3irc5FWzfEb5qhcA==/com.shomer.bodycam-VqfGsNul_i285mjYzfHuzA==/base.dm': No such file or directory
+10-11 02:24:32.040   848   848 I SafetyLabelChangedBroadcastReceiver: received broadcast packageName: com.shomer.bodycam, current user: UserHandle{0}, packageChangeEvent: NEW_INSTALL, intent user: UserHandle{0}
+10-11 02:24:32.102   519   536 I ActivityTaskManager: Displayed com.shomer.bodycam/.MainActivity for user 0: +2s922ms
+10-11 02:24:32.481   519  2418 W InputManager-JNI: Input channel object '7fb4a61 Splash Screen com.shomer.bodycam (client)' was disposed without first being removed with the input manager!
+10-11 02:24:32.485   519  2262 D CoreBackPreview: Window{7fb4a61 u0 Splash Screen com.shomer.bodycam EXITING}: Setting back callback null
+10-11 02:24:36.256  3958  4262 D ProfileInstaller: Installing profile for com.shomer.bodycam
+10-11 02:24:38.243  4307  4307 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:24:38.261  4307  4307 I AndroidRuntime: Using default boot image
+10-11 02:24:38.261  4307  4307 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:24:38.697  4307  4307 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:24:40.561  4307  4307 D AndroidRuntime: Shutting down VM
+10-11 02:24:40.621   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{ed4d968 com.google.android.gm/10147} BLOCKED
+10-11 02:24:40.621   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{94e7181 com.google.android.settings.intelligence/10118} BLOCKED
+10-11 02:24:41.268  1047  1047 D CarrierSvcBindHelper: onPackageModified: com.shomer.bodycam
+10-11 02:24:41.281  1047  1379 D ImsResolver: maybeAddedImsService, packageName: com.shomer.bodycam
+10-11 02:24:41.808  4541  4541 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:24:41.817  4541  4541 I AndroidRuntime: Using default boot image
+10-11 02:24:41.817  4541  4541 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:24:42.076  4541  4541 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:24:43.095  1612  1612 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.shomer.bodycam], userId:[0], reason:[package is added.].
+10-11 02:24:43.245  4541  4541 D AndroidRuntime: Shutting down VM
+10-11 02:24:44.242  1612  1612 I AiAiEcho: AppFetcherImpl onPackageChanged com.shomer.bodycam.
+10-11 02:24:44.247  1612  2541 I AiAiEcho: AppIndexer Package:[com.shomer.bodycam] UserProfile:[0] Enabled:[true].
+10-11 02:24:44.247  1612  2541 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.shomer.bodycam], userId:[0], reason:[package is updated.].
+10-11 02:24:46.337  4654  4654 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:24:46.349  4654  4654 I AndroidRuntime: Using default boot image
+10-11 02:24:46.349  4654  4654 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:24:46.696  4654  4654 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:24:47.043  1424  4589 I FontLog : Package com.shomer.bodycam has no metadata [CONTEXT service_id=132 ]
+10-11 02:24:47.047  1469  4258 I BlockstoreStorage: Clearing Blockstore Data for package com.shomer.bodycam [CONTEXT service_id=258 ]
+10-11 02:24:47.781  4654  4654 D AndroidRuntime: Shutting down VM
+10-11 02:24:48.515  1612  1612 I AiAiEcho: AppFetcherImpl onPackageChanged com.shomer.bodycam.
+10-11 02:24:48.516  1612  2541 I AiAiEcho: AppIndexer Package:[com.shomer.bodycam] UserProfile:[0] Enabled:[true].
+10-11 02:24:48.517  1612  2541 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.shomer.bodycam], userId:[0], reason:[package is updated.].
+10-11 02:24:48.777  4696  4696 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:24:48.783  4696  4696 I AndroidRuntime: Using default boot image
+10-11 02:24:48.783  4696  4696 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:24:48.928  4696  4696 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:24:50.010  4696  4696 D AndroidRuntime: Shutting down VM
+10-11 02:24:50.771   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{473c798 com.google.android.youtube/10140} BLOCKED
+10-11 02:24:50.772   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{3ac7bf1 com.google.android.apps.messaging/10131} BLOCKED
+10-11 02:24:50.772   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{ab58501 com.google.android.apps.maps/10152} BLOCKED
+10-11 02:24:50.772   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{b9a63d6 com.google.android.contacts/10155} BLOCKED
+10-11 02:24:52.178  4749  4749 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:24:52.185  4749  4749 I AndroidRuntime: Using default boot image
+10-11 02:24:52.185  4749  4749 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:24:52.331  4749  4749 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:24:53.495  4749  4749 D AndroidRuntime: Shutting down VM
+10-11 02:24:54.545  1550  1550 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x8001(Normal) imeOptions=0x2000006 privateImeOptions=null actionName=DONE actionLabel=null actionId=0 initialSelStart=0 initialSelEnd=0 initialCapsMode=0x0 hintText=null label=null packageName=com.shomer.bodycam fieldId=-1 fieldName=null extras=Bundle[mParcelledData.dataSize=404]}, false)
+10-11 02:24:54.548  3958  3958 I ImeTracker: com.shomer.bodycam:7a8c33a6: onRequestShow at ORIGIN_CLIENT_SHOW_SOFT_INPUT reason SHOW_SOFT_INPUT_BY_INSETS_API
+10-11 02:24:54.551  1550  1550 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x8001(Normal) imeOptions=0x2000006 privateImeOptions=null actionName=DONE actionLabel=null actionId=0 initialSelStart=0 initialSelEnd=0 initialCapsMode=0x0 hintText=null label=null packageName=com.shomer.bodycam fieldId=-1 fieldName=null extras=Bundle[mParcelledData.dataSize=404]}, true)
+10-11 02:24:54.594  1550  1550 I GoogleInputMethodService: GoogleInputMethodService.onStartInputView():1995 onStartInputView(EditorInfo{inputType=0x8001(Normal) imeOptions=0x2000006 privateImeOptions=null actionName=DONE actionLabel=null actionId=0 initialSelStart=0 initialSelEnd=0 initialCapsMode=0x0 hintText=null label=null packageName=com.shomer.bodycam fieldId=-1 fieldName=null extras=Bundle[{android.support.text.emoji.emojiCompat_metadataVersion=9, androidx.core.view.inputmethod.EditorInfoCompat.STYLUS_HANDWRITING_ENABLED=true, android.support.text.emoji.emojiCompat_replaceAll=false}]}, false)
+10-11 02:24:54.679  3958  3958 I ImeTracker: com.shomer.bodycam:5b983f41: onRequestShow at ORIGIN_CLIENT_SHOW_SOFT_INPUT reason SHOW_SOFT_INPUT
+10-11 02:24:54.996  1550  1550 I AndroidIME: AbstractIme.onActivate():86 LatinIme.onActivate() : EditorInfo = inputType=0x8001(Normal) imeOptions=0x2000006 privateImeOptions=null actionName=DONE actionLabel=null actionId=0 initialSelStart=0 initialSelEnd=0 initialCapsMode=0x0 hintText=null label=null packageName=com.shomer.bodycam fieldId=-1 fieldName=null extras=Bundle[{android.support.text.emoji.emojiCompat_metadataVersion=9, androidx.core.view.inputmethod.EditorInfoCompat.STYLUS_HANDWRITING_ENABLED=true, android.support.text.emoji.emojiCompat_replaceAll=false}], IncognitoMode = false, DeviceLocked = false
+10-11 02:24:55.056   519   752 D CoreBackPreview: Window{56051dc u0 com.shomer.bodycam/com.shomer.bodycam.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@7846d8a, mPriority=0, mIsAnimationCallback=false}
+10-11 02:24:55.079   519   909 I ImeTracker: com.shomer.bodycam:7a8c33a6: onFailed at PHASE_WM_SHOW_IME_RUNNER
+10-11 02:24:56.961   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{860f17a com.google.android.apps.messaging/10131} BLOCKED
+10-11 02:24:56.961   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{9362d2b com.google.android.gm/10147} BLOCKED
+10-11 02:24:56.962   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{8168588 com.google.android.contacts/10155} BLOCKED
+10-11 02:24:57.038  3958  3958 I ImeTracker: com.shomer.bodycam:5b983f41: onShown
+10-11 02:25:01.140   519  2019 I ImeTracker: com.shomer.bodycam:93628263: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SOFT_INPUT_FROM_IME
+10-11 02:25:01.229   519  2316 D CoreBackPreview: Window{56051dc u0 com.shomer.bodycam/com.shomer.bodycam.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@2f340e4, mPriority=0, mIsAnimationCallback=false}
+10-11 02:25:01.668  3958  3958 I ImeTracker: com.shomer.bodycam:187922c5: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT_BY_INSETS_API
+10-11 02:25:01.674   519  2418 I ImeTracker: com.shomer.bodycam:187922c5: onCancelled at PHASE_SERVER_SHOULD_HIDE
+10-11 02:25:01.680  3958  3958 I ImeTracker: com.shomer.bodycam:93628263: onHidden
+10-11 02:25:03.641  4952  4952 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:03.646  4952  4952 I AndroidRuntime: Using default boot image
+10-11 02:25:03.646  4952  4952 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:03.857  4952  4952 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:04.908  4952  4952 D AndroidRuntime: Shutting down VM
+10-11 02:25:05.873  5008  5008 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:05.878  5008  5008 I AndroidRuntime: Using default boot image
+10-11 02:25:05.878  5008  5008 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:05.986  5008  5008 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:07.044  5008  5008 D AndroidRuntime: Shutting down VM
+10-11 02:25:07.826  3958  3958 E FrameTracker: force finish cuj, time out: J<IME_INSETS_ANIMATION::0@1@com.shomer.bodycam>
+10-11 02:25:08.286  3958  3958 I ImeTracker: com.shomer.bodycam:aad8f75d: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT_BY_INSETS_API
+10-11 02:25:08.286  3958  3958 I ImeTracker: com.shomer.bodycam:aad8f75d: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+10-11 02:25:08.288  1550  1550 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.shomer.bodycam fieldId=0 fieldName=null extras=null}, true)
+10-11 02:25:10.566  5081  5081 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:10.570  5081  5081 I AndroidRuntime: Using default boot image
+10-11 02:25:10.570  5081  5081 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:10.725  5081  5081 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:11.933  3958  3958 E FrameTracker: force finish cuj, time out: J<IME_INSETS_ANIMATION::1@1@com.shomer.bodycam>
+10-11 02:25:11.997  5081  5081 D AndroidRuntime: Shutting down VM
+10-11 02:25:13.033  5146  5146 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:13.044  5146  5146 I AndroidRuntime: Using default boot image
+10-11 02:25:13.044  5146  5146 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:13.156  5146  5146 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:14.273  5146  5146 D AndroidRuntime: Shutting down VM
+10-11 02:25:14.487   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{90e6105 com.google.android.apps.messaging/10131} BLOCKED
+10-11 02:25:15.474  5220  5220 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:15.486  5220  5220 I AndroidRuntime: Using default boot image
+10-11 02:25:15.488  5220  5220 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:15.757  5220  5220 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:16.890  5220  5220 D AndroidRuntime: Shutting down VM
+10-11 02:25:18.025   519   533 I ActivityManager: Background started FGS: Allowed [callingPackage: com.shomer.bodycam; callingUid: 10192; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=com.shomer.bodycam.START cmp=com.shomer.bodycam/.service.BodycamService }; code:PROC_STATE_TOP; tempAllowListReason:<,reasonCode:SYSTEM_ALLOW_LISTED,duration:9223372036854775807,callingUid:-1>; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-11 02:25:19.547   459  2160 I CameraService: CameraService::connect call (PID 3958 "com.shomer.bodycam", camera ID 0) and Camera API version 2
+10-11 02:25:19.564   459  2160 I Camera2ClientBase: Camera 0: Opened. Client: com.shomer.bodycam (PID 3958, UID 10192)
+10-11 02:25:21.350  5379  5379 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:21.362  5379  5379 I AndroidRuntime: Using default boot image
+10-11 02:25:21.362  5379  5379 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:21.962  5379  5379 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:23.022   519  1237 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{80d4975 com.google.android.settings.intelligence/10118} BLOCKED
+10-11 02:25:23.803  5379  5379 D AndroidRuntime: Shutting down VM
+10-11 02:25:33.763  5842  5842 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:33.776  5842  5842 I AndroidRuntime: Using default boot image
+10-11 02:25:33.776  5842  5842 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:34.038  5842  5842 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:35.237  5842  5842 D AndroidRuntime: Shutting down VM
+10-11 02:25:39.015   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{31c59e com.google.android.contacts/10155} BLOCKED
+10-11 02:25:44.808   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{f59bb11 com.google.android.contacts/10155} BLOCKED
+10-11 02:25:48.451  6532  6532 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:48.480  6532  6532 I AndroidRuntime: Using default boot image
+10-11 02:25:48.480  6532  6532 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:48.816  6532  6532 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:50.152  6532  6532 D AndroidRuntime: Shutting down VM
+10-11 02:25:51.185  6638  6638 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:51.190  6638  6638 I AndroidRuntime: Using default boot image
+10-11 02:25:51.190  6638  6638 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:51.322  6638  6638 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:52.463  6638  6638 D AndroidRuntime: Shutting down VM
+10-11 02:25:53.439  3958  3958 I Shomer  : recording started by BUTTON
+10-11 02:25:57.047  6769  6769 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:25:57.088  6769  6769 I AndroidRuntime: Using default boot image
+10-11 02:25:57.088  6769  6769 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:25:57.693  6769  6769 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:25:57.769   519   569 I AppsFilter: interaction: PackageSetting{62be48b com.shomer.bodycam/10192} -> PackageSetting{d3e64df com.google.android.contacts/10155} BLOCKED
+10-11 02:26:01.899  6769  6769 D AndroidRuntime: Shutting down VM
+10-11 02:26:09.306  6994  6994 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:26:09.313  6994  6994 I AndroidRuntime: Using default boot image
+10-11 02:26:09.313  6994  6994 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:26:09.742  6994  6994 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:26:12.883  6994  6994 D AndroidRuntime: Shutting down VM
+10-11 02:26:14.420  7121  7121 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:26:14.518  7121  7121 I AndroidRuntime: Using default boot image
+10-11 02:26:14.518  7121  7121 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:26:15.117  7121  7121 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:26:19.338  7121  7121 D AndroidRuntime: Shutting down VM
+10-11 02:26:21.639  3958  3958 W .shomer.bodycam: Verification of void com.shomer.bodycam.ui.screens.CameraScreenKt.Viewfinder(long, androidx.compose.ui.Modifier, androidx.compose.runtime.Composer, int) took 105.702ms (9498.38 bytecodes/s) (27344B approximate peak alloc)
+10-11 02:26:25.652  7318  7318 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:26:25.669  7318  7318 I AndroidRuntime: Using default boot image
+10-11 02:26:25.669  7318  7318 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:26:26.633  7318  7318 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:26:28.439  7318  7318 I AccessibilityNodeInfoDumper: Skipping invisible child: android.view.accessibility.AccessibilityNodeInfo@a9a3; boundsInParent: Rect(0, 0 - 1028, 1648); boundsInScreen: Rect(26, 144 - 1054, 1792); boundsInWindow: Rect(26, 144 - 1054, 1792); packageName: com.shomer.bodycam; className: android.view.View; text: null; error: null; maxTextLength: -1; stateDescription: null; contentDescription: null; tooltipText: null; containerTitle: null; viewIdResName: null; uniqueId: null; checkable: false; checked: false; focusable: false; focused: false; selected: false; clickable: false; longClickable: false; contextClickable: false; enabled: true; password: false; scrollable: false; importantForAccessibility: false; visible: false; actions: [AccessibilityAction: ACTION_SELECT - null, AccessibilityAction: ACTION_CLEAR_SELECTION - null, AccessibilityAction: ACTION_ACCESSIBILITY_FOCUS - null, AccessibilityAction: ACTION_SHOW_ON_SCREEN - null]; isTextSelectable: false
+10-11 02:26:30.109  7318  7318 D AndroidRuntime: Shutting down VM
+10-11 02:26:31.917  7434  7434 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:26:31.948  7434  7434 I AndroidRuntime: Using default boot image
+10-11 02:26:31.948  7434  7434 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:26:32.831  7434  7434 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:26:34.957  7434  7434 I AccessibilityNodeInfoDumper: Skipping invisible child: android.view.accessibility.AccessibilityNodeInfo@a9b1; boundsInParent: Rect(0, 0 - 1028, 1648); boundsInScreen: Rect(26, 144 - 1054, 1792); boundsInWindow: Rect(26, 144 - 1054, 1792); packageName: com.shomer.bodycam; className: android.view.View; text: null; error: null; maxTextLength: -1; stateDescription: null; contentDescription: null; tooltipText: null; containerTitle: null; viewIdResName: null; uniqueId: null; checkable: false; checked: false; focusable: false; focused: false; selected: false; clickable: false; longClickable: false; contextClickable: false; enabled: true; password: false; scrollable: false; importantForAccessibility: false; visible: false; actions: [AccessibilityAction: ACTION_SELECT - null, AccessibilityAction: ACTION_CLEAR_SELECTION - null, AccessibilityAction: ACTION_ACCESSIBILITY_FOCUS - null, AccessibilityAction: ACTION_SHOW_ON_SCREEN - null]; isTextSelectable: false
+10-11 02:26:35.981  7434  7434 D AndroidRuntime: Shutting down VM
+10-11 02:26:40.124  7587  7587 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:26:40.159  7587  7587 I AndroidRuntime: Using default boot image
+10-11 02:26:40.159  7587  7587 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:26:40.903  7587  7587 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:26:43.157  7587  7587 D AndroidRuntime: Shutting down VM
+10-11 02:26:44.578  7678  7678 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:26:44.615  7678  7678 I AndroidRuntime: Using default boot image
+10-11 02:26:44.615  7678  7678 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:26:45.174  7678  7678 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:26:49.237  7678  7678 D AndroidRuntime: Shutting down VM
+10-11 02:26:52.929  7888  7888 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:26:52.941  7888  7888 I AndroidRuntime: Using default boot image
+10-11 02:26:52.943  7888  7888 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:26:53.304  7888  7888 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:26:54.913  7888  7888 D AndroidRuntime: Shutting down VM
+10-11 02:27:00.437  3958  3958 I Shomer  : export level 0, 4 pieces
+10-11 02:31:15.429 13444 13444 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:31:15.476 13444 13444 I AndroidRuntime: Using default boot image
+10-11 02:31:15.476 13444 13444 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:31:16.077 13444 13444 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:31:22.570 13444 13444 D AndroidRuntime: Shutting down VM
+10-11 02:31:24.508 13643 13643 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:31:24.553 13643 13643 I AndroidRuntime: Using default boot image
+10-11 02:31:24.557 13643 13643 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:31:25.209 13643 13643 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:31:27.899 13643 13643 D AndroidRuntime: Shutting down VM
+10-11 02:31:29.397 13777 13777 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:31:29.408 13777 13777 I AndroidRuntime: Using default boot image
+10-11 02:31:29.408 13777 13777 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:31:29.765 13777 13777 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:31:34.886 13777 13777 D AndroidRuntime: Shutting down VM
+10-11 02:31:40.365 13997 13997 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:31:40.392 13997 13997 I AndroidRuntime: Using default boot image
+10-11 02:31:40.392 13997 13997 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:31:40.857 13997 13997 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:31:46.481 13997 13997 D AndroidRuntime: Shutting down VM
+10-11 02:34:19.886  3958  3958 I Shomer  : export level 0 done: 92930ms, 4096705 bytes
+10-11 02:35:56.427 20601 20601 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:35:56.432 20601 20601 I AndroidRuntime: Using default boot image
+10-11 02:35:56.432 20601 20601 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:35:56.565 20601 20601 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:35:57.655 20601 20601 D AndroidRuntime: Shutting down VM
+10-11 02:35:58.606 20693 20693 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:35:58.611 20693 20693 I AndroidRuntime: Using default boot image
+10-11 02:35:58.611 20693 20693 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:35:58.741 20693 20693 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:35:59.791 20693 20693 D AndroidRuntime: Shutting down VM
+10-11 02:36:03.315  3958  3958 I Shomer  : recording started by VOLUME
+10-11 02:36:10.520  3958  3958 I Shomer  : export level 0, 4 pieces
+10-11 02:39:07.177  3958  3958 I Shomer  : export level 0 done: 32373ms, 2274655 bytes
+10-11 02:40:19.016 27352 27352 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:40:19.021 27352 27352 I AndroidRuntime: Using default boot image
+10-11 02:40:19.021 27352 27352 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:40:19.127 27352 27352 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:40:20.204 27352 27352 D AndroidRuntime: Shutting down VM
+10-11 02:40:21.680   519   536 V WindowManager:     info={id=9 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{57ce8a4 Task{ba81377 #1 type=home}}} m=TO_FRONT f=SHOW_WALLPAPER|MOVE_TO_TOP leash=Surface(name=Task=1)/@0x3893905 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0},{WCT{RemoteToken{baa4036 Task{4cf2d76 #8 type=standard A=10192:com.shomer.bodycam}}} m=TO_BACK f=NONE leash=Surface(name=Task=8)/@0x5a974f8 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{d6728c token=android.os.Binder@b655bbf})/@0xf98afec sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}]}
+10-11 02:40:24.001   519  2411 D CoreBackPreview: Window{2223d0a u0 com.shomer.bodycam}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@3c2a2c8, mPriority=0, mIsAnimationCallback=false}
+10-11 02:40:29.298   835   865 V WindowManagerShell: Transition requested: android.os.BinderProxy@ee7b407 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.shomer.bodycam/.MainActivity } baseActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} topActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} origActivity=null realActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} numActivities=1 lastActiveTime=1015057 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@5ebf934} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{d9f235d com.shomer.bodycam.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-11 02:40:29.305   519  2142 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.shomer.bodycam/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=2
+10-11 02:40:29.359   835   865 D WindowManagerShell: onActivityRestartAttempt: ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity}
+10-11 02:40:29.909   519   536 W ziparchive: Unable to open '/data/app/~~p1sNKT3irc5FWzfEb5qhcA==/com.shomer.bodycam-VqfGsNul_i285mjYzfHuzA==/base.dm': No such file or directory
+10-11 02:40:29.912   519   536 V WindowManager: Sent Transition #10 createdAt=10-11 02:40:29.283 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.shomer.bodycam/.MainActivity } baseActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} topActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} origActivity=null realActivity=ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity} numActivities=1 lastActiveTime=1015057 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{baa4036 Task{4cf2d76 #8 type=standard A=10192:com.shomer.bodycam}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{6d1fb37 com.shomer.bodycam.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-11 02:40:29.913   519   536 V WindowManager:     info={id=10 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{baa4036 Task{4cf2d76 #8 type=standard A=10192:com.shomer.bodycam}}} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=8)/@0x5a974f8 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0},{WCT{RemoteToken{57ce8a4 Task{ba81377 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x3893905 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}]}
+10-11 02:40:29.935   519  2142 D CoreBackPreview: Window{2223d0a u0 com.shomer.bodycam}: Setting back callback null
+10-11 02:40:29.957   519   752 W InputManager-JNI: Input channel object '2223d0a com.shomer.bodycam (client)' was disposed without first being removed with the input manager!
+10-11 02:40:30.128   519  1110 I ImeTracker: com.shomer.bodycam:95a2962f: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
+10-11 02:40:30.130   519  1110 I ImeTracker: com.shomer.bodycam:95a2962f: onCancelled at PHASE_SERVER_SHOULD_HIDE
+10-11 02:40:30.139  1550  1550 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.shomer.bodycam fieldId=0 fieldName=null extras=null}, false)
+10-11 02:40:32.541 27758 27758 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:40:32.546 27758 27758 I AndroidRuntime: Using default boot image
+10-11 02:40:32.546 27758 27758 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:40:32.687 27758 27758 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:40:33.811 27758 27758 D AndroidRuntime: Shutting down VM
+10-11 02:40:34.789 27875 27875 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:40:34.793 27875 27875 I AndroidRuntime: Using default boot image
+10-11 02:40:34.793 27875 27875 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:40:34.917 27875 27875 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:40:36.029 27875 27875 D AndroidRuntime: Shutting down VM
+10-11 02:40:39.418 28039 28039 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:40:39.423 28039 28039 I AndroidRuntime: Using default boot image
+10-11 02:40:39.423 28039 28039 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:40:39.560 28039 28039 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:40:40.627 28039 28039 D AndroidRuntime: Shutting down VM
+10-11 02:40:41.578 28121 28121 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:40:41.583 28121 28121 I AndroidRuntime: Using default boot image
+10-11 02:40:41.583 28121 28121 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:40:41.701 28121 28121 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:40:42.824 28121 28121 D AndroidRuntime: Shutting down VM
+10-11 02:40:48.276 28313 28313 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:40:48.283 28313 28313 I AndroidRuntime: Using default boot image
+10-11 02:40:48.283 28313 28313 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:40:48.508 28313 28313 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:40:59.392 28313 28313 D AndroidRuntime: Shutting down VM
+10-11 02:41:00.509 28713 28713 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:41:00.514 28713 28713 I AndroidRuntime: Using default boot image
+10-11 02:41:00.514 28713 28713 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:41:00.672 28713 28713 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:41:11.433 28713 28713 D AndroidRuntime: Shutting down VM
+10-11 02:41:16.968 29231 29231 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:41:16.972 29231 29231 I AndroidRuntime: Using default boot image
+10-11 02:41:16.972 29231 29231 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:41:17.103 29231 29231 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:41:27.499 29231 29231 D AndroidRuntime: Shutting down VM
+10-11 02:41:29.710 29626 29626 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:41:29.715 29626 29626 I AndroidRuntime: Using default boot image
+10-11 02:41:29.715 29626 29626 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:41:29.925 29626 29626 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:41:30.962 29626 29626 D AndroidRuntime: Shutting down VM
+10-11 02:41:31.958 29718 29718 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:41:31.962 29718 29718 I AndroidRuntime: Using default boot image
+10-11 02:41:31.962 29718 29718 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:41:32.081 29718 29718 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:41:33.135 29718 29718 D AndroidRuntime: Shutting down VM
+10-11 02:41:40.274 30015 30015 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:41:40.279 30015 30015 I AndroidRuntime: Using default boot image
+10-11 02:41:40.280 30015 30015 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:41:40.407 30015 30015 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:41:41.513 30015 30015 D AndroidRuntime: Shutting down VM
+10-11 02:41:42.470 30098 30098 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:41:42.474 30098 30098 I AndroidRuntime: Using default boot image
+10-11 02:41:42.474 30098 30098 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:41:42.604 30098 30098 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:41:43.682 30098 30098 D AndroidRuntime: Shutting down VM
+10-11 02:41:46.735 30245 30245 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:41:46.739 30245 30245 I AndroidRuntime: Using default boot image
+10-11 02:41:46.739 30245 30245 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:41:46.851 30245 30245 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:41:47.921 30245 30245 D AndroidRuntime: Shutting down VM
+10-11 02:41:48.893 30327 30327 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-11 02:41:48.897 30327 30327 I AndroidRuntime: Using default boot image
+10-11 02:41:48.897 30327 30327 I AndroidRuntime: Leaving lock profiling enabled
+10-11 02:41:49.023 30327 30327 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-11 02:41:50.137 30327 30327 D AndroidRuntime: Shutting down VM
+10-11 02:41:52.331   519   519 I NotificationService: Cannot find enqueued record for key: 0|com.shomer.bodycam|1001|null|10192

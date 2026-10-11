@@ -1,0 +1,28 @@
+# Shomer smoke – API 34
+- ✅ installed
+- ✅ onboarding done
+- ✅ off-shift screen
+- ✅ foreground service running
+- ✅ standby status shown
+  - buffer segments: 2
+- ✅ pre-record buffer is writing
+- ✅ tapped REC
+- ✅ recording state
+  - record button at: 540 750
+- ✅ short tap did not stop recording
+- ❌ recording not saved
+- ❌ no SHA-256
+- ❌ not locked
+- ❌ operator id missing
+- ❌ no sidecar
+- ❌ sha256sum check failed
+  - video duration: s
+- ❌ video too short for pre-record
+- ✅ shake started a recording
+- ❌ shake recording not saved
+  - notification mentions Recording: 2
+  - volume key: count=2
+- ✅ double tap left pocket mode
+- ❌ integrity check
+- ✅ shift ended
+- ✅ no crashes
