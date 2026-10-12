@@ -140,7 +140,10 @@ private fun JeremyRoot(pendingNav: MutableStateFlow<Pair<String?, String?>?>, sh
 
     CompositionLocalProvider(LocalLayoutDirection provides dir) {
         Box(Modifier.fillMaxSize()) {
-            FullScreenBackground { AppScaffold(pendingNav) }
+            FullScreenBackground {
+                // Jeremy does not open until every required permission is granted.
+                com.jeremy.dashcam.ui.screens.PermissionGate { AppScaffold(pendingNav) }
+            }
             AnimatedVisibility(visible = splash, exit = fadeOut()) { SplashScreen(onFinished = { splash = false }) }
         }
     }

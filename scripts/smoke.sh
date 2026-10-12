@@ -61,7 +61,10 @@ LOGPID=$!
 adb shell pm grant $PKG android.permission.CAMERA
 adb shell pm grant $PKG android.permission.RECORD_AUDIO
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS 2>/dev/null
+adb shell pm grant $PKG android.permission.ACCESS_FINE_LOCATION 2>/dev/null
+adb shell pm grant $PKG android.permission.ACCESS_COARSE_LOCATION 2>/dev/null
 adb shell appops set $PKG SYSTEM_ALERT_WINDOW allow
+adb shell dumpsys deviceidle whitelist +$PKG >/dev/null 2>&1   # battery optimisation exemption (permission gate)
 adb shell settings put system accelerometer_rotation 0
 set_prefs() {  # $1 = extra xml lines
   adb shell am force-stop $PKG
