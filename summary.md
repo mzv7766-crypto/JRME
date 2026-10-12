@@ -1,0 +1,18 @@
+# Shomer Team end-to-end – API 34
+- ✅ company seeded (1 real phone + 2 simulated)
+- ✅ installed
+- ✅ phone reports on shift to Firestore
+  - {"app":"1.4","badge":"4127","name":"דנה לוי","onShift":true,"recording":false,"model":"Google sdk_gphone64_x86_64","trigger":null,"recordStart":0,"battery":100,"live":false,"acc":5,"locAt":1791764294532,"lon":34.781798333333334,"lat":32.085298333333334,"updatedAt":1791764294532}
+- ✅ location reported
+- ✅ name/badge from company
+- ✅ manager signed in to the dashboard
+- ✅ guard appears on shift in the dashboard
+- ✅ live video playing in the browser (480x640)
+- ✅ phone reports that it is being watched
+- ✅ remote start: phone is recording
+- ✅ remote stop: phone stopped
+- ✅ recording saved and reported (sha256 70cdbab2ca24…, trigger REMOTE)
+- ✅ trigger recorded as REMOTE
+- ✅ live view ended on the phone
+- ✅ fall alarm pops up in the control room
+- ✅ no crashes

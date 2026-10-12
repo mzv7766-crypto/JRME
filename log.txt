@@ -1,0 +1,500 @@
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{e7db027 com.android.systemui.auto_generated_rro_vendor__/10076} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c5a12d4 com.google.android.deskclock/10152} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{80ecc7d com.android.internal.systemui.navbar.twobutton/10020} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6495772 com.google.android.gm/10148} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{af8840 com.android.internal.systemui.navbar.gestural_extra_wide_back/10045} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7c0b379 com.android.systemui.emulation.pixel_3/10015} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c5178be com.android.systemui.emulation.pixel_4/10037} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{26e7d1f com.android.systemui.emulation.pixel_5/10071} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{824e86c com.android.systemui.emulation.pixel_6/10074} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6100e35 com.android.systemui.emulation.pixel_7/10072} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{fc058b1 com.android.systemui.emulation.pixel_8/10070} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9d1e196 com.android.nfc.auto_generated_rro_product__/10027} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{11cf117 com.android.printspooler/10103} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{991d904 com.android.emergency.auto_generated_rro_product__/10041} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{50ceed com.google.android.connectivity.resources.goldfish.overlay/10079} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9c28122 com.android.dreams.basic/10104} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d7587b3 com.google.android.networkstack.tethering.emulator/10022} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1d58170 com.android.providers.settings.auto_generated_rro_product__/10002} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1f86ce9 com.google.android.as.oss/10121} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d2b8d6e com.android.traceur.auto_generated_rro_product__/10005} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1b6ec0f com.google.android.devicelockcontroller/10181} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{969449c com.google.android.dialer/10128} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{161eea5 com.android.internal.emulation.pixel_3/10046} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{607127a com.android.internal.emulation.pixel_4/10060} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d003a2b com.android.internal.emulation.pixel_5/10012} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3140e88 com.android.internal.emulation.pixel_6/10038} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{127d021 com.android.internal.emulation.pixel_7/10067} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9e3dc46 com.android.internal.emulation.pixel_8/10039} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7464e07 com.google.android.captiveportallogin/10113} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{51f8b34 com.android.musicfx/10088} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9104d5d com.google.android.apps.docs/10154} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{af8103b com.google.android.apps.maps/10153} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{67176d2 com.google.android.modulemetadata/10146} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8efc3a3 com.google.android.markup/10135} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ec426a0 com.android.providers.settings.auto_generated_rro_vendor__/10080} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d096259 com.google.android.webview/10137} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{2cc2e1e com.google.android.rkpdapp/10179} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{30f6ff com.google.android.contacts/10155} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8550ccc com.android.server.telecom.auto_generated_rro_product__/10032} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7e4cb15 com.google.android.overlay.googleconfig/10055} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9890e2a com.android.chrome/10149} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{28041b com.android.bips.auto_generated_rro_product__/10035} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a2c29b8 com.google.android.apps.customization.pixel/10144} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5d40391 com.google.android.tag/10082} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{781e2f6 com.google.android.overlay.permissioncontroller/10003} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5b8c6f7 com.google.android.partnersetup/10124} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6562964 com.google.android.apps.wallpaper.nexus/10141} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{aa447cd com.google.android.apps.nexuslauncher/10169} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b613882 com.google.android.nearby.halfsheet/10191} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{e28db93 com.android.theme.font.notoserifsource/10066} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{fe77d0 com.google.android.safetycenter.resources/10174} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{39b40fc com.android.internal.display.cutout.emulation.waterfall/10040} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5cfa385 com.android.internal.systemui.navbar.transparent/10029} BLOCKED
+10-12 00:17:58.839   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b1955da com.google.android.connectivity.resources/10190} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{28e2a0b com.android.providers.contacts.auto_generated_rro_product__/10019} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6d970e8 com.google.android.feedback/10163} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66bf301 com.google.android.printservice.recommendation/10109} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3c6f5a6 com.google.android.apps.photos/10142} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3a2811f com.google.android.calendar/10145} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ef35be7 com.google.android.documentsui/10098} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{f48b394 com.android.systemui.emulation.pixel_3a_xl/10021} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{123be3d com.android.systemui.emulation.pixel_6_pro/10063} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5cc632 com.android.systemui.emulation.pixel_7_pro/10054} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{88fcf83 com.android.systemui.emulation.pixel_8_pro/10001} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8c77500 com.google.mainline.telemetry/10151} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{930139 com.android.carrierconfig.auto_generated_rro_product__/10064} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{40d137e com.android.providers.partnerbookmarks/10101} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6f5e0df com.android.wallpaper.livepicker/10090} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{caee12c com.android.providers.telephony.auto_generated_rro_product__/10062} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3569e71 com.android.phone.auto_generated_rro_vendor__/10081} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c8e1456 com.google.mainline.adservices/10136} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3350cd7 com.android.imsserviceentitlement/10118} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{cca29c4 com.google.android.healthconnect.controller/10177} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c65b0ad com.android.internal.emulation.pixel_2_xl/10016} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5ef1fe2 com.android.internal.emulation.pixel_3_xl/10056} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d539f73 com.android.internal.emulation.pixel_4_xl/10047} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d221e30 com.android.internal.emulation.pixel_fold/10006} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5d9aaa9 com.android.bookmarkprovider/10114} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{763582e com.google.android.overlay.pixelconfigcommon/10014} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bbebfcf com.android.systemui.accessibility.accessibilitymenu.auto_generated_rro_product__/10050} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7c2ed5c com.android.systemui.emulation.pixel_3a/10013} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3794865 com.android.systemui.emulation.pixel_4a/10000} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1d0c93a com.android.systemui.emulation.pixel_6a/10042} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1189eb com.android.systemui.emulation.pixel_7a/10017} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{63f8348 com.google.android.settings.intelligence/10117} BLOCKED
+10-12 00:17:58.840   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7074fc4 com.google.android.projection.gearhead/10126} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{4bb05e1 com.google.android.uwb.resources/10170} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3b6faff com.android.cts.ctsshim/10189} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c723f06 com.google.android.wifi.resources/10182} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7cd9c7 com.google.android.wifi.dialog/10184} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66d8bf4 com.google.android.apps.wallpaper/10161} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{11f1d com.google.android.odad/10122} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5634592 com.android.settings.auto_generated_rro_product__/10028} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b634b63 com.android.internal.systemui.navbar.gestural/10051} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bd17360 com.google.android.apps.youtube.music/10156} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5959019 com.android.bluetoothmidiservice/10108} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{eec28de com.android.storagemanager.auto_generated_rro_product__/10026} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8b53abf com.google.android.cellbroadcastreceiver/10171} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bca658c com.android.phone.auto_generated_rro_product__/10061} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66614d5 android.auto_generated_rro_product__/10069} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{58df4ea com.android.internal.systemui.navbar.gestural_narrow_back/10052} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{50cc3db com.google.android.inputmethod.latin/10140} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7e4e78 android.auto_generated_rro_vendor__/10075} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a802951 com.google.android.apps.restore/10119} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{dc8d84f com.android.cts.priv.ctsshim/10188} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c865bdc com.google.android.youtube/10139} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d5a54e5 com.android.internal.display.cutout.emulation.corner/10025} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3721bba com.android.internal.display.cutout.emulation.double/10048} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7e4aa6b com.google.android.onetimeinitializer/10125} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{20b59c8 com.google.android.ext.shared/10100} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ce05a61 com.android.internal.systemui.navbar.gestural_wide_back/10007} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{f163986 com.android.virtualmachine.res/10180} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5a18247 com.google.android.federatedcompute/10172} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5604a74 com.android.managedprovisioning.auto_generated_rro_product__/10024} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a673b9d com.android.carrierconfig.auto_generated_rro_vendor__/10078} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a8c6812 com.android.systemui.emulation.pixel_3_xl/10034} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{569fbe3 com.android.systemui.emulation.pixel_4_xl/10059} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d7199e0 com.android.systemui.emulation.pixel_fold/10009} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{980f499 com.android.simappdialog.auto_generated_rro_product__/10030} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{dc4f35e com.android.htmlviewer/10115} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7b6733f com.google.android.health.connect.backuprestore/10178} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{186740c com.android.systemui.auto_generated_rro_product__/10031} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ae34155 com.google.android.apps.messaging/10131} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d68e76a com.google.android.soundpicker/10134} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{229045b com.google.android.marvin.talkbackoverlay/10077} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{42cc4f8 com.google.android.configupdater/10129} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ae39dd1 com.android.internal.emulation.pixel_3a_xl/10044} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{da61036 com.android.internal.emulation.pixel_6_pro/10018} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8698b37 com.android.internal.emulation.pixel_7_pro/10004} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{e538a4 com.android.internal.emulation.pixel_8_pro/10058} BLOCKED
+10-12 00:17:58.841   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bb3460d com.android.internal.emulation.pixel_3a/10053} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5baf9c2 com.android.internal.emulation.pixel_4a/10011} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6c1a3d3 com.android.internal.emulation.pixel_6a/10023} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{88f3b10 com.android.internal.emulation.pixel_7a/10033} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{75b3609 com.google.android.overlay.googlewebview/10049} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{42f00e com.google.android.hotspot2.osulogin/10183} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a78aa2f com.android.simappdialog/10111} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{894f83c com.android.internal.display.cutout.emulation.hole/10073} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8d75c28 com.android.internal.display.cutout.emulation.tall/10065} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b69d41 com.android.internal.systemui.navbar.threebutton/10068} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{2f0f2e6 com.android.camera2/10143} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{e7db027 com.android.systemui.auto_generated_rro_vendor__/10076} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c5a12d4 com.google.android.deskclock/10152} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{80ecc7d com.android.internal.systemui.navbar.twobutton/10020} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6495772 com.google.android.gm/10148} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{af8840 com.android.internal.systemui.navbar.gestural_extra_wide_back/10045} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7c0b379 com.android.systemui.emulation.pixel_3/10015} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c5178be com.android.systemui.emulation.pixel_4/10037} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{26e7d1f com.android.systemui.emulation.pixel_5/10071} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{824e86c com.android.systemui.emulation.pixel_6/10074} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6100e35 com.android.systemui.emulation.pixel_7/10072} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{fc058b1 com.android.systemui.emulation.pixel_8/10070} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9d1e196 com.android.nfc.auto_generated_rro_product__/10027} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{11cf117 com.android.printspooler/10103} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{991d904 com.android.emergency.auto_generated_rro_product__/10041} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{50ceed com.google.android.connectivity.resources.goldfish.overlay/10079} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9c28122 com.android.dreams.basic/10104} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d7587b3 com.google.android.networkstack.tethering.emulator/10022} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1d58170 com.android.providers.settings.auto_generated_rro_product__/10002} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1f86ce9 com.google.android.as.oss/10121} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d2b8d6e com.android.traceur.auto_generated_rro_product__/10005} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1b6ec0f com.google.android.devicelockcontroller/10181} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{969449c com.google.android.dialer/10128} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{161eea5 com.android.internal.emulation.pixel_3/10046} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{607127a com.android.internal.emulation.pixel_4/10060} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d003a2b com.android.internal.emulation.pixel_5/10012} BLOCKED
+10-12 00:17:58.842   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3140e88 com.android.internal.emulation.pixel_6/10038} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{127d021 com.android.internal.emulation.pixel_7/10067} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9e3dc46 com.android.internal.emulation.pixel_8/10039} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7464e07 com.google.android.captiveportallogin/10113} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{51f8b34 com.android.musicfx/10088} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9104d5d com.google.android.apps.docs/10154} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{af8103b com.google.android.apps.maps/10153} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{67176d2 com.google.android.modulemetadata/10146} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8efc3a3 com.google.android.markup/10135} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ec426a0 com.android.providers.settings.auto_generated_rro_vendor__/10080} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d096259 com.google.android.webview/10137} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{2cc2e1e com.google.android.rkpdapp/10179} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{30f6ff com.google.android.contacts/10155} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8550ccc com.android.server.telecom.auto_generated_rro_product__/10032} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7e4cb15 com.google.android.overlay.googleconfig/10055} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9890e2a com.android.chrome/10149} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{28041b com.android.bips.auto_generated_rro_product__/10035} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a2c29b8 com.google.android.apps.customization.pixel/10144} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5d40391 com.google.android.tag/10082} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{781e2f6 com.google.android.overlay.permissioncontroller/10003} BLOCKED
+10-12 00:17:58.843   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5b8c6f7 com.google.android.partnersetup/10124} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6562964 com.google.android.apps.wallpaper.nexus/10141} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{aa447cd com.google.android.apps.nexuslauncher/10169} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b613882 com.google.android.nearby.halfsheet/10191} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{e28db93 com.android.theme.font.notoserifsource/10066} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{fe77d0 com.google.android.safetycenter.resources/10174} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{39b40fc com.android.internal.display.cutout.emulation.waterfall/10040} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5cfa385 com.android.internal.systemui.navbar.transparent/10029} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b1955da com.google.android.connectivity.resources/10190} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{28e2a0b com.android.providers.contacts.auto_generated_rro_product__/10019} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6d970e8 com.google.android.feedback/10163} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66bf301 com.google.android.printservice.recommendation/10109} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3c6f5a6 com.google.android.apps.photos/10142} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3a2811f com.google.android.calendar/10145} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ef35be7 com.google.android.documentsui/10098} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{f48b394 com.android.systemui.emulation.pixel_3a_xl/10021} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{123be3d com.android.systemui.emulation.pixel_6_pro/10063} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5cc632 com.android.systemui.emulation.pixel_7_pro/10054} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{88fcf83 com.android.systemui.emulation.pixel_8_pro/10001} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8c77500 com.google.mainline.telemetry/10151} BLOCKED
+10-12 00:17:58.844   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{930139 com.android.carrierconfig.auto_generated_rro_product__/10064} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{40d137e com.android.providers.partnerbookmarks/10101} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6f5e0df com.android.wallpaper.livepicker/10090} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{caee12c com.android.providers.telephony.auto_generated_rro_product__/10062} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3569e71 com.android.phone.auto_generated_rro_vendor__/10081} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c8e1456 com.google.mainline.adservices/10136} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3350cd7 com.android.imsserviceentitlement/10118} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{cca29c4 com.google.android.healthconnect.controller/10177} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c65b0ad com.android.internal.emulation.pixel_2_xl/10016} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5ef1fe2 com.android.internal.emulation.pixel_3_xl/10056} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d539f73 com.android.internal.emulation.pixel_4_xl/10047} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d221e30 com.android.internal.emulation.pixel_fold/10006} BLOCKED
+10-12 00:17:58.845   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5d9aaa9 com.android.bookmarkprovider/10114} BLOCKED
+10-12 00:17:58.846   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{763582e com.google.android.overlay.pixelconfigcommon/10014} BLOCKED
+10-12 00:17:58.846   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bbebfcf com.android.systemui.accessibility.accessibilitymenu.auto_generated_rro_product__/10050} BLOCKED
+10-12 00:17:58.846   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7c2ed5c com.android.systemui.emulation.pixel_3a/10013} BLOCKED
+10-12 00:17:58.846   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3794865 com.android.systemui.emulation.pixel_4a/10000} BLOCKED
+10-12 00:17:58.846   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1d0c93a com.android.systemui.emulation.pixel_6a/10042} BLOCKED
+10-12 00:17:58.846   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1189eb com.android.systemui.emulation.pixel_7a/10017} BLOCKED
+10-12 00:17:58.846   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{63f8348 com.google.android.settings.intelligence/10117} BLOCKED
+10-12 00:17:58.846   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7074fc4 com.google.android.projection.gearhead/10126} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{4bb05e1 com.google.android.uwb.resources/10170} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3b6faff com.android.cts.ctsshim/10189} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c723f06 com.google.android.wifi.resources/10182} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7cd9c7 com.google.android.wifi.dialog/10184} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66d8bf4 com.google.android.apps.wallpaper/10161} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{11f1d com.google.android.odad/10122} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5634592 com.android.settings.auto_generated_rro_product__/10028} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b634b63 com.android.internal.systemui.navbar.gestural/10051} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bd17360 com.google.android.apps.youtube.music/10156} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5959019 com.android.bluetoothmidiservice/10108} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{eec28de com.android.storagemanager.auto_generated_rro_product__/10026} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8b53abf com.google.android.cellbroadcastreceiver/10171} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bca658c com.android.phone.auto_generated_rro_product__/10061} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66614d5 android.auto_generated_rro_product__/10069} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{58df4ea com.android.internal.systemui.navbar.gestural_narrow_back/10052} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{50cc3db com.google.android.inputmethod.latin/10140} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7e4e78 android.auto_generated_rro_vendor__/10075} BLOCKED
+10-12 00:17:58.847   517   594 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a802951 com.google.android.apps.restore/10119} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{dc8d84f com.android.cts.priv.ctsshim/10188} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c865bdc com.google.android.youtube/10139} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d5a54e5 com.android.internal.display.cutout.emulation.corner/10025} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3721bba com.android.internal.display.cutout.emulation.double/10048} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7e4aa6b com.google.android.onetimeinitializer/10125} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{20b59c8 com.google.android.ext.shared/10100} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ce05a61 com.android.internal.systemui.navbar.gestural_wide_back/10007} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{f163986 com.android.virtualmachine.res/10180} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5a18247 com.google.android.federatedcompute/10172} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5604a74 com.android.managedprovisioning.auto_generated_rro_product__/10024} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a673b9d com.android.carrierconfig.auto_generated_rro_vendor__/10078} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a8c6812 com.android.systemui.emulation.pixel_3_xl/10034} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{569fbe3 com.android.systemui.emulation.pixel_4_xl/10059} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d7199e0 com.android.systemui.emulation.pixel_fold/10009} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{980f499 com.android.simappdialog.auto_generated_rro_product__/10030} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{dc4f35e com.android.htmlviewer/10115} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7b6733f com.google.android.health.connect.backuprestore/10178} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{186740c com.android.systemui.auto_generated_rro_product__/10031} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ae34155 com.google.android.apps.messaging/10131} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d68e76a com.google.android.soundpicker/10134} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{229045b com.google.android.marvin.talkbackoverlay/10077} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{42cc4f8 com.google.android.configupdater/10129} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ae39dd1 com.android.internal.emulation.pixel_3a_xl/10044} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{da61036 com.android.internal.emulation.pixel_6_pro/10018} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8698b37 com.android.internal.emulation.pixel_7_pro/10004} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{e538a4 com.android.internal.emulation.pixel_8_pro/10058} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bb3460d com.android.internal.emulation.pixel_3a/10053} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5baf9c2 com.android.internal.emulation.pixel_4a/10011} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6c1a3d3 com.android.internal.emulation.pixel_6a/10023} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{88f3b10 com.android.internal.emulation.pixel_7a/10033} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{75b3609 com.google.android.overlay.googlewebview/10049} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{42f00e com.google.android.hotspot2.osulogin/10183} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a78aa2f com.android.simappdialog/10111} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{894f83c com.android.internal.display.cutout.emulation.hole/10073} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8d75c28 com.android.internal.display.cutout.emulation.tall/10065} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b69d41 com.android.internal.systemui.navbar.threebutton/10068} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{2f0f2e6 com.android.camera2/10143} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{e7db027 com.android.systemui.auto_generated_rro_vendor__/10076} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c5a12d4 com.google.android.deskclock/10152} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{80ecc7d com.android.internal.systemui.navbar.twobutton/10020} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6495772 com.google.android.gm/10148} BLOCKED
+10-12 00:17:59.028   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{af8840 com.android.internal.systemui.navbar.gestural_extra_wide_back/10045} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7c0b379 com.android.systemui.emulation.pixel_3/10015} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c5178be com.android.systemui.emulation.pixel_4/10037} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{26e7d1f com.android.systemui.emulation.pixel_5/10071} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{824e86c com.android.systemui.emulation.pixel_6/10074} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6100e35 com.android.systemui.emulation.pixel_7/10072} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{fc058b1 com.android.systemui.emulation.pixel_8/10070} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9d1e196 com.android.nfc.auto_generated_rro_product__/10027} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{11cf117 com.android.printspooler/10103} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{991d904 com.android.emergency.auto_generated_rro_product__/10041} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{50ceed com.google.android.connectivity.resources.goldfish.overlay/10079} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9c28122 com.android.dreams.basic/10104} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d7587b3 com.google.android.networkstack.tethering.emulator/10022} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1d58170 com.android.providers.settings.auto_generated_rro_product__/10002} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1f86ce9 com.google.android.as.oss/10121} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d2b8d6e com.android.traceur.auto_generated_rro_product__/10005} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1b6ec0f com.google.android.devicelockcontroller/10181} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{969449c com.google.android.dialer/10128} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{161eea5 com.android.internal.emulation.pixel_3/10046} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{607127a com.android.internal.emulation.pixel_4/10060} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d003a2b com.android.internal.emulation.pixel_5/10012} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3140e88 com.android.internal.emulation.pixel_6/10038} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{127d021 com.android.internal.emulation.pixel_7/10067} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9e3dc46 com.android.internal.emulation.pixel_8/10039} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7464e07 com.google.android.captiveportallogin/10113} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{51f8b34 com.android.musicfx/10088} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9104d5d com.google.android.apps.docs/10154} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{af8103b com.google.android.apps.maps/10153} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{67176d2 com.google.android.modulemetadata/10146} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8efc3a3 com.google.android.markup/10135} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ec426a0 com.android.providers.settings.auto_generated_rro_vendor__/10080} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d096259 com.google.android.webview/10137} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{2cc2e1e com.google.android.rkpdapp/10179} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{30f6ff com.google.android.contacts/10155} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8550ccc com.android.server.telecom.auto_generated_rro_product__/10032} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7e4cb15 com.google.android.overlay.googleconfig/10055} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{9890e2a com.android.chrome/10149} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{28041b com.android.bips.auto_generated_rro_product__/10035} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a2c29b8 com.google.android.apps.customization.pixel/10144} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5d40391 com.google.android.tag/10082} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{781e2f6 com.google.android.overlay.permissioncontroller/10003} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5b8c6f7 com.google.android.partnersetup/10124} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6562964 com.google.android.apps.wallpaper.nexus/10141} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{aa447cd com.google.android.apps.nexuslauncher/10169} BLOCKED
+10-12 00:17:59.029   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b613882 com.google.android.nearby.halfsheet/10191} BLOCKED
+10-12 00:17:59.039   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{e28db93 com.android.theme.font.notoserifsource/10066} BLOCKED
+10-12 00:17:59.040   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{fe77d0 com.google.android.safetycenter.resources/10174} BLOCKED
+10-12 00:17:59.042   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{39b40fc com.android.internal.display.cutout.emulation.waterfall/10040} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5cfa385 com.android.internal.systemui.navbar.transparent/10029} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b1955da com.google.android.connectivity.resources/10190} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{28e2a0b com.android.providers.contacts.auto_generated_rro_product__/10019} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6d970e8 com.google.android.feedback/10163} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66bf301 com.google.android.printservice.recommendation/10109} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3c6f5a6 com.google.android.apps.photos/10142} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3a2811f com.google.android.calendar/10145} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{ef35be7 com.google.android.documentsui/10098} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{f48b394 com.android.systemui.emulation.pixel_3a_xl/10021} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{123be3d com.android.systemui.emulation.pixel_6_pro/10063} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5cc632 com.android.systemui.emulation.pixel_7_pro/10054} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{88fcf83 com.android.systemui.emulation.pixel_8_pro/10001} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8c77500 com.google.mainline.telemetry/10151} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{930139 com.android.carrierconfig.auto_generated_rro_product__/10064} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{40d137e com.android.providers.partnerbookmarks/10101} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6f5e0df com.android.wallpaper.livepicker/10090} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{caee12c com.android.providers.telephony.auto_generated_rro_product__/10062} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3569e71 com.android.phone.auto_generated_rro_vendor__/10081} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c8e1456 com.google.mainline.adservices/10136} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3350cd7 com.android.imsserviceentitlement/10118} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{cca29c4 com.google.android.healthconnect.controller/10177} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c65b0ad com.android.internal.emulation.pixel_2_xl/10016} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5ef1fe2 com.android.internal.emulation.pixel_3_xl/10056} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d539f73 com.android.internal.emulation.pixel_4_xl/10047} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{d221e30 com.android.internal.emulation.pixel_fold/10006} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5d9aaa9 com.android.bookmarkprovider/10114} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{763582e com.google.android.overlay.pixelconfigcommon/10014} BLOCKED
+10-12 00:17:59.043   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bbebfcf com.android.systemui.accessibility.accessibilitymenu.auto_generated_rro_product__/10050} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7c2ed5c com.android.systemui.emulation.pixel_3a/10013} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3794865 com.android.systemui.emulation.pixel_4a/10000} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1d0c93a com.android.systemui.emulation.pixel_6a/10042} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{1189eb com.android.systemui.emulation.pixel_7a/10017} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{63f8348 com.google.android.settings.intelligence/10117} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7074fc4 com.google.android.projection.gearhead/10126} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{4bb05e1 com.google.android.uwb.resources/10170} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{3b6faff com.android.cts.ctsshim/10189} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{c723f06 com.google.android.wifi.resources/10182} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7cd9c7 com.google.android.wifi.dialog/10184} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66d8bf4 com.google.android.apps.wallpaper/10161} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{11f1d com.google.android.odad/10122} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5634592 com.android.settings.auto_generated_rro_product__/10028} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{b634b63 com.android.internal.systemui.navbar.gestural/10051} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bd17360 com.google.android.apps.youtube.music/10156} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{5959019 com.android.bluetoothmidiservice/10108} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{eec28de com.android.storagemanager.auto_generated_rro_product__/10026} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8b53abf com.google.android.cellbroadcastreceiver/10171} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{bca658c com.android.phone.auto_generated_rro_product__/10061} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{66614d5 android.auto_generated_rro_product__/10069} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{58df4ea com.android.internal.systemui.navbar.gestural_narrow_back/10052} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{50cc3db com.google.android.inputmethod.latin/10140} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{7e4e78 android.auto_generated_rro_vendor__/10075} BLOCKED
+10-12 00:17:59.044   517  1912 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{a802951 com.google.android.apps.restore/10119} BLOCKED
+10-12 00:17:59.422   517   574 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{6495772 com.google.android.gm/10148} BLOCKED
+10-12 00:17:59.623   517  2303 D ConnectivityService: requestNetwork for uid/pid:10192/4277 activeRequest: null callbackRequest: 114 [NetworkRequest [ REQUEST id=115, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10192 RequestorUid: 10192 RequestorPkg: com.shomer.bodycam UnderlyingNetworks: Null] ]] callback flags: 0 order: 2147483647
+10-12 00:17:59.628   517   755 D WifiNetworkFactory: got request NetworkRequest [ REQUEST id=115, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10192 RequestorUid: 10192 RequestorPkg: com.shomer.bodycam UnderlyingNetworks: Null] ]
+10-12 00:17:59.628   517   755 D UntrustedWifiNetworkFactory: got request NetworkRequest [ REQUEST id=115, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10192 RequestorUid: 10192 RequestorPkg: com.shomer.bodycam UnderlyingNetworks: Null] ]
+10-12 00:17:59.628   517   755 D OemPaidWifiNetworkFactory: got request NetworkRequest [ REQUEST id=115, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10192 RequestorUid: 10192 RequestorPkg: com.shomer.bodycam UnderlyingNetworks: Null] ]
+10-12 00:17:59.628   517   755 D MultiInternetWifiNetworkFactory: got request NetworkRequest [ REQUEST id=115, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10192 RequestorUid: 10192 RequestorPkg: com.shomer.bodycam UnderlyingNetworks: Null] ]
+10-12 00:18:00.294  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.Billing.connect(Billing.kt:58)
+10-12 00:18:00.294  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.Billing.refresh(Billing.kt:73)
+10-12 00:18:00.294  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore.afterSignIn(Account.kt:138)
+10-12 00:18:00.294  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore.access$afterSignIn(Account.kt:59)
+10-12 00:18:00.294  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore$afterSignIn$1.invokeSuspend(Account.kt:0)
+10-12 00:18:00.294  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.CloudKt$await$2$1.onComplete(Cloud.kt:20)
+10-12 00:18:00.317  4277  4277 W ShomerCloud: billing setup: 3 Billing service unavailable on device.
+10-12 00:18:01.325  4277  4435 D ProfileInstaller: Installing profile for com.shomer.bodycam
+10-12 00:18:05.546  1037  1037 D CarrierSvcBindHelper: onPackageAdded: com.shomer.bodycam
+10-12 00:18:05.572  1037  1370 D ImsResolver: maybeAddedImsService, packageName: com.shomer.bodycam
+10-12 00:18:05.619  1037  1037 D CarrierSvcBindHelper: onPackageModified: com.shomer.bodycam
+10-12 00:18:05.626  1037  1370 D ImsResolver: maybeAddedImsService, packageName: com.shomer.bodycam
+10-12 00:18:06.255   517  2775 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{8ee48c6 com.google.android.settings.intelligence/10117} BLOCKED
+10-12 00:18:06.267   517  2775 I AppsFilter: interaction: PackageSetting{e5c82ae com.shomer.bodycam/10192} -> PackageSetting{17cdd3 com.google.android.settings.intelligence/10117} BLOCKED
+10-12 00:18:06.619   517   802 I SdkSandboxManager: No SDKs used. Skipping SDK data reconcilation for CallingInfo{mUid=10192, mPackageName='com.shomer.bodycam, mAppProcessToken='null'}
+10-12 00:18:06.738   517  2774 W InputManager-JNI: Input channel object '8fd40c6 com.shomer.bodycam/com.shomer.bodycam.MainActivity (client)' was disposed without first being removed with the input manager!
+10-12 00:18:06.788   517  2786 I WindowManager: setOnBackInvokedCallback(): No window state for package:com.shomer.bodycam
+10-12 00:18:06.931   517  2775 D CoreBackPreview: Window{c89bff1 u0 com.shomer.bodycam/com.shomer.bodycam.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@7dfb4ba, mPriority=0, mIsAnimationCallback=false}
+10-12 00:18:07.106   517  2775 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.shomer.bodycam/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=3
+10-12 00:18:07.109   833   866 D WindowManagerShell: onActivityRestartAttempt: ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity}
+10-12 00:18:07.194  1655  1655 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.shomer.bodycam], userId:[0], reason:[package is added.].
+10-12 00:18:07.217   517  2786 I WindowManager: finishDrawing of relaunch: Window{c89bff1 u0 com.shomer.bodycam/com.shomer.bodycam.MainActivity} 650ms
+10-12 00:18:07.394   517  2401 I ActivityManager: Background started FGS: Allowed [callingPackage: com.shomer.bodycam; callingUid: 10192; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=com.shomer.bodycam.START cmp=com.shomer.bodycam/.service.BodycamService }; code:PROC_STATE_TOP; tempAllowListReason:<,reasonCode:SYSTEM_ALLOW_LISTED,duration:9223372036854775807,callingUid:-1>; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-12 00:18:07.409   517  2338 I ImeTracker: com.shomer.bodycam:e268292a: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
+10-12 00:18:07.409   517  2338 I ImeTracker: com.shomer.bodycam:e268292a: onCancelled at PHASE_SERVER_SHOULD_HIDE
+10-12 00:18:07.418  1582  1582 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.shomer.bodycam fieldId=0 fieldName=null extras=null}, false)
+10-12 00:18:07.541  1037  1037 D CarrierSvcBindHelper: onPackageModified: com.shomer.bodycam
+10-12 00:18:07.548  1037  1370 D ImsResolver: maybeAddedImsService, packageName: com.shomer.bodycam
+10-12 00:18:07.702   834   834 I SafetyLabelChangedBroadcastReceiver: received broadcast packageName: com.shomer.bodycam, current user: UserHandle{0}, packageChangeEvent: NEW_INSTALL, intent user: UserHandle{0}
+10-12 00:18:07.951  1655  1655 I AiAiEcho: AppFetcherImpl onPackageChanged com.shomer.bodycam.
+10-12 00:18:07.954  1655  3133 I AiAiEcho: AppIndexer Package:[com.shomer.bodycam] UserProfile:[0] Enabled:[true].
+10-12 00:18:07.954  1655  3133 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.shomer.bodycam], userId:[0], reason:[package is updated.].
+10-12 00:18:08.072   517   517 V ActivityThread: getPackageInfo() caused update to cached ApplicationInfo for package com.shomer.bodycam
+10-12 00:18:08.073   517   517 D nativeloader: Configuring clns-18 for other apk . target_sdk_version=36, uses_libraries=, library_path=/data/app/~~HrobyfVAFOWKPLjWbm1hSw==/com.shomer.bodycam-d_OKjMslsYJCzMU9NcN23w==/lib/x86_64:/data/app/~~HrobyfVAFOWKPLjWbm1hSw==/com.shomer.bodycam-d_OKjMslsYJCzMU9NcN23w==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand
+10-12 00:18:08.262  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.Billing.connect(Billing.kt:58)
+10-12 00:18:08.262  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.Billing.refresh(Billing.kt:73)
+10-12 00:18:08.262  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore.afterSignIn(Account.kt:138)
+10-12 00:18:08.262  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore.access$afterSignIn(Account.kt:59)
+10-12 00:18:08.262  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore$afterSignIn$1.invokeSuspend(Account.kt:0)
+10-12 00:18:08.262  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.CloudKt$await$2$1.onComplete(Cloud.kt:20)
+10-12 00:18:08.267  4277  4277 W ShomerCloud: billing setup: 3 Billing service unavailable on device.
+10-12 00:18:08.333  1655  1655 I AiAiEcho: AppFetcherImpl onPackageChanged com.shomer.bodycam.
+10-12 00:18:08.335  1655  3459 I AiAiEcho: AppIndexer Package:[com.shomer.bodycam] UserProfile:[0] Enabled:[true].
+10-12 00:18:08.335  1655  3459 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.shomer.bodycam], userId:[0], reason:[package is updated.].
+10-12 00:18:08.447   833   833 V ActivityThread: getPackageInfo() caused update to cached ApplicationInfo for package com.shomer.bodycam
+10-12 00:18:09.151   457   505 I CameraService: CameraService::connect call (PID 4277 "com.shomer.bodycam", camera ID 0) and Camera API version 2
+10-12 00:18:09.212   457   505 I Camera2ClientBase: Camera 0: Opened. Client: com.shomer.bodycam (PID 4277, UID 10192)
+10-12 00:18:09.911   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{8e8c5a2 com.google.android.youtube/10139} BLOCKED
+10-12 00:18:09.911   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{d9de98d com.google.android.apps.maps/10153} BLOCKED
+10-12 00:18:09.911   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{49fb233 com.google.android.contacts/10155} BLOCKED
+10-12 00:18:14.511  1474  4760 I BlockstoreStorage: Clearing Blockstore Data for package com.shomer.bodycam [CONTEXT service_id=258 ]
+10-12 00:18:22.516   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{aef1618 com.google.android.apps.messaging/10131} BLOCKED
+10-12 00:18:22.516   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{f17e871 com.google.android.contacts/10155} BLOCKED
+10-12 00:18:23.275   517  2786 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{8aab68 com.google.android.settings.intelligence/10117} BLOCKED
+10-12 00:18:24.269  4277  4277 I org.webrtc.Logging: NativeLibrary: Loading native library: jingle_peerconnection_so
+10-12 00:18:24.269  4277  4277 I org.webrtc.Logging: NativeLibrary: Loading library: jingle_peerconnection_so
+10-12 00:18:24.299  4277  4277 I org.webrtc.Logging: PeerConnectionFactory: PeerConnectionFactory was initialized without an injected Loggable. Any existing Loggable will be deleted.
+10-12 00:18:24.303  4277  4277 I org.webrtc.Logging: EglBase14Impl: Using OpenGL ES version 2
+10-12 00:18:24.337  4277  4277 I org.webrtc.Logging: WebRtcAudioManagerExternal: Sample rate is set to 48000 Hz
+10-12 00:18:24.340  4277  4277 I org.webrtc.Logging: WebRtcAudioManagerExternal: Sample rate is set to 48000 Hz
+10-12 00:18:24.340  4277  4277 I org.webrtc.Logging: JavaAudioDeviceModule: createAudioDeviceModule
+10-12 00:18:24.340  4277  4277 I org.webrtc.Logging: JavaAudioDeviceModule: HW NS will not be used.
+10-12 00:18:24.342  4277  4277 I org.webrtc.Logging: JavaAudioDeviceModule: HW AEC will not be used.
+10-12 00:18:24.343  4277  4277 I org.webrtc.Logging: WebRtcAudioEffectsExternal: ctor@[name=main, id=2]
+10-12 00:18:24.343  4277  4277 I org.webrtc.Logging: WebRtcAudioRecordExternal: ctor@[name=main, id=2]
+10-12 00:18:24.353  4277  4277 I org.webrtc.Logging: WebRtcAudioTrackExternal: ctor@[name=main, id=2]
+10-12 00:18:24.453  4277  5263 I org.webrtc.Logging: PeerConnectionFactory: onSignalingThreadReady
+10-12 00:18:24.454  4277  5261 I org.webrtc.Logging: PeerConnectionFactory: onNetworkThreadReady
+10-12 00:18:24.455  4277  5262 I org.webrtc.Logging: PeerConnectionFactory: onWorkerThreadReady
+10-12 00:18:24.559  4277  5261 I org.webrtc.Logging: NetworkMonitor: Start monitoring with native observer 137195474793872 fieldTrialsString: 
+10-12 00:18:24.676  4277  5261 W org.webrtc.Logging: NetworkMonitorAutoDetect: Unable to obtain permission to request a cellular network.
+10-12 00:18:24.683  4277  4361 I org.webrtc.Logging: NetworkMonitorAutoDetect: Network handle: 432902426637 becomes available: 100
+10-12 00:18:24.696  4277  4361 I org.webrtc.Logging: NetworkMonitorAutoDetect: handle: 432902426637 capabilities changed: [ Transports: WIFI Capabilities: NOT_METERED&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED LinkUpBandwidth>=12000Kbps LinkDnBandwidth>=30000Kbps TransportInfo: <SSID: <unknown ssid>, BSSID: 02:00:00:00:00:00, MAC: 02:00:00:00:00:00, IP: /10.0.2.16, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: 1, RSSI: -50, Link speed: 24Mbps, Tx Link speed: 24Mbps, Max Supported Tx Link speed: 54Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 54Mbps, Frequency: 2437MHz, Net ID: -1, Metered hint: false, score: 60, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: -1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>> SignalStrength: -50 UnderlyingNetworks: Null]
+10-12 00:18:24.716  4277  4361 I org.webrtc.Logging: NetworkMonitorAutoDetect: handle: 432902426637 link properties changed
+10-12 00:18:24.726  4277  4361 I org.webrtc.Logging: NetworkMonitorAutoDetect: Network handle: 437197393933 becomes available: 101
+10-12 00:18:24.750  4277  4361 I org.webrtc.Logging: NetworkMonitorAutoDetect: handle: 437197393933 capabilities changed: [ Transports: CELLULAR Capabilities: MMS&SUPL&DUN&FOTA&IMS&CBS&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED LinkUpBandwidth>=1800Kbps LinkDnBandwidth>=4300Kbps Specifier: <TelephonyNetworkSpecifier [mSubId = 1]> UnderlyingNetworks: Null]
+10-12 00:18:24.792  4277  4361 I org.webrtc.Logging: NetworkMonitorAutoDetect: handle: 437197393933 link properties changed
+10-12 00:18:25.990  4277  5263 I ShomerLive: ice: CHECKING
+10-12 00:18:26.093  4277  5263 I ShomerLive: ice: CONNECTED
+10-12 00:18:29.183   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{507347d com.google.android.apps.messaging/10131} BLOCKED
+10-12 00:18:33.393  4277  4277 I ShomerCloud: command start from boss@acme.co.il
+10-12 00:18:33.448  4277  4277 I Shomer  : recording started by REMOTE
+10-12 00:18:46.584  4277  4277 I ShomerCloud: command stop from boss@acme.co.il
+10-12 00:18:50.584  4277  4277 I Shomer  : export level 0, 3 pieces
+10-12 00:19:08.429   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{2c61e98 com.google.android.contacts/10155} BLOCKED
+10-12 00:19:18.139   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{5072087 com.google.android.contacts/10155} BLOCKED
+10-12 00:19:39.512  4277  4361 I org.webrtc.Logging: NetworkMonitorAutoDetect: Network handle: 437197393933, 101 is disconnected
+10-12 00:20:01.755   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{e0c7e1b com.google.android.contacts/10155} BLOCKED
+10-12 00:20:08.089   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{59066f1 com.google.android.contacts/10155} BLOCKED
+10-12 00:20:19.057  4277  4277 I Shomer  : export level 0 done: 25886ms, 1174541 bytes
+10-12 00:20:21.713  4277  5263 I ShomerLive: ice: DISCONNECTED
+10-12 00:20:21.968  4277  5263 I ShomerLive: ice: CLOSED
+10-12 00:20:21.975  4277  5261 I org.webrtc.Logging: NetworkMonitor: Stop monitoring with native observer 137195474793872
+10-12 00:20:21.975  4277  5261 I org.webrtc.Logging: NetworkMonitorAutoDetect: Unregister network callback
+10-12 00:20:29.745   517   922 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.shomer.bodycam/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=3
+10-12 00:20:29.746   833   866 D WindowManagerShell: onActivityRestartAttempt: ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity}
+10-12 00:20:30.439  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.Billing.connect(Billing.kt:58)
+10-12 00:20:30.439  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.Billing.refresh(Billing.kt:73)
+10-12 00:20:30.439  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore.afterSignIn(Account.kt:138)
+10-12 00:20:30.439  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore.access$afterSignIn(Account.kt:59)
+10-12 00:20:30.439  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.AccountStore$afterSignIn$1.invokeSuspend(Account.kt:0)
+10-12 00:20:30.439  4277  4277 W BillingClient: 	at com.shomer.bodycam.cloud.CloudKt$await$2$1.onComplete(Cloud.kt:20)
+10-12 00:20:30.441  4277  4277 W ShomerCloud: billing setup: 3 Billing service unavailable on device.
+10-12 00:20:30.606   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{23ddeff com.google.android.contacts/10155} BLOCKED
+10-12 00:20:39.826   517  2081 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.shomer.bodycam/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=3
+10-12 00:20:39.827   833   866 D WindowManagerShell: onActivityRestartAttempt: ComponentInfo{com.shomer.bodycam/com.shomer.bodycam.MainActivity}
+10-12 00:20:40.307  4277  4277 W .shomer.bodycam: Verification of void com.shomer.bodycam.ui.screens.ControlScreenKt$Board$3$1$2$1.invoke(androidx.compose.runtime.Composer, int) took 112.152ms (23182.63 bytecodes/s) (66640B approximate peak alloc)
+10-12 00:20:40.633   517   574 I AppsFilter: interaction: PackageSetting{bcb556d com.shomer.bodycam/10192} -> PackageSetting{952a271 com.google.android.contacts/10155} BLOCKED
