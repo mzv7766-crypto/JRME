@@ -1,0 +1,18 @@
+name: Shomer Firebase diagnostic
+on: { push: { branches: [shomer-diag] } }
+jobs:
+  diag:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Probe Firebase project
+        run: |
+          KEY=AIzaSyDDtD6okx45v0Jcpij8SAHw_te2x05ZVEA; P=jeremy-13bb9
+          probe() {
+            r=$(curl -sS -m 20 "$2" "${@:3}" | tr -d '\n' | head -c 420)
+            echo "::notice title=$1::$r"
+          }
+          probe shomer_read "https://firestore.googleapis.com/v1/projects/$P/databases/(default)/documents/shomer_orgs/x?key=$KEY" -H "X-Android-Package: com.shomer.bodycam" -H "X-Android-Cert: 7800D0A3DF8A8C05CA71E3A83D1F468BD524C60F"
+          probe jeremy_read "https://firestore.googleapis.com/v1/projects/$P/databases/(default)/documents/freeAccounts/x?key=$KEY" -H "X-Android-Package: com.jeremy.dashcam" -H "X-Android-Cert: 2A053C13FDF4EDED779565644DE96CF9C4E97002"
+          probe nokey_headers "https://firestore.googleapis.com/v1/projects/$P/databases/(default)/documents/shomer_orgs/x?key=$KEY"
+          probe auth_shomer "https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=$KEY" -X POST -H "Content-Type: application/json" -H "X-Android-Package: com.shomer.bodycam" -H "X-Android-Cert: 7800D0A3DF8A8C05CA71E3A83D1F468BD524C60F" -d '{"identifier":"a@gmail.com","continueUri":"http://localhost"}'
+          probe rules_check "https://firestore.googleapis.com/v1/projects/$P/databases/(default)/documents:runQuery?key=$KEY" -X POST -H "Content-Type: application/json" -H "X-Android-Package: com.shomer.bodycam" -H "X-Android-Cert: 7800D0A3DF8A8C05CA71E3A83D1F468BD524C60F" -d '{"structuredQuery":{"from":[{"collectionId":"shomer_orgs"}],"limit":1}}'
