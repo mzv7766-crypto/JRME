@@ -17,9 +17,9 @@ import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.OverlaySettings
-import androidx.media3.effect.TextOverlay
 import androidx.media3.effect.TextureOverlay
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
@@ -164,60 +164,104 @@ class EventExporter(private val context: Context) {
             .build()
     }
 
-    private fun brandOverlay(px: Int): TextOverlay {
-        val text = SpannableString(" Jeremy ").apply {
-            span(ForegroundColorSpan(Color.WHITE)); span(StyleSpan(Typeface.BOLD)); span(AbsoluteSizeSpan(px))
-            span(BackgroundColorSpan(Color.argb(70, 0, 0, 0)))
-        }
+    /** The "Jeremy" wordmark: a soft rounded pill with a mint dot, bottom-right. */
+    private fun brandOverlay(px: Int): TextureOverlay {
+        val bmp = Chip.render(listOf("Jeremy"), px, Color.WHITE, Int.MAX_VALUE, accent = Chip.MINT)
         val settings = OverlaySettings.Builder()
-            .setBackgroundFrameAnchor(0.93f, -0.90f) // bottom-right of the video
+            .setBackgroundFrameAnchor(0.955f, -0.93f) // bottom-right
             .setOverlayFrameAnchor(1f, -1f)
             .build()
-        return TextOverlay.createStaticTextOverlay(text, settings)
+        return BitmapOverlay.createStaticBitmapOverlay(bmp, settings)
     }
 
     /**
      * Dynamic overlay for ONE clip: the first frame it sees is the clip start, whose real capture
-     * wall-clock time is [wallStartMs]; every later frame adds its offset. So the burned time is the
+     * wall-clock time is [wallStartMs]; every later frame adds its offset, so the burned time is the
      * time the frame was filmed, not the export time.
-     * Date/time and the Pro info (speed, location) go on separate lines, and each line is shrunk to fit
-     * [maxWidthPx] so nothing is cut off at the edges of a portrait video.
+     * Date/time and the Pro info (speed, location) go on separate lines inside one soft rounded card,
+     * auto-fitted to [maxWidthPx] so nothing is cut off at the edges of a portrait video. The bitmap is
+     * only redrawn when the displayed text changes (about once a second).
      */
     private class TimestampOverlay(
         private val wallStartMs: Long, private val px: Int, private val maxWidthPx: Int,
         private val showTime: Boolean = true, private val info: ((Long) -> String?)? = null,
-    ) : TextOverlay() {
+    ) : BitmapOverlay() {
         private val fmt = SimpleDateFormat("yyyy-MM-dd  HH:mm:ss", Locale.US)
         private var basePtsUs = Long.MIN_VALUE
-        private val paint = android.text.TextPaint().apply { typeface = Typeface.DEFAULT_BOLD }
+        private var lastKey: String? = null
+        private var cached: android.graphics.Bitmap? = null
         private val settings = OverlaySettings.Builder()
-            .setBackgroundFrameAnchor(0f, 0.90f) // top-centre of the video
+            .setBackgroundFrameAnchor(0f, 0.92f) // top-centre
             .setOverlayFrameAnchor(0f, 1f)
             .build()
 
-        private fun fit(line: String): Int {
-            paint.textSize = px.toFloat()
-            val w = paint.measureText(line)
-            return if (w <= maxWidthPx) px else (px * maxWidthPx / w).toInt().coerceAtLeast(10)
-        }
-
-        override fun getText(presentationTimeUs: Long): SpannableString {
+        override fun getBitmap(presentationTimeUs: Long): android.graphics.Bitmap {
             if (basePtsUs == Long.MIN_VALUE || presentationTimeUs < basePtsUs) basePtsUs = presentationTimeUs
             val wall = wallStartMs + (presentationTimeUs - basePtsUs) / 1000
             val lines = listOfNotNull(if (showTime) fmt.format(Date(wall)) else null, info?.invoke(wall)?.takeIf { it.isNotBlank() })
-                .map { " $it " }.ifEmpty { listOf(" ") }
-            val sb = android.text.SpannableStringBuilder()
-            lines.forEachIndexed { i, line ->
-                if (i > 0) sb.append("\n")
-                val start = sb.length
-                sb.append(line)
-                sb.setSpan(AbsoluteSizeSpan(fit(line)), start, sb.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                sb.setSpan(BackgroundColorSpan(Color.argb(120, 0, 0, 0)), start, sb.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                .ifEmpty { listOf(" ") }
+            val key = lines.joinToString("\u0001")
+            if (key != lastKey || cached == null) {
+                cached = Chip.render(lines, px, Color.WHITE, maxWidthPx, accent = 0)
+                lastKey = key
             }
-            return SpannableString(sb).apply { span(ForegroundColorSpan(Color.WHITE)); span(StyleSpan(Typeface.BOLD)) }
+            return cached!!
         }
 
         override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings = settings
+    }
+
+    /** Draws one or more text lines onto a bitmap: rounded translucent card, soft shadow, modern font. */
+    private object Chip {
+        const val MINT = 0xFF5BE3A6.toInt()
+        private val bg = Color.argb(115, 6, 16, 11) // ~45% dark green, matches the app
+        private val font = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+
+        fun render(lines: List<String>, basePx: Int, textColor: Int, maxWidthPx: Int, accent: Int): android.graphics.Bitmap {
+            val tp = android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                typeface = font; textSize = basePx.toFloat(); color = textColor
+            }
+            val padX = basePx * 0.62f
+            val padY = basePx * 0.42f
+            val gap = basePx * 0.26f
+            val dotR = if (accent != 0) basePx * 0.17f else 0f
+            val dotGap = if (accent != 0) basePx * 0.42f else 0f
+
+            // shrink so the widest line (plus padding and the dot) fits maxWidthPx
+            var widest = lines.maxOf { tp.measureText(it) }
+            val need = widest + 2 * padX + dotR * 2 + dotGap
+            if (maxWidthPx != Int.MAX_VALUE && need > maxWidthPx) {
+                tp.textSize = (tp.textSize * (maxWidthPx - 2 * padX - dotR * 2 - dotGap) / widest).coerceAtLeast(10f)
+                widest = lines.maxOf { tp.measureText(it) }
+            }
+            tp.setShadowLayer(tp.textSize * 0.14f, 0f, tp.textSize * 0.06f, Color.argb(170, 0, 0, 0))
+
+            val fm = tp.fontMetrics
+            val lineH = -fm.ascent + fm.descent
+            val textBlockW = widest + dotR * 2 + dotGap
+            val w = Math.ceil((textBlockW + 2 * padX).toDouble()).toInt().coerceAtLeast(1)
+            val h = Math.ceil((lineH * lines.size + gap * (lines.size - 1) + 2 * padY).toDouble()).toInt().coerceAtLeast(1)
+            val bmp = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bmp)
+
+            val radius = h * 0.28f
+            val bgPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = bg }
+            canvas.drawRoundRect(android.graphics.RectF(0f, 0f, w.toFloat(), h.toFloat()), radius, radius, bgPaint)
+
+            lines.forEachIndexed { i, line ->
+                val lineW = tp.measureText(line)
+                val blockLeft = (w - textBlockW) / 2f
+                var x = blockLeft + (textBlockW - lineW - dotR * 2 - dotGap) / 2f + dotR * 2 + dotGap
+                val baseline = padY - fm.ascent + i * (lineH + gap)
+                if (accent != 0 && i == 0) {
+                    val dotPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = accent }
+                    canvas.drawCircle(blockLeft + dotR, padY + lineH / 2f, dotR, dotPaint)
+                    x = blockLeft + dotR * 2 + dotGap
+                }
+                canvas.drawText(line, x, baseline, tp)
+            }
+            return bmp
+        }
     }
 
     private fun probeShortSide(f: File): Int {
