@@ -93,11 +93,13 @@ object SettingsStore {
 
     fun setPolicy(p: com.shomer.bodycam.cloud.Policy?, stamp: String?) { policy = p; orgStamp = stamp; recompute() }
     fun setPro(on: Boolean) { pro = on; recompute() }
+    private var orgPro = false
+    fun setOrgPro(on: Boolean) { if (orgPro != on) { orgPro = on; recompute() } }
 
     private fun recompute() {
         var s = user
         val p = policy
-        val isPro = pro || p != null
+        val isPro = pro || orgPro || p != null
         if (!isPro) {
             s = s.copy(
                 preRecordSeconds = s.preRecordSeconds.coerceAtMost(FREE_MAX_PRE),

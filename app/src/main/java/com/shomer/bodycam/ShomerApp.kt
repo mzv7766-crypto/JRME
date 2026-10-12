@@ -23,6 +23,10 @@ class ShomerApp : Application() {
         // personal Pro unlocks the Pro features (a company phone unlocks them through its policy)
         Cloud.scope.launch { AccountStore.state.map { it.personalPro }.distinctUntilChanged().collect { SettingsStore.setPro(it) } }
         RecordRepository.onAdded = { r -> DriveBackup.onRecordAdded(this, r) }
+        // re-check the company whenever the app comes back to the screen
+        androidx.lifecycle.ProcessLifecycleOwner.get().lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+            override fun onStart(owner: androidx.lifecycle.LifecycleOwner) { com.shomer.bodycam.cloud.OrgStore.refresh() }
+        })
         Thread { RecordRepository.enforceStorageLimit() }.start()
     }
 }

@@ -184,6 +184,10 @@ private fun TeamCard(signedIn: Boolean, onSignIn: () -> Unit, onOpenControl: () 
         Column(Modifier.padding(16.dp)) {
             when {
                 org.loading -> CircularProgressIndicator(Modifier.size(22.dp), color = S.Amber, strokeWidth = 2.dp)
+                org.error != null && org.org == null -> {
+                    Text(stringResource(R.string.org_error, org.error ?: ""), color = S.Red, fontSize = 13.sp)
+                    TextButton({ OrgStore.refresh() }) { Text(stringResource(R.string.retry), color = S.Amber, fontWeight = FontWeight.Bold) }
+                }
                 org.isManager -> {
                     val o = org.org!!
                     Row(verticalAlignment = Alignment.CenterVertically) {

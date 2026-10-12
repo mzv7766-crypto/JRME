@@ -360,4 +360,6 @@
     <string name="admin_no_orgs">No companies yet. Open one above (\"Security company\") and it will appear here.</string>
     <string name="admin_set_seats">Devices</string>
     <string name="admin_seats_q">How many devices to give this company for free?</string>
+    <string name="org_error">Couldn\'t load the company (%1$s). Retrying automatically…</string>
+    <string name="retry">Try again</string>
 </resources>

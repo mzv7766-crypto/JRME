@@ -360,4 +360,6 @@
     <string name="admin_no_orgs">עוד אין חברות. פתח חברה למעלה (\"חברת אבטחה\") והיא תופיע כאן.</string>
     <string name="admin_set_seats">מכשירים</string>
     <string name="admin_seats_q">כמה מכשירים לתת לחברה בחינם?</string>
+    <string name="org_error">לא ניתן לטעון את החברה (%1$s). בודק שוב אוטומטית…</string>
+    <string name="retry">נסה שוב</string>
 </resources>

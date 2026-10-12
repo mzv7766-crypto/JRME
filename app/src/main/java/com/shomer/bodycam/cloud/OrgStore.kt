@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * Rules a company sets for all its guards. Null = the guard chooses.
@@ -85,35 +86,65 @@ object OrgStore {
     private val orgListeners = Listeners()
     private var email: String? = null
 
+    private var retryMs = 5_000L
+    private var retryJob: kotlinx.coroutines.Job? = null
+
     fun onSignedIn(e: String?) {
         if (e == email && !listeners.isEmpty) return
         email = e
+        subscribe(fresh = true)
+    }
+
+    /** Re-reads the company after a sign-in, an error or coming back to the app. Keeps the last known data meanwhile. */
+    fun refresh() { if (email != null) subscribe(fresh = false) }
+
+    private fun subscribe(fresh: Boolean) {
+        val e = email
+        retryJob?.cancel(); retryJob = null
         listeners.clear(); orgListeners.clear()
-        _state.value = OrgState(loading = e != null)
-        SettingsStore.setPolicy(null, null)
-        if (e == null || !Cloud.configured) { _state.value = OrgState(); return }
+        if (fresh) { _state.value = OrgState(loading = e != null); applyPolicy() }
+        if (e == null || !Cloud.configured) { _state.value = OrgState(); applyPolicy(); return }
         listeners += Cloud.index(e).addSnapshotListener { snap, err ->
-            if (err != null) { Log.w(Cloud.TAG, "index", err); _state.update { it.copy(loading = false) }; return@addSnapshotListener }
+            if (err != null) { onError("index", err); return@addSnapshotListener }
+            retryMs = 5_000L
             val orgId = snap?.getString("orgId")
             val role = snap?.getString("role")
             orgListeners.clear()
-            if (orgId == null) { _state.value = OrgState(); SettingsStore.setPolicy(null, null); return@addSnapshotListener }
-            _state.update { it.copy(role = role, loading = true) }
+            if (orgId == null) { _state.value = OrgState(); applyPolicy(); return@addSnapshotListener }
+            _state.update { it.copy(role = role, loading = it.org?.id != orgId, error = null) }
             orgListeners += Cloud.org(orgId).addSnapshotListener { o, oe ->
-                if (oe != null || o == null || !o.exists()) { _state.update { it.copy(loading = false, org = null) }; applyPolicy(); return@addSnapshotListener }
-                _state.update { it.copy(org = parseOrg(o), loading = false) }
+                if (oe != null) { onError("org", oe); return@addSnapshotListener }
+                if (o == null || !o.exists()) { _state.update { it.copy(loading = false, org = null) }; applyPolicy(); return@addSnapshotListener }
+                _state.update { it.copy(org = parseOrg(o), loading = false, error = null) }
                 applyPolicy()
             }
-            if (role == "member") orgListeners += Cloud.org(orgId).collection("members").document(e).addSnapshotListener { m, _ ->
+            if (role == "member") orgListeners += Cloud.org(orgId).collection("members").document(e).addSnapshotListener { m, me ->
+                if (me != null) { onError("member", me); return@addSnapshotListener }
                 _state.update { it.copy(me = m?.takeIf { d -> d.exists() }?.let { d -> MemberInfo(e, d.getString("name").orEmpty(), d.getString("badge").orEmpty()) }) }
                 applyPolicy()
             }
         }
     }
 
+    /**
+     * Firestore drops a listener after an error (no network at start-up, rules just changed, sign-in token
+     * still refreshing). Keep the last known company – the guard must not lose Pro or the company rules
+     * because of a hiccup – and try again with a growing delay.
+     */
+    private fun onError(where: String, e: Exception) {
+        Log.w(Cloud.TAG, "company $where", e)
+        _state.update { it.copy(loading = false, error = (e as? com.google.firebase.firestore.FirebaseFirestoreException)?.code?.name ?: e.javaClass.simpleName) }
+        if (retryJob?.isActive == true) return
+        val wait = retryMs
+        retryMs = (retryMs * 2).coerceAtMost(120_000L)
+        retryJob = Cloud.scope.launch { kotlinx.coroutines.delay(wait); subscribe(fresh = false) }
+    }
+
     private fun applyPolicy() {
         val s = current
         if (s.activeMember) SettingsStore.setPolicy(s.org!!.policy, s.me!!.stamp) else SettingsStore.setPolicy(null, null)
+        // the manager of a company with a plan gets the Pro features too (without the guards' rules)
+        SettingsStore.setOrgPro(s.isManager && (s.org?.seats ?: 0) > 0)
     }
 
     private fun parseOrg(d: DocumentSnapshot): OrgInfo {
