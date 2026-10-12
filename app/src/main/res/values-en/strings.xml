@@ -362,4 +362,6 @@
     <string name="admin_seats_q">How many devices to give this company for free?</string>
     <string name="org_error">Couldn\'t load the company (%1$s). Retrying automatically…</string>
     <string name="retry">Try again</string>
+    <string name="create_err_rules">Firebase blocked creating the company (PERMISSION_DENIED). The new rules were probably not published: Firestore Database → Rules → paste → Publish.</string>
+    <string name="create_err_network">No connection to the server. Check the internet and try again.</string>
 </resources>

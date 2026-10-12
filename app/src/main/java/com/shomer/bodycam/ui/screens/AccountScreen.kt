@@ -227,6 +227,7 @@ private fun TeamCard(signedIn: Boolean, onSignIn: () -> Unit, onOpenControl: () 
                     else {
                         var name by remember { mutableStateOf("") }
                         var busy by remember { mutableStateOf(false) }
+                        var createError by remember { mutableStateOf<String?>(null) }
                         OutlinedTextField(
                             name, { name = it.take(80) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                             label = { Text(stringResource(R.string.company_name)) },
@@ -234,11 +235,18 @@ private fun TeamCard(signedIn: Boolean, onSignIn: () -> Unit, onOpenControl: () 
                         )
                         Spacer(Modifier.height(10.dp))
                         val failed = stringResource(R.string.action_failed)
+                        createError?.let { Text(it, color = S.Red, fontSize = 13.sp, lineHeight = 18.sp, modifier = Modifier.padding(bottom = 8.dp)) }
                         PrimaryButton(stringResource(R.string.create_company), Icons.Filled.Business, Modifier.fillMaxWidth().height(54.dp)) {
                             if (name.isBlank() || busy) return@PrimaryButton
-                            busy = true
+                            busy = true; createError = null
                             scope.launch {
-                                if (!OrgStore.createOrg(name)) Toast.makeText(ctx, failed, Toast.LENGTH_LONG).show()
+                                val err = OrgStore.createOrg(name)
+                                if (err != null) createError = when (err) {
+                                    "PERMISSION_DENIED" -> ctx.getString(R.string.create_err_rules)
+                                    "TIMEOUT", "UNAVAILABLE" -> ctx.getString(R.string.create_err_network)
+                                    "NOT_SIGNED_IN" -> ctx.getString(R.string.pro_sign_in_first)
+                                    else -> failed + "\n" + err
+                                }
                                 busy = false
                             }
                         }

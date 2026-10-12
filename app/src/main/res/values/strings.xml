@@ -362,4 +362,6 @@
     <string name="admin_seats_q">כמה מכשירים לתת לחברה בחינם?</string>
     <string name="org_error">לא ניתן לטעון את החברה (%1$s). בודק שוב אוטומטית…</string>
     <string name="retry">נסה שוב</string>
+    <string name="create_err_rules">Firebase חסם את פתיחת החברה (PERMISSION_DENIED). כנראה הכללים החדשים לא פורסמו: Firestore Database ← Rules ← להדביק ← Publish.</string>
+    <string name="create_err_network">אין חיבור לשרת. בדוק אינטרנט ונסה שוב.</string>
 </resources>

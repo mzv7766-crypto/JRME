@@ -161,19 +161,29 @@ object OrgStore {
     // ------------------------------------------------------------------ manager actions
 
     /** Opens a new company with the signed-in user as its owner/manager (no devices until a plan is bought). */
-    suspend fun createOrg(name: String): Boolean {
-        val me = email ?: return false
-        return runCatching {
+    /** Opens a new company. Returns null on success, else the reason (shown to the user). */
+    suspend fun createOrg(name: String): String? {
+        val me = email ?: Cloud.email() ?: return "NOT_SIGNED_IN"
+        if (email == null) onSignedIn(me)
+        return try {
             val ref = Cloud.db.collection("shomer_orgs").document()
-            Cloud.db.batch()
-                .set(ref, mapOf(
-                    "name" to name.trim().take(80), "ownerEmail" to me, "managers" to listOf(me),
-                    "seats" to 0, "memberCount" to 0, "policy" to Policy().toMap(), "createdAt" to FieldValue.serverTimestamp(),
-                ))
-                .set(Cloud.index(me), mapOf("orgId" to ref.id, "role" to "manager"))
-                .commit().await()
-            true
-        }.onFailure { Log.w(Cloud.TAG, "create org", it) }.getOrDefault(false)
+            kotlinx.coroutines.withTimeout(25_000) {
+                Cloud.db.batch()
+                    .set(ref, mapOf(
+                        "name" to name.trim().take(80), "ownerEmail" to me, "managers" to listOf(me),
+                        "seats" to 0, "memberCount" to 0, "policy" to Policy().toMap(), "createdAt" to FieldValue.serverTimestamp(),
+                    ))
+                    .set(Cloud.index(me), mapOf("orgId" to ref.id, "role" to "manager"))
+                    .commit().await()
+            }
+            refresh()
+            null
+        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+            "TIMEOUT"
+        } catch (e: Exception) {
+            Log.w(Cloud.TAG, "create org", e)
+            (e as? com.google.firebase.firestore.FirebaseFirestoreException)?.code?.name ?: (e.javaClass.simpleName + ": " + e.message)
+        }
     }
 
     fun applyTeamPurchase(basePlan: String, seats: Int, token: String) {
