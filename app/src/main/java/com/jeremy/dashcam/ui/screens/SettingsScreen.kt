@@ -425,12 +425,6 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
     var editSos by remember { mutableStateOf(false) }
 
     fun has(p: String) = androidx.core.content.ContextCompat.checkSelfPermission(ctx, p) == android.content.pm.PackageManager.PERMISSION_GRANTED
-    var locOk by remember { mutableStateOf(has(android.Manifest.permission.ACCESS_FINE_LOCATION)) }
-    val locPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { r ->
-        locOk = r[android.Manifest.permission.ACCESS_FINE_LOCATION] == true
-        if (locOk) SettingsStore.update { it.copy(proSpeedLocation = true) }
-        else android.widget.Toast.makeText(ctx, "צריך לאשר מיקום מדויק כדי להציג מהירות ומיקום", android.widget.Toast.LENGTH_LONG).show()
-    }
     val btPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { ok -> if (ok) pickCar = true }
     val callPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { _ -> editSos = true }
     val camPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { _ -> }
@@ -463,11 +457,6 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
     }
 
     Section("תכונות Pro") {
-        ProRow("מהירות ומיקום בסרטון", "נצרב על הסרטון ונשמר באירוע", isPro, st.proSpeedLocation && locOk, onOpenPro) { v ->
-            if (v && !locOk)
-                locPerm.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION))
-            else SettingsStore.update { it.copy(proSpeedLocation = v) }
-        }
         Nav("מה מופיע על הסרטון", burnSummary(st, isPro)) { burnDialog = true }
         ProRow(
             "מצלמה כפולה (קדמית + אחורית)",
@@ -580,6 +569,13 @@ fun ShareOptions() {
 fun BurnOptions(onOpenPro: () -> Unit) {
     val st by SettingsStore.state.collectAsStateWithLifecycle()
     val isPro = com.jeremy.dashcam.data.ProStore.state.collectAsStateWithLifecycle().value.isPro
+    val ctx = LocalContext.current
+    fun hasLoc() = androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    var locOk by remember { mutableStateOf(hasLoc()) }
+    val locPerm = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { r ->
+        locOk = r[android.Manifest.permission.ACCESS_FINE_LOCATION] == true
+        if (!locOk) android.widget.Toast.makeText(ctx, "צריך לאשר מיקום מדויק כדי להציג מהירות ומיקום", android.widget.Toast.LENGTH_LONG).show()
+    }
     @Composable
     fun Row2(label: String, checked: Boolean, pro: Boolean, enabled: Boolean = true, note: String? = null, onChange: (Boolean) -> Unit) {
         val locked = pro && !isPro
@@ -605,9 +601,17 @@ fun BurnOptions(onOpenPro: () -> Unit) {
     }
     Column {
         Row2("תאריך ושעה", st.showDateTime, pro = false) { v -> SettingsStore.update { it.copy(showDateTime = v) } }
-        val locOn = st.proSpeedLocation
-        Row2("מהירות", st.burnSpeed, pro = true, enabled = locOn || !isPro, note = if (isPro && !locOn) "דורש להפעיל \"מהירות ומיקום\"" else null) { v -> SettingsStore.update { it.copy(burnSpeed = v) } }
-        Row2("מיקום (קואורדינטות)", st.burnLocation, pro = true, enabled = locOn || !isPro, note = if (isPro && !locOn) "דורש להפעיל \"מהירות ומיקום\"" else null) { v -> SettingsStore.update { it.copy(burnLocation = v) } }
+        // Speed & location are FREE (on by default); only Pro can turn them off. Both need location permission.
+        val effSpeed = !isPro || st.burnSpeed
+        val effLoc = !isPro || st.burnLocation
+        Row2("מהירות", effSpeed, pro = true, note = if (isPro) null else "הסתרה זמינה ב־Pro") { v -> SettingsStore.update { it.copy(burnSpeed = v) } }
+        Row2("מיקום (קואורדינטות)", effLoc, pro = true, note = if (isPro) null else "הסתרה זמינה ב־Pro") { v -> SettingsStore.update { it.copy(burnLocation = v) } }
+        if ((effSpeed || effLoc) && !locOk) {
+            Row(Modifier.fillMaxWidth().clickable { locPerm.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION)) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("⚠ צריך לאשר הרשאת מיקום כדי שמהירות ומיקום יופיעו", color = J.Amber, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                Text("אשר", color = J.Mint, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+        }
         Row2("לוגו Jeremy", st.burnBrand || !isPro, pro = true, note = if (!isPro) "הסתרת הלוגו זמינה ב־Pro" else null) { v -> SettingsStore.update { it.copy(burnBrand = v) } }
         Row2("חלון המצלמה הקדמית", st.proDual, pro = true, note = "המצלמה הכפולה") { v -> SettingsStore.update { it.copy(proDual = v) } }
     }
@@ -623,7 +627,7 @@ private fun SharePrefsDialog(onDismiss: () -> Unit) {
                 Text("כשלוחצים \"שיתוף\" באירוע, הסרטון נשלח מיד יחד עם הפרטים שסימנת כאן (כהודעה לצידו). אם לא מסמנים כלום – נשלח רק הסרטון.",
                     color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(bottom = 6.dp))
                 ShareOptions()
-                Text("מיקום, מהירות, לוחיות ו־AI נשלחים רק כשהם קיימים באירוע (תכונות Pro).", color = J.TextDim, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+                Text("כל פרט נשלח רק כשהוא קיים באירוע. לוחיות ו־AI הן תכונות Pro.", color = J.TextDim, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
             }
         },
         confirmButton = { TextButton(onDismiss) { Text("סגור") } },
@@ -632,8 +636,8 @@ private fun SharePrefsDialog(onDismiss: () -> Unit) {
 
 private fun burnSummary(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean): String = listOfNotNull(
     if (st.showDateTime) "תאריך ושעה" else null,
-    if (isPro && st.proSpeedLocation && st.burnSpeed) "מהירות" else null,
-    if (isPro && st.proSpeedLocation && st.burnLocation) "מיקום" else null,
+    if (!isPro || st.burnSpeed) "מהירות" else null,
+    if (!isPro || st.burnLocation) "מיקום" else null,
     if (!isPro || st.burnBrand) "לוגו" else null,
     if (isPro && st.proDual) "מצלמה קדמית" else null,
 ).joinToString(", ").ifEmpty { "כלום" }

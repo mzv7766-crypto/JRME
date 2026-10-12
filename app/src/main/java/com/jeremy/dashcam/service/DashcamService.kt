@@ -358,7 +358,7 @@ class DashcamService : LifecycleService() {
             type = ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
             // Declare microphone whenever permitted, so toggling audio/voice mid-drive keeps working in background.
             if (hasAudioPermission()) type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-            if (proLocationWanted()) type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            if (locationWanted()) type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         }
         ServiceCompat.startForeground(this, Notifications.ID_DRIVE, Notifications.drive(this, state.value), type)
     }
@@ -634,18 +634,20 @@ class DashcamService : LifecycleService() {
     private val isPro get() = com.jeremy.dashcam.data.ProStore.state.value.isPro
     private fun hasLocationPermission() =
         ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    private fun proLocationWanted() = isPro && settings.proSpeedLocation && hasLocationPermission()
+    // Speed & location are FREE and on by default; a Pro user may hide either one (burnSpeed / burnLocation).
+    private fun effSpeed() = !isPro || settings.burnSpeed
+    private fun effLoc() = !isPro || settings.burnLocation
+    private fun locationWanted() = (effSpeed() || effLoc()) && hasLocationPermission()
     private val sosOverlay by lazy { EmergencyOverlay(this) }
 
     private fun applyProFeatures() {
-        if (running && proLocationWanted()) com.jeremy.dashcam.core.pro.LocationTracker.start(this)
+        if (running && locationWanted()) com.jeremy.dashcam.core.pro.LocationTracker.start(this)
         else com.jeremy.dashcam.core.pro.LocationTracker.stop()
-        val st = settings
-        val burnSpeed = st.burnSpeed; val burnLoc = st.burnLocation
-        exporter.infoAt = if (proLocationWanted() && (burnSpeed || burnLoc)) { t ->
-            com.jeremy.dashcam.core.pro.LocationTracker.at(t)?.let { com.jeremy.dashcam.core.pro.LocationTracker.label(it, burnSpeed, burnLoc) }
+        val speed = effSpeed(); val loc = effLoc()
+        exporter.infoAt = if (locationWanted() && (speed || loc)) { t ->
+            com.jeremy.dashcam.core.pro.LocationTracker.at(t)?.let { com.jeremy.dashcam.core.pro.LocationTracker.label(it, speed, loc) }
         } else null
-        exporter.showBrand = !(isPro && !st.burnBrand)
+        exporter.showBrand = !(isPro && !settings.burnBrand)
     }
 
     /** Strong impact → countdown over every app → call the emergency contact unless "I'm OK". */
@@ -792,7 +794,7 @@ class DashcamService : LifecycleService() {
         val eventStart = s.eventStartTime
         val trigger = s.eventTrigger ?: Trigger.MANUAL
         val peakG = s.eventPeakG
-        val fixAtEvent = if (proLocationWanted()) com.jeremy.dashcam.core.pro.LocationTracker.at(s.eventStartTime) else null
+        val fixAtEvent = if (locationWanted()) com.jeremy.dashcam.core.pro.LocationTracker.at(s.eventStartTime) else null
         val preMs = settings.preEventSeconds * 1000L
         val showDateTime = settings.showDateTime
         val aiTags = if (isPro && settings.proAi && settings.smartDetection) com.jeremy.dashcam.core.pro.AiSeen.between(eventStart - preMs, stopTime) else emptyList()
