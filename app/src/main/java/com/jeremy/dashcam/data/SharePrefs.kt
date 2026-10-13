@@ -22,5 +22,12 @@ object SharePrefs {
     private fun prefs(c: Context) = c.getSharedPreferences("jeremy_share2", Context.MODE_PRIVATE)
     fun isOn(c: Context, key: String) = prefs(c).getBoolean(key, options.first { it.key == key }.default)
     fun set(c: Context, key: String, on: Boolean) = prefs(c).edit().putBoolean(key, on).apply()
-    fun summary(c: Context): String = options.filter { isOn(c, it.key) }.joinToString(", ") { it.label }.ifEmpty { "רק הסרטון" }
+    fun summary(c: Context): String {
+        val on = options.filter { isOn(c, it.key) }.map { it.label }
+        return when {
+            on.isEmpty() -> "רק הסרטון"
+            on.size <= 3 -> on.joinToString(", ")
+            else -> on.take(2).joinToString(", ") + " ועוד ${on.size - 2}"
+        }
+    }
 }

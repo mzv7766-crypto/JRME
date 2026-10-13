@@ -432,7 +432,7 @@ class DashcamService : LifecycleService() {
             }.build().also { it.targetRotation = desiredRotation() }
         }
 
-        val newPreview = Preview.Builder().build()
+        val newPreview = Preview.Builder().build().also { it.targetRotation = desiredRotation() }
         val analysis = ImageAnalysis.Builder()
             .setResolutionSelector(
                 ResolutionSelector.Builder().setResolutionStrategy(

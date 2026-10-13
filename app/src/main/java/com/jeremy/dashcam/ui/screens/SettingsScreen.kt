@@ -51,6 +51,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -280,8 +282,9 @@ private fun Nav(label: String, value: String, enabled: Boolean = true, clickable
         Modifier.fillMaxWidth().clickable(enabled = enabled && clickable, onClick = onClick).padding(horizontal = 16.dp, vertical = 15.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, color = J.Text.copy(alpha = alpha), fontSize = 15.sp, modifier = Modifier.weight(1f))
-        Text(value, color = J.TextDim.copy(alpha = alpha), fontSize = 14.sp)
+        Text(label, color = J.Text.copy(alpha = alpha), fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        Spacer(Modifier.width(8.dp))
+        Text(value, color = J.TextDim.copy(alpha = alpha), fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.End, modifier = Modifier.weight(1f, fill = false))
         if (clickable) {
             Spacer(Modifier.width(4.dp))
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = J.TextDim.copy(alpha = alpha), modifier = Modifier.size(20.dp))
@@ -634,13 +637,20 @@ private fun SharePrefsDialog(onDismiss: () -> Unit) {
     )
 }
 
-private fun burnSummary(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean): String = listOfNotNull(
-    if (st.showDateTime) "תאריך ושעה" else null,
-    if (!isPro || st.burnSpeed) "מהירות" else null,
-    if (!isPro || st.burnLocation) "מיקום" else null,
-    if (!isPro || st.burnBrand) "לוגו" else null,
-    if (isPro && st.proDual) "מצלמה קדמית" else null,
-).joinToString(", ").ifEmpty { "כלום" }
+private fun burnSummary(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean): String {
+    val items = listOfNotNull(
+        if (st.showDateTime) "תאריך" else null,
+        if (!isPro || st.burnSpeed) "מהירות" else null,
+        if (!isPro || st.burnLocation) "מיקום" else null,
+        if (!isPro || st.burnBrand) "לוגו" else null,
+        if (isPro && st.proDual) "מצלמה קדמית" else null,
+    )
+    return when {
+        items.isEmpty() -> "כלום"
+        items.size <= 3 -> items.joinToString(", ")
+        else -> items.take(2).joinToString(", ") + " ועוד ${items.size - 2}"
+    }
+}
 
 @Composable
 private fun BurnDialog(st: com.jeremy.dashcam.data.AppSettings, isPro: Boolean, onOpenPro: () -> Unit, onDismiss: () -> Unit) {
