@@ -211,10 +211,18 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
                 Nav(stringResource(R.string.orientation), stringResource(s.orientation.labelRes)) {
                     choice = Choice(ctx.getString(R.string.orientation), ScreenOrientation.entries, { ctx.getString(it.labelRes) }, s.orientation) { v -> SettingsStore.update { it.copy(orientation = v) } }
                 }
+                val rotLabel: (Boolean) -> String = { if (it) "נעול בתחילת הנסיעה" else "עוקב אחרי כיוון הטלפון" }
+                Nav("סיבוב הצילום", rotLabel(s.lockRotation)) {
+                    choice = Choice("סיבוב הצילום", listOf(false, true), rotLabel, s.lockRotation) { v -> SettingsStore.update { it.copy(lockRotation = v) } }
+                }
                 Nav(stringResource(R.string.direction), stringResource(s.layoutDir.labelRes), last = true) {
                     choice = Choice(ctx.getString(R.string.direction), LayoutDir.entries, { ctx.getString(it.labelRes) }, s.layoutDir) { v -> SettingsStore.update { it.copy(layoutDir = v) } }
                 }
             }
+            Text(
+                "סיבוב הצילום: \"עוקב\" מצלם לכיוון שהטלפון מופנה אליו בכל רגע (כמו מצלמה רגילה). \"נעול\" קובע את הכיוון בתחילת הנסיעה ושומר עליו עד הסוף.",
+                color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
 
             Spacer(Modifier.height(10.dp))
             PermissionsCard()

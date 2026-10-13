@@ -139,7 +139,7 @@ class DashcamService : LifecycleService() {
 
     /** The orientation actually used for the recording (locked per-drive in AUTO). */
     private fun recordingRotation(): Int =
-        if (settings.orientation == com.jeremy.dashcam.data.ScreenOrientation.AUTO && driveRotationLocked) driveRotation
+        if (settings.orientation == com.jeremy.dashcam.data.ScreenOrientation.AUTO && settings.lockRotation && driveRotationLocked) driveRotation
         else desiredRotation()
 
     /** Locks the drive orientation to the current physical position (once per drive). */
@@ -156,7 +156,7 @@ class DashcamService : LifecycleService() {
         if (!running) return
         val want = recordingRotation()
         analysisUseCase?.targetRotation = want
-        if (want == segmentRotation || state.value.eventActive) return
+        if (want == segmentRotation || (state.value.eventActive && settings.lockRotation)) return
         val now = SystemClock.elapsedRealtime()
         val rec = activeRecording ?: return
         if (now - lastRotationSwitch < 3000 || System.currentTimeMillis() - activeStartWall < 1500) return
@@ -316,7 +316,7 @@ class DashcamService : LifecycleService() {
         segments.clear()
         tripId = now; tripPending.clear(); tripClipStart = 0L
         driveRotationLocked = false; physicalRotation = null
-        main.postDelayed({ if (running && !driveRotationLocked) lockDriveRotation() }, 2000) // flat phone → lock to the screen
+        if (settings.lockRotation) main.postDelayed({ if (running && !driveRotationLocked) lockDriveRotation() }, 2000) // flat phone → lock to the screen
 
         orientationListener = object : OrientationEventListener(this) {
             override fun onOrientationChanged(o: Int) {
@@ -331,7 +331,7 @@ class DashcamService : LifecycleService() {
                 if (r != candidateRotation) { candidateRotation = r; candidateSince = now; return }
                 if (now - candidateSince >= 800 && physicalRotation != r) {   // stable for 0.8 s
                     physicalRotation = r
-                    if (!driveRotationLocked && r != null) lockDriveRotation() else onOrientationMaybeChanged()
+                    if (settings.lockRotation && !driveRotationLocked && r != null) lockDriveRotation() else onOrientationMaybeChanged()
                 }
             }
         }.also { if (it.canDetectOrientation()) it.enable() }
@@ -551,7 +551,7 @@ class DashcamService : LifecycleService() {
     private fun startSegment() {
         if (!running || activeRecording != null) return
         val vc = videoCapture ?: return
-        if (!state.value.eventActive) { segmentRotation = recordingRotation(); vc.targetRotation = segmentRotation } // one orientation per event
+        if (!state.value.eventActive || !settings.lockRotation) { segmentRotation = recordingRotation(); vc.targetRotation = segmentRotation }
         val land = segmentRotation == Surface.ROTATION_90 || segmentRotation == Surface.ROTATION_270
         if (state.value.recordingLandscape != land) state.update { it.copy(recordingLandscape = land) }
         Log.i(LOG, "segment start rotation=$segmentRotation physical=$physicalRotation display=${displayRotation()} setting=${settings.orientation}")

@@ -38,6 +38,8 @@ data class AppSettings(
     val tripMaxStorageGb: Int = 16,
     val tripBurn: Boolean = true,
     val orientation: ScreenOrientation = ScreenOrientation.AUTO,
+    /** true = recording orientation is locked at drive start; false = follows the phone live. */
+    val lockRotation: Boolean = false,
     val autoStop: Boolean = true,
     val autoStopSeconds: Int = 20,
     // PRO
@@ -109,6 +111,7 @@ object SettingsStore {
             tripMaxStorageGb = getInt("tripGb", 16),
             tripBurn = getBoolean("tripBurn", true),
             orientation = enumOr(getString("orient", null), ScreenOrientation.AUTO),
+            lockRotation = getBoolean("lockRot", false),
             autoStop = getBoolean("autoStop", true),
             autoStopSeconds = getInt("autoStopSec", 20),
             proSpeedLocation = getBoolean("proLoc", true),
@@ -158,6 +161,7 @@ object SettingsStore {
             .putInt("tripGb", s.tripMaxStorageGb)
             .putBoolean("tripBurn", s.tripBurn)
             .putString("orient", s.orientation.name)
+            .putBoolean("lockRot", s.lockRotation)
             .putBoolean("autoStop", s.autoStop)
             .putInt("autoStopSec", s.autoStopSeconds)
             .putBoolean("proLoc", s.proSpeedLocation)
