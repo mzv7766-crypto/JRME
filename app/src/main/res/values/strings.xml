@@ -364,4 +364,8 @@
     <string name="retry">נסה שוב</string>
     <string name="create_err_rules">Firebase חסם את פתיחת החברה (PERMISSION_DENIED). כנראה הכללים החדשים לא פורסמו: Firestore Database ← Rules ← להדביק ← Publish.</string>
     <string name="create_err_network">אין חיבור לשרת. בדוק אינטרנט ונסה שוב.</string>
+    <string name="c_web">דשבורד באתר</string>
+    <string name="c_web_desc">אותו חדר בקרה במחשב, עם מפה גדולה. נכנסים עם אותו חשבון Google.</string>
+    <string name="c_web_open">פתח</string>
+    <string name="c_web_share">שלח קישור</string>
 </resources>

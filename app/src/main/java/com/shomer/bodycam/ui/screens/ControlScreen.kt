@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryStd
+import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Map
@@ -103,7 +104,12 @@ fun ControlScreen() {
         return
     }
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle(o.name, end = { Tag(stringResource(R.string.team_seats, o.memberCount, o.seats), S.AmberSoft, Modifier.padding(end = 10.dp)) })
+        var web by remember { mutableStateOf(false) }
+        ScreenTitle(o.name, end = {
+            Tag(stringResource(R.string.team_seats, o.memberCount, o.seats), S.AmberSoft, Modifier.padding(end = 4.dp))
+            IconButton(onClick = { web = true }) { Icon(Icons.Filled.Computer, stringResource(R.string.c_web), tint = S.Amber) }
+        })
+        if (web) WebDashDialog { web = false }
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             CTab.entries.forEach { t ->
                 val sel = t == tab
@@ -137,6 +143,39 @@ fun ControlScreen() {
 }
 
 val ALARM_TYPES = setOf("fall", "sos_call")
+
+const val WEB_DASHBOARD_URL = "https://mzv7766-crypto.github.io/JRME/"
+
+/** The web control room: open it here or send the link to a computer. */
+@Composable
+private fun WebDashDialog(onDismiss: () -> Unit) {
+    val ctx = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = S.Surface,
+        title = { Text(stringResource(R.string.c_web), color = S.Text) },
+        text = {
+            Column {
+                Text(stringResource(R.string.c_web_desc), color = S.TextDim)
+                Spacer(Modifier.height(10.dp))
+                Text(WEB_DASHBOARD_URL, color = S.AmberSoft, fontFamily = S.Mono, fontSize = 13.sp)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(WEB_DASHBOARD_URL)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                onDismiss()
+            }) { Text(stringResource(R.string.c_web_open), color = S.Amber) }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, WEB_DASHBOARD_URL)
+                runCatching { ctx.startActivity(Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                onDismiss()
+            }) { Text(stringResource(R.string.c_web_share), color = S.Text) }
+        },
+    )
+}
 
 @Composable
 private fun Board() {

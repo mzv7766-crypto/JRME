@@ -364,4 +364,8 @@
     <string name="retry">Try again</string>
     <string name="create_err_rules">Firebase blocked creating the company (PERMISSION_DENIED). The new rules were probably not published: Firestore Database → Rules → paste → Publish.</string>
     <string name="create_err_network">No connection to the server. Check the internet and try again.</string>
+    <string name="c_web">Web dashboard</string>
+    <string name="c_web_desc">The same control room on a computer, with a big map. Sign in with the same Google account.</string>
+    <string name="c_web_open">Open</string>
+    <string name="c_web_share">Send link</string>
 </resources>
