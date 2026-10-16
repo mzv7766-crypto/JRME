@@ -24,6 +24,8 @@ class MotionAnalyzer(
     @Volatile var enabled = false
     @Volatile var sensitivity: Sensitivity = Sensitivity.MEDIUM
     @Volatile var aiWanted = false
+    /** Battery saver: run the AI and the luminance scan at a lower rate so the device stays cooler. */
+    @Volatile var batterySaver = false
 
     val algorithm = VisionAlgorithm()
     val approach = ApproachAlgorithm()
@@ -37,13 +39,15 @@ class MotionAnalyzer(
     override fun analyze(image: ImageProxy) {
         try {
             val now = SystemClock.elapsedRealtime()
+            val aiInterval = if (batterySaver) 500L else 250L
+            val visionInterval = if (batterySaver) 220L else 140L
             syncAi()
             val det = ai
-            if (det != null && now - lastAiAt >= 250) {
+            if (det != null && now - lastAiAt >= aiInterval) {
                 lastAiAt = now
                 runAi(det, image, now)
             }
-            if (!enabled || now - lastFrameAt < 140) return
+            if (!enabled || now - lastFrameAt < visionInterval) return
             lastFrameAt = now
             algorithm.sensitivity = when (sensitivity) {
                 Sensitivity.LOW -> VisionAlgorithm.Level.LOW

@@ -92,6 +92,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        // "Keep screen on" setting: hold the screen awake while a drive is active (phone on the windshield).
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                kotlinx.coroutines.flow.combine(
+                    SettingsStore.state.map { it.keepScreenOn },
+                    com.jeremy.dashcam.core.DashcamController.state.map { it.driveActive },
+                ) { keep, active -> keep && active }.distinctUntilChanged().collect { on ->
+                    if (on) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            }
+        }
         setContent {
             JeremyTheme { JeremyRoot(pendingNav, showSplash = savedInstanceState == null) }
         }

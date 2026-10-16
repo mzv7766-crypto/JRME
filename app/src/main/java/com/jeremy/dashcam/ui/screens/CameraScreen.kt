@@ -232,8 +232,11 @@ private fun TopInfo(s: AppSettings, eventActive: Boolean, audio: Boolean, modifi
         if (land != null) Chip(stringResource(if (land) R.string.rec_landscape else R.string.rec_portrait))
         val fix = com.jeremy.dashcam.core.pro.LocationTracker.latest.collectAsStateWithLifecycle().value
         if (fix?.speedKmh != null) Chip("${fix.speedKmh.toInt()} קמ״ש")
+        // Battery saver caps the actual recording, so show what is really being recorded.
+        val effHeight = if (s.batterySaver && s.resolution == com.jeremy.dashcam.data.Resolution.UHD) com.jeremy.dashcam.data.Resolution.FHD.height else s.resolution.height
+        val effFps = if (s.batterySaver) minOf(s.fps, 30) else s.fps
         Chip(
-            "${s.resolution.height}P • ${s.fps} FPS",
+            "${effHeight}P • ${effFps} FPS" + if (s.batterySaver) " • חיסכון" else "",
             leading = { Icon(if (audio) Icons.Filled.Mic else Icons.Filled.MicOff, null, tint = Color.White, modifier = Modifier.size(14.dp)) },
         )
     }

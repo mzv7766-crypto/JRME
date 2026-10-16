@@ -85,7 +85,10 @@ class DashcamService : LifecycleService() {
         const val ACTION_TOGGLE_EVENT = "com.jeremy.dashcam.TOGGLE_EVENT"
         const val ACTION_DISCARD_EVENT = "com.jeremy.dashcam.DISCARD_EVENT"
         private const val TAG = "DashcamService"
-        private const val SEGMENT_MS = 10_000L
+        // Rolling-buffer segment length. Longer segments mean the microphone is re-opened far less often,
+        // which is what caused music to stutter every few seconds while recording. Pre-event trimming stays
+        // precise because the exporter clips inside the first segment.
+        private const val SEGMENT_MS = 60_000L
         private const val LOG = "Jeremy"
 
         @Volatile
@@ -430,7 +433,13 @@ class DashcamService : LifecycleService() {
 
     // ---------------------------------------------------------------- camera
 
-    private fun videoKey(s: AppSettings) = "${s.resolution}/${s.fps}/${s.recordAudio}/${state.value.lensFacing}/${isPro && s.proDual}"
+    /** Battery saver caps the recording so the encoder and sensor run cooler. */
+    private fun effResolution(s: AppSettings) = if (s.batterySaver && s.resolution == Resolution.UHD) Resolution.FHD else s.resolution
+    private fun effFps(s: AppSettings) = if (s.batterySaver) minOf(s.fps, 30) else s.fps
+    /** The camera analysis stream (and the detectors it feeds) is only worth running when something consumes it. */
+    private fun needAnalysis(s: AppSettings) = s.smartDetection
+
+    private fun videoKey(s: AppSettings) = "${effResolution(s)}/${effFps(s)}/${s.recordAudio}/${state.value.lensFacing}/${isPro && s.proDual}/${needAnalysis(s)}"
 
     @SuppressLint("RestrictedApi")
     private fun bindCamera() {
@@ -443,18 +452,23 @@ class DashcamService : LifecycleService() {
         }
         val lensSelector = CameraSelector.Builder().requireLensFacing(state.value.lensFacing).build()
 
-        val quality = when (s.resolution) { Resolution.HD -> Quality.HD; Resolution.FHD -> Quality.FHD; Resolution.UHD -> Quality.UHD }
+        val quality = when (effResolution(s)) { Resolution.HD -> Quality.HD; Resolution.FHD -> Quality.FHD; Resolution.UHD -> Quality.UHD }
         val qualitySelector = QualitySelector.from(quality, FallbackStrategy.lowerQualityOrHigherThan(Quality.SD))
+        val fps = effFps(s)
 
         fun buildVideo(withFps: Boolean): VideoCapture<Recorder> {
             val recorder = Recorder.Builder().setQualitySelector(qualitySelector).build()
             return VideoCapture.Builder(recorder).apply {
-                if (withFps) setTargetFrameRate(Range(s.fps, s.fps))
+                if (withFps) setTargetFrameRate(Range(fps, fps))
             }.build().also { it.targetRotation = recordingRotation() }
         }
 
         val newPreview = Preview.Builder().build().also { it.targetRotation = recordingRotation() }
-        val analysis = ImageAnalysis.Builder()
+        motion.batterySaver = s.batterySaver
+        // Only build and bind the analysis stream when a detector actually consumes it. With smart
+        // detection off, skipping this whole camera stream noticeably cuts CPU, heat and battery.
+        val wantAnalysis = needAnalysis(s)
+        val analysis = if (wantAnalysis) ImageAnalysis.Builder()
             .setResolutionSelector(
                 ResolutionSelector.Builder().setResolutionStrategy(
                     ResolutionStrategy(Size(640, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER)
@@ -462,13 +476,18 @@ class DashcamService : LifecycleService() {
             )
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
-        analysis.targetRotation = recordingRotation()
+            .also {
+                it.targetRotation = recordingRotation()
+                val exec = analysisExecutor ?: Executors.newSingleThreadExecutor().also { e -> analysisExecutor = e }
+                it.setAnalyzer(exec, motion)
+            } else null
         analysisUseCase = analysis
-        val exec = analysisExecutor ?: Executors.newSingleThreadExecutor().also { analysisExecutor = it }
-        analysis.setAnalyzer(exec, motion)
 
         // Try the richest configuration first, then degrade gracefully instead of crashing.
-        val attempts: List<Pair<Boolean, Boolean>> = listOf(true to true, false to true, true to false, false to false) // fps, analysis
+        // (fps, withAnalysis) – analysis attempts are dropped entirely when nothing needs it.
+        val attempts: List<Pair<Boolean, Boolean>> =
+            if (wantAnalysis) listOf(true to true, false to true, true to false, false to false)
+            else listOf(true to false, false to false)
         var bound: VideoCapture<Recorder>? = null
         var lastError: Exception? = null
         DashcamController.dualActive.value = false
@@ -494,10 +513,10 @@ class DashcamService : LifecycleService() {
                 Log.w(TAG, "dual bind failed", e)
             }
         }
-        if (bound == null) for ((fps, withAnalysis) in attempts) {
-            val vc = buildVideo(fps)
+        if (bound == null) for ((withFps, withAnalysis) in attempts) {
+            val vc = buildVideo(withFps)
             val cases = mutableListOf<UseCase>(newPreview, vc)
-            if (withAnalysis) cases += analysis
+            if (withAnalysis) analysis?.let { cases += it }
             try {
                 p.unbindAll()
                 p.bindToLifecycle(this, lensSelector, *cases.toTypedArray())
@@ -939,6 +958,7 @@ class DashcamService : LifecycleService() {
         motion.sensitivity = s.smartSensitivity
         motion.enabled = s.smartDetection
         motion.aiWanted = isPro && s.proAi
+        motion.batterySaver = s.batterySaver
         if (s.voiceFeedback || s.voiceCommands) voice.initTts()
         if (s.voiceCommands && hasAudioPermission()) voice.start(s.voiceStartPhrase, s.voiceStopPhrase) else voice.stop()
         if (appliedVideoKey != null && appliedVideoKey != videoKey(s) && !state.value.eventActive) requestRebind()

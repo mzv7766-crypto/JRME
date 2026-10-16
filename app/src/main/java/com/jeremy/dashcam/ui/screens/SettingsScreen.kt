@@ -215,12 +215,21 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
                 Nav("סיבוב הצילום", rotLabel(s.lockRotation)) {
                     choice = Choice("סיבוב הצילום", listOf(false, true), rotLabel, s.lockRotation) { v -> SettingsStore.update { it.copy(lockRotation = v) } }
                 }
-                Nav(stringResource(R.string.direction), stringResource(s.layoutDir.labelRes), last = true) {
+                Nav(stringResource(R.string.direction), stringResource(s.layoutDir.labelRes)) {
                     choice = Choice(ctx.getString(R.string.direction), LayoutDir.entries, { ctx.getString(it.labelRes) }, s.layoutDir) { v -> SettingsStore.update { it.copy(layoutDir = v) } }
                 }
+                Toggle("השאר מסך דלוק בזמן נסיעה", s.keepScreenOn, last = true) { v -> SettingsStore.update { it.copy(keepScreenOn = v) } }
             }
             Text(
-                "סיבוב הצילום: \"עוקב\" מצלם לכיוון שהטלפון מופנה אליו בכל רגע (כמו מצלמה רגילה). \"נעול\" קובע את הכיוון בתחילת הנסיעה ושומר עליו עד הסוף.",
+                "סיבוב הצילום: \"עוקב\" מצלם לכיוון שהטלפון מופנה אליו בכל רגע (כמו מצלמה רגילה). \"נעול\" קובע את הכיוון בתחילת הנסיעה ושומר עליו עד הסוף. \"השאר מסך דלוק\" מונע מהמסך להיכבות כל עוד הנסיעה פעילה (מתאים לפלאפון על השמשה).",
+                color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+
+            Section("סוללה וביצועים") {
+                Toggle("מצב חיסכון בסוללה", s.batterySaver, last = true) { v -> SettingsStore.update { it.copy(batterySaver = v) } }
+            }
+            Text(
+                "מצב חיסכון מקטין חימום וצריכת סוללה: הצילום מוגבל ל־Full HD ועד 30 FPS, והזיהוי החכם וה־AI פועלים בקצב נמוך יותר. האיכות עדיין טובה לתיעוד, והזיהוי עדיין עובד — רק מגיב מעט לאט יותר. כשזיהוי חכם כבוי, ניתוח המצלמה לא רץ כלל וכך נחסכת הכי הרבה סוללה.",
                 color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             )
 

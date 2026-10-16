@@ -42,6 +42,10 @@ data class AppSettings(
     val lockRotation: Boolean = false,
     val autoStop: Boolean = true,
     val autoStopSeconds: Int = 20,
+    /** Keep the screen on while a drive is active (phone mounted on the windshield). */
+    val keepScreenOn: Boolean = false,
+    /** Battery saver: caps resolution/fps and slows the on-device detectors to run cooler. */
+    val batterySaver: Boolean = false,
     // PRO
     val proSpeedLocation: Boolean = true,
     val carBtAddress: String? = null,
@@ -114,6 +118,8 @@ object SettingsStore {
             lockRotation = getBoolean("lockRot", false),
             autoStop = getBoolean("autoStop", true),
             autoStopSeconds = getInt("autoStopSec", 20),
+            keepScreenOn = getBoolean("keepScreen", false),
+            batterySaver = getBoolean("batSaver", false),
             proSpeedLocation = getBoolean("proLoc", true),
             carBtAddress = getString("carBt", null),
             carBtName = getString("carBtName", null),
@@ -164,6 +170,8 @@ object SettingsStore {
             .putBoolean("lockRot", s.lockRotation)
             .putBoolean("autoStop", s.autoStop)
             .putInt("autoStopSec", s.autoStopSeconds)
+            .putBoolean("keepScreen", s.keepScreenOn)
+            .putBoolean("batSaver", s.batterySaver)
             .putBoolean("proLoc", s.proSpeedLocation)
             .putString("carBt", s.carBtAddress)
             .putString("carBtName", s.carBtName)
