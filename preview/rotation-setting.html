@@ -177,6 +177,20 @@
   </div>
   <div class="screen-header">הגדרות</div>
   <div class="scroll">
+    <div class="sec-title">וידאו</div>
+    <div class="card">
+      <div class="rowc tog" data-k="audio">
+        <div>
+          <div class="label">הקלטת שמע</div>
+          <div class="sub">קול בתוך הסרטונים</div>
+        </div>
+        <div class="switch on"><i></i></div>
+      </div>
+    </div>
+    <div class="note" id="audioNote">
+      הקלטת שמע עשויה לגרום לקטיעה רגעית קטנה במוזיקה אחת לדקה, כשנפתח קטע הקלטה חדש (הטלפון פותח מחדש את המיקרופון). כיבוי השמע מבטל זאת לגמרי.
+    </div>
+
     <div class="sec-title">תצוגה</div>
     <div class="card">
       <div class="row">
@@ -310,10 +324,15 @@
   });
   paintSelection();
 
-  // the two new toggles
+  // the toggles
+  var audioNote = document.getElementById('audioNote');
   document.querySelectorAll('.tog').forEach(function (row) {
     row.addEventListener('click', function () {
-      row.querySelector('.switch').classList.toggle('on');
+      var sw = row.querySelector('.switch');
+      sw.classList.toggle('on');
+      if (row.getAttribute('data-k') === 'audio' && audioNote) {
+        audioNote.hidden = !sw.classList.contains('on');
+      }
     });
   });
 </script>

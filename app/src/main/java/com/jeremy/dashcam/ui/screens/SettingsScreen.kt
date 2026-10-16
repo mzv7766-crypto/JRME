@@ -124,6 +124,10 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
                 Toggle(stringResource(R.string.record_audio), s.recordAudio) { v -> withMic(v) { it.copy(recordAudio = v) } }
                 Toggle(stringResource(R.string.show_datetime), s.showDateTime, last = true) { v -> SettingsStore.update { it.copy(showDateTime = v) } }
             }
+            if (s.recordAudio) Text(
+                "הקלטת שמע עשויה לגרום לקטיעה רגעית קטנה במוזיקה אחת לדקה, כשנפתח קטע הקלטה חדש (הטלפון פותח מחדש את המיקרופון). כיבוי השמע מבטל זאת לגמרי.",
+                color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
 
             Section("שיתוף") {
                 var shareOpen by remember { mutableStateOf(false) }
