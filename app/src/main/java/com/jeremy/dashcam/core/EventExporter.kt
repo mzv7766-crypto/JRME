@@ -71,21 +71,22 @@ class EventExporter(private val context: Context) {
         output: File,
         showDateTime: Boolean,
         burn: Boolean = true,
+        audioWav: File? = null,
         onDone: (Result?) -> Unit,
     ) {
         require(pieces.isNotEmpty())
         output.parentFile?.mkdirs()
         val myGen = ++gen
-        tryLevel(if (burn) 0 else 2, pieces, output, showDateTime) { r -> if (myGen == gen) onDone(r) }
+        tryLevel(if (burn) 0 else 2, pieces, output, showDateTime, audioWav) { r -> if (myGen == gen) onDone(r) }
     }
 
     /**
      * Fallback chain so an event is NEVER lost:
-     *  0 – burned overlays + audio
+     *  0 – burned overlays + audio (continuous-audio WAV when given, otherwise the segments' own audio)
      *  1 – burned overlays, audio removed (some devices/emulators record audio formats the encoder can't take)
      *  2 – plain lossless join of the segments with MediaMuxer (no overlays) – last resort
      */
-    private fun tryLevel(level: Int, pieces: List<Piece>, output: File, showDateTime: Boolean, onDone: (Result?) -> Unit) {
+    private fun tryLevel(level: Int, pieces: List<Piece>, output: File, showDateTime: Boolean, audioWav: File?, onDone: (Result?) -> Unit) {
         val total = pieces.sumOf { (it.durationMs - it.clipStartMs).coerceAtLeast(0) }
         val videoStart = pieces.first().wallStartMs + pieces.first().clipStartMs
         if (level >= 2) {
@@ -97,8 +98,8 @@ class EventExporter(private val context: Context) {
             }.start()
             return
         }
-        val composition = runCatching { buildComposition(pieces, showDateTime, withAudio = level == 0) }
-            .getOrElse { Log.e(TAG, "composition failed", it); tryLevel(level + 1, pieces, output, showDateTime, onDone); return }
+        val composition = runCatching { buildComposition(pieces, showDateTime, withAudio = level == 0, audioWav = if (level == 0) audioWav else null) }
+            .getOrElse { Log.e(TAG, "composition failed", it); tryLevel(level + 1, pieces, output, showDateTime, audioWav, onDone); return }
         Log.i(TAG, "export level $level, ${pieces.size} pieces")
         var thisTransformer: Transformer? = null
         val transformer = Transformer.Builder(context)
@@ -120,7 +121,7 @@ class EventExporter(private val context: Context) {
                     active = null
                     Log.e(TAG, "export level $level failed: ${exportException.errorCodeName}", exportException)
                     output.delete()
-                    tryLevel(level + 1, pieces, output, showDateTime, onDone)
+                    tryLevel(level + 1, pieces, output, showDateTime, audioWav, onDone)
                 }
             })
             .build()
@@ -132,11 +133,15 @@ class EventExporter(private val context: Context) {
             active = null
             Log.e(TAG, "export level $level could not start", e)
             output.delete()
-            tryLevel(level + 1, pieces, output, showDateTime, onDone)
+            tryLevel(level + 1, pieces, output, showDateTime, audioWav, onDone)
         }
     }
 
-    private fun buildComposition(pieces: List<Piece>, showDateTime: Boolean, withAudio: Boolean): Composition {
+    private fun buildComposition(pieces: List<Piece>, showDateTime: Boolean, withAudio: Boolean, audioWav: File?): Composition {
+        // When a continuous-audio WAV is supplied, the video pieces are silent and the sound comes from
+        // a second, parallel sequence. Its total length already equals the summed video length (the
+        // service built it window-by-window to match), so the two stay in sync.
+        val externalAudio = withAudio && audioWav != null && audioWav.exists() && audioWav.length() > 44
         val shortSide = probeShortSide(pieces.first().file)
         val brandPx = (shortSide * 0.055f).toInt().coerceAtLeast(24)
         val timePx = (shortSide * 0.042f).toInt().coerceAtLeast(18)
@@ -155,11 +160,21 @@ class EventExporter(private val context: Context) {
             if (showDateTime || infoAt != null) overlays.add(TimestampOverlay(p.wallStartMs + p.clipStartMs, timePx, (shortSide * 0.92f).toInt(), showDateTime, infoAt))
             val videoEffects = ImmutableList.of<Effect>(OverlayEffect(overlays.build()))
             EditedMediaItem.Builder(media)
-                .setRemoveAudio(!withAudio)
+                // The pieces are muxed for VIDEO only when an external audio track is supplied; otherwise
+                // we keep their own audio (the per-segment fallback path).
+                .setRemoveAudio(!withAudio || externalAudio)
                 .setEffects(Effects(ImmutableList.of(), videoEffects))
                 .build()
         }
-        return Composition.Builder(ImmutableList.of(EditedMediaItemSequence(items)))
+        val videoSeq = EditedMediaItemSequence(items)
+        if (externalAudio) {
+            val audioItem = EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(audioWav)))
+                .setRemoveVideo(true)
+                .build()
+            return Composition.Builder(ImmutableList.of(videoSeq, EditedMediaItemSequence(audioItem)))
+                .build()
+        }
+        return Composition.Builder(ImmutableList.of(videoSeq))
             .apply { if (withAudio) experimentalSetForceAudioTrack(true) }
             .build()
     }

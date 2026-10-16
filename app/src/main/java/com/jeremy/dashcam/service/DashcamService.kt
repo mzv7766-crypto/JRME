@@ -246,6 +246,7 @@ class DashcamService : LifecycleService() {
     private lateinit var motion: MotionAnalyzer
     private lateinit var voice: VoiceCommander
     private lateinit var floating: FloatingButton
+    private lateinit var audioRecorder: com.jeremy.dashcam.core.ContinuousAudioRecorder
     private var orientationListener: OrientationEventListener? = null
 
     private val processObserver = object : DefaultLifecycleObserver {
@@ -261,6 +262,7 @@ class DashcamService : LifecycleService() {
         SettingsStore.init(this)
         EventRepository.init(this)
         exporter = EventExporter(this)
+        audioRecorder = com.jeremy.dashcam.core.ContinuousAudioRecorder(this)
         shock = ShockDetector(this) { d -> main.post { onImpact(d) } }
         motion = MotionAnalyzer(this, { f -> main.post { onVision(f) } }, { d -> main.post { onAi(d) } })
         voice = VoiceCommander(
@@ -317,6 +319,9 @@ class DashcamService : LifecycleService() {
 
         bufferDir.listFiles()?.forEach { it.delete() } // leftovers from a previous crash
         segments.clear()
+        // Open the microphone ONCE for the whole drive (continuous audio). Video segments are then
+        // recorded without audio, so the mic is never re-opened mid-drive and music stops stuttering.
+        if (settings.recordAudio && hasAudioPermission()) runCatching { audioRecorder.start() }
         tripId = now; tripPending.clear(); tripClipStart = 0L
         driveRotationLocked = false; physicalRotation = null
         if (settings.lockRotation) main.postDelayed({ if (running && !driveRotationLocked) lockDriveRotation() }, 2000) // flat phone → lock to the screen
@@ -405,6 +410,7 @@ class DashcamService : LifecycleService() {
         main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable); main.removeCallbacks(autoStopRunnable)
         shock.stop(); motion.enabled = false; voice.stop()
         motion.aiWanted = false; runCatching { analysisExecutor?.execute { motion.release() } }
+        runCatching { Thread { audioRecorder.stop() }.start() } // off the main thread (join can take up to ~1.5 s)
         com.jeremy.dashcam.core.pro.LocationTracker.stop(); sosOverlay.dismiss(); DashcamController.dualActive.value = false
         main.removeCallbacks(metricsTick); DashcamController.metrics.value = null
         floating.hide()
@@ -577,7 +583,10 @@ class DashcamService : LifecycleService() {
         val file = File(bufferDir, "seg_${System.currentTimeMillis()}.mp4")
         try {
             var pending = vc.output.prepareRecording(this, FileOutputOptions.Builder(file).build())
-            if (settings.recordAudio && hasAudioPermission()) pending = pending.withAudioEnabled()
+            // Audio is captured continuously by audioRecorder and muxed in at export, so segments are
+            // video-only. Only if that recorder could not open the mic do we fall back to per-segment
+            // audio (which brings back the music stutter, but never loses sound).
+            if (settings.recordAudio && hasAudioPermission() && !audioRecorder.active) pending = pending.withAudioEnabled()
             activeStartWall = System.currentTimeMillis()
             activeRecording = pending.start(ContextCompat.getMainExecutor(this)) { ev -> onRecordEvent(file, ev) }
             // While an event is running the segment is NOT rotated, so the event itself is one gap-free recording.
@@ -648,11 +657,27 @@ class DashcamService : LifecycleService() {
             val seg = it.next()
             if (seg.endWall < keepFrom && !isProtected(seg.file)) { seg.file.delete(); it.remove() }
         }
+        // Keep the continuous-audio chunks in step with the oldest video we still hold.
+        val oldestKept = segments.minOfOrNull { it.startWall } ?: keepFrom
+        runCatching { audioRecorder.prune(minOf(keepFrom, oldestKept)) }
     }
 
     private fun cleanBuffer() {
         val it = segments.iterator()
         while (it.hasNext()) { val seg = it.next(); if (!isProtected(seg.file)) { seg.file.delete(); it.remove() } }
+    }
+
+    /**
+     * The audio slice (a WAV) that lines up exactly with the video [pieces], ready to be muxed into the
+     * exported clip. One window per piece, so inter-segment gaps are skipped in the audio just as in the
+     * video. Returns null when audio is off or the continuous recorder never ran (then the segments keep
+     * their own audio, if any).
+     */
+    private fun audioWavFor(pieces: List<EventExporter.Piece>): File? {
+        if (!settings.recordAudio || pieces.isEmpty()) return null
+        val windows = pieces.map { (it.wallStartMs + it.clipStartMs) to (it.wallStartMs + it.durationMs) }
+        val wav = File(cacheDir, "aud_exp_${System.currentTimeMillis()}_${pieces.size}.wav")
+        return runCatching { audioRecorder.wavForWindows(windows, wav) }.getOrNull()
     }
 
     // ---------------------------------------------------------------- events
@@ -856,7 +881,9 @@ class DashcamService : LifecycleService() {
                 val out = EventRepository.newEventFile(eventStart)
                 protect(chosen.map { it.file })
                 enqueueExport(ExportJob(isEvent = true) { done ->
-                    exporter.export(pieces, out, showDateTime) { result ->
+                    val audioWav = audioWavFor(pieces)
+                    exporter.export(pieces, out, showDateTime, audioWav = audioWav) { result ->
+                        runCatching { audioWav?.delete() }
                         unprotect(chosen.map { it.file })
                         if (running) pruneBuffer() else cleanBuffer()
                         val record = result?.let {
@@ -906,7 +933,9 @@ class DashcamService : LifecycleService() {
         enqueueExport(ExportJob(isEvent = false) { done ->
             // If saving falls behind (slow device), skip burning for the backlog so the drive is never lost.
             val burn = settings.tripBurn && exportQueue.count { !it.isEvent } < 2
-            exporter.export(pieces, out, showDateTime, burn) { result ->
+            val audioWav = audioWavFor(pieces)
+            exporter.export(pieces, out, showDateTime, burn, audioWav) { result ->
+                runCatching { audioWav?.delete() }
                 unprotect(files)
                 if (running) pruneBuffer() else cleanBuffer()
                 val record = result?.let {
