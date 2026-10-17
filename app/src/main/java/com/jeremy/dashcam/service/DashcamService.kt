@@ -710,7 +710,9 @@ class DashcamService : LifecycleService() {
         else com.jeremy.dashcam.core.pro.LocationTracker.stop()
         val speed = effSpeed(); val loc = effLoc()
         exporter.infoAt = if (locationWanted() && (speed || loc)) { t ->
-            com.jeremy.dashcam.core.pro.LocationTracker.at(t)?.let { com.jeremy.dashcam.core.pro.LocationTracker.label(it, speed, loc) }
+            // Bridge short GPS gaps (tunnels, buildings) with the nearest known fix up to ~2 min away, so
+            // the speed/location line stays present and the overlay does not jump size as GPS blinks.
+            com.jeremy.dashcam.core.pro.LocationTracker.at(t, 120_000)?.let { com.jeremy.dashcam.core.pro.LocationTracker.label(it, speed, loc) }
         } else null
         exporter.showBrand = !(isPro && !settings.burnBrand)
     }

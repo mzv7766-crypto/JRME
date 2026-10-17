@@ -49,11 +49,11 @@ object LocationTracker {
         }
     }
 
-    /** Nearest fix to [wallMs] (within 10 s), or null. */
-    fun at(wallMs: Long): Fix? = synchronized(history) {
+    /** Nearest fix to [wallMs], or null if none is within [maxGapMs]. Default 10 s. */
+    fun at(wallMs: Long, maxGapMs: Long = 10_000): Fix? = synchronized(history) {
         var best: Fix? = null
         for (f in history) if (best == null || abs(f.wallMs - wallMs) < abs(best.wallMs - wallMs)) best = f
-        best?.takeIf { abs(it.wallMs - wallMs) <= 10_000 }
+        best?.takeIf { abs(it.wallMs - wallMs) <= maxGapMs }
     }
 
     /** Text burned into the video, e.g. "87 קמ״ש  •  31.77612, 35.21371". */
