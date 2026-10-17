@@ -1,0 +1,35 @@
+name: Build Jeremy Monitor
+on:
+  push:
+    branches: [monitor-run]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: 17 }
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Build monitor APK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          chmod +x gradlew
+          set -o pipefail
+          ./gradlew :monitor:assembleDebug --no-daemon 2>&1 | tee build.log
+      - name: Report compile errors
+        if: failure()
+        run: |
+          grep -E "FAILED$|^e: |error:|What went wrong|Unresolved|Execution failed" build.log | grep -v "^> Task" | head -40 > errs.txt || true
+          while IFS= read -r line; do echo "::error::$line"; done < errs.txt || true
+      - name: Publish APK to monitor-build branch
+        if: success()
+        run: |
+          mkdir out && cp monitor/build/outputs/apk/debug/monitor-debug.apk out/JeremyMonitor.apk
+          cd out
+          git init -q -b monitor-build
+          git config user.name "github-actions"; git config user.email "actions@github.com"
+          git add JeremyMonitor.apk && git commit -qm "monitor APK from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:monitor-build

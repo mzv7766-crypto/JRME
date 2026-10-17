@@ -14,3 +14,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Jeremy"
 include(":app")
+// Standalone diagnostics tool (separate app id). Does NOT touch the Jeremy app code.
+include(":monitor")
