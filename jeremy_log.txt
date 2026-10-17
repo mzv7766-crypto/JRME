@@ -1,0 +1,84 @@
+--------- beginning of main
+10-17 17:40:17.697 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:41:18.208 I/Jeremy  ( 4565): segment seg_1792258817697.mp4 dur=59065ms gapBefore=0ms
+10-17 17:41:18.209 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:41:43.955 I/Jeremy  ( 4565): event start trigger=MANUAL
+10-17 17:41:53.910 I/Jeremy  ( 4565): segment seg_1792258878209.mp4 dur=34539ms gapBefore=816ms
+10-17 17:41:53.976 I/Jeremy  ( 4565): trip clip queued: 2 segments, 93604ms final=false
+10-17 17:41:54.517 I/Jeremy  ( 4565): export level 0, 2 pieces
+10-17 17:41:54.699 I/Jeremy  ( 4565): export pieces=1 mediaMs=23868 spanMs=24136
+10-17 17:41:54.779 I/Jeremy  ( 4565): trip export paused for an event
+10-17 17:41:54.793 I/Jeremy  ( 4565): export level 0, 1 pieces
+10-17 17:41:54.932 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:42:48.500 I/Jeremy  ( 4565): export level 0 done: 23868ms, 1371764 bytes
+10-17 17:42:48.641 I/Jeremy  ( 4565): export level 0, 2 pieces
+10-17 17:42:50.821 I/Jeremy  ( 4565): event start trigger=MANUAL
+10-17 17:43:15.878 I/Jeremy  ( 4565): event discarded
+10-17 17:43:19.375 I/Jeremy  ( 4565): segment seg_1792258914937.mp4 dur=82657ms gapBefore=2435ms
+10-17 17:43:19.376 I/Jeremy  ( 4565): trip clip queued: 1 segments, 82657ms final=false
+10-17 17:43:19.376 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:44:02.437 I/Jeremy  ( 4565): plates for 2bbb2b6a-5a4c-40ad-82d9-363def8d0513: 0 found
+10-17 17:44:15.396 I/Jeremy  ( 4565): event start trigger=FLOATING
+10-17 17:44:27.199 I/Jeremy  ( 4565): segment seg_1792258999376.mp4 dur=66619ms gapBefore=1522ms
+10-17 17:44:27.243 I/Jeremy  ( 4565): trip clip queued: 1 segments, 66619ms final=false
+10-17 17:44:27.245 I/Jeremy  ( 4565): export pieces=1 mediaMs=25668 spanMs=25798
+10-17 17:44:27.794 I/Jeremy  ( 4565): trip export paused for an event
+10-17 17:44:28.226 I/Jeremy  ( 4565): export level 0, 1 pieces
+10-17 17:44:28.232 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:44:54.641 I/Jeremy  ( 4565): export level 0 done: 25668ms, 1779444 bytes
+10-17 17:44:54.808 W/Jeremy  ( 4565): export: falling back to plain join (no overlays)
+10-17 17:44:58.529 I/Jeremy  ( 4565): export level 0, 1 pieces
+10-17 17:45:29.325 I/Jeremy  ( 4565): segment seg_1792259068233.mp4 dur=59917ms gapBefore=2241ms
+10-17 17:45:29.326 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:46:01.390 I/Jeremy  ( 4565): plates for 1be76f6b-25c5-4461-b78b-8c8d348a8d70: 0 found
+10-17 17:46:09.206 I/Jeremy  ( 4565): export level 0 done: 82657ms, 4642028 bytes
+10-17 17:46:09.696 I/Jeremy  ( 4565): export level 0, 1 pieces
+10-17 17:46:31.728 I/Jeremy  ( 4565): segment seg_1792259129327.mp4 dur=60720ms gapBefore=1216ms
+10-17 17:46:31.729 I/Jeremy  ( 4565): trip clip queued: 2 segments, 120637ms final=false
+10-17 17:46:31.729 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:46:47.231 I/Jeremy  ( 4565): segment seg_1792259191729.mp4 dur=13461ms gapBefore=1609ms
+10-17 17:46:47.584 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:46:53.766 I/Jeremy  ( 4565): segment seg_1792259207584.mp4 dur=3054ms gapBefore=2620ms
+10-17 17:46:54.181 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:47:44.198 I/Jeremy  ( 4565): export level 0 done: 66619ms, 4198448 bytes
+10-17 17:47:45.040 I/Jeremy  ( 4565): export level 0, 2 pieces
+10-17 17:47:55.582 I/Jeremy  ( 4565): segment seg_1792259214181.mp4 dur=59472ms gapBefore=3605ms
+10-17 17:47:55.582 I/Jeremy  ( 4565): trip clip queued: 3 segments, 75987ms final=false
+10-17 17:47:55.583 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:48:19.987 I/Jeremy  ( 4565): segment seg_1792259275587.mp4 dur=21980ms gapBefore=1807ms
+10-17 17:48:20.158 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:48:24.858 I/Jeremy  ( 4565): segment seg_1792259300159.mp4 dur=3326ms gapBefore=3048ms
+10-17 17:48:26.096 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:49:27.806 I/Jeremy  ( 4565): segment seg_1792259306097.mp4 dur=59062ms gapBefore=2783ms
+10-17 17:49:27.807 I/Jeremy  ( 4565): trip clip queued: 3 segments, 84368ms final=false
+10-17 17:49:27.807 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:50:13.329 I/Jeremy  ( 4565): export level 0 done: 120704ms, 6955060 bytes
+10-17 17:50:13.717 I/Jeremy  ( 4565): export level 0, 3 pieces
+10-17 17:50:28.986 I/Jeremy  ( 4565): segment seg_1792259367808.mp4 dur=59599ms gapBefore=1902ms
+10-17 17:50:28.987 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:51:29.686 I/Jeremy  ( 4565): segment seg_1792259429001.mp4 dur=59901ms gapBefore=1564ms
+10-17 17:51:29.686 I/Jeremy  ( 4565): trip clip queued: 2 segments, 119500ms final=false
+10-17 17:51:29.687 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:51:44.720 I/Jeremy  ( 4565): export level 0 done: 76078ms, 4662097 bytes
+10-17 17:51:45.325 I/Jeremy  ( 4565): export level 0, 3 pieces
+10-17 17:52:31.273 I/Jeremy  ( 4565): segment seg_1792259489687.mp4 dur=59760ms gapBefore=814ms
+10-17 17:52:31.274 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:53:16.161 I/Jeremy  ( 4565): export level 0 done: 84444ms, 5539806 bytes
+10-17 17:53:17.154 I/Jeremy  ( 4565): export level 0, 2 pieces
+10-17 17:53:33.511 I/Jeremy  ( 4565): segment seg_1792259551274.mp4 dur=59333ms gapBefore=1852ms
+10-17 17:53:33.512 I/Jeremy  ( 4565): trip clip queued: 2 segments, 119093ms final=false
+10-17 17:53:33.537 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:54:34.902 I/Jeremy  ( 4565): segment seg_1792259613537.mp4 dur=59775ms gapBefore=2865ms
+10-17 17:54:34.903 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:55:24.264 I/Jeremy  ( 4565): export level 0 done: 119807ms, 7522660 bytes
+10-17 17:55:24.531 I/Jeremy  ( 4565): export level 0, 2 pieces
+10-17 17:55:36.977 I/Jeremy  ( 4565): segment seg_1792259674903.mp4 dur=59765ms gapBefore=1626ms
+10-17 17:55:36.977 I/Jeremy  ( 4565): trip clip queued: 2 segments, 119540ms final=false
+10-17 17:55:36.978 I/Jeremy  ( 4565): segment start rotation=0 physical=null display=0 setting=AUTO
+10-17 17:56:01.923 I/Jeremy  ( 4565): segment seg_1792259736978.mp4 dur=24198ms gapBefore=2267ms
+10-17 17:56:01.948 I/Jeremy  ( 4565): trip clip queued: 1 segments, 24198ms final=true
+10-17 17:56:31.310 I/Jeremy  ( 4565): export level 0 done: 119214ms, 7363304 bytes
+10-17 17:56:32.074 I/Jeremy  ( 4565): export level 0, 2 pieces
+10-17 17:57:16.665 I/Jeremy  ( 4565): export level 0 done: 119708ms, 7679797 bytes
+10-17 17:57:16.730 I/Jeremy  ( 4565): export level 0, 1 pieces
+10-17 17:57:27.631 I/Jeremy  ( 4565): export level 0 done: 24198ms, 1487533 bytes

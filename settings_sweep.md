@@ -1,0 +1,36 @@
+# Settings sweep
+rows tapped: 33, problems: 0
+
+- ✅ [01] switch: זיהוי חכם עם בינה מלאכותית | PRO | מזהה רכבים והולכי רגל שמתקרבים מהר – בטלפון, 
+- ✅ [02] row → dialog/screen (closed): Pre-event recording (Rolling Buffer) | 15 seconds
+- ✅ [03] row → dialog/screen (closed): Resolution | 1080p (Full HD)
+- ✅ [04] row → dialog/screen (closed): FPS | 30
+- ✅ [05] switch: Record audio
+- ✅ [06] switch: Show date & time on video
+- ✅ [07] row → dialog/screen (closed): מה נשלח יחד עם הסרטון | תאריך ושעה, סיבת האירוע, שם האירוע
+- ✅ [08] switch: Impact / shake detection
+- ✅ [09] row → dialog/screen (closed): Sensor sensitivity | Medium
+- ✅ [10] switch: Smart image detection
+- ✅ [11] row → dialog/screen (closed): Smart detection sensitivity | Medium
+- ✅ [12] switch: Auto-end events that started by themselves
+- ✅ [13] row → dialog/screen (closed): End after | 20 seconds
+- ✅ [14] switch: Voice commands
+- ✅ [15] row → dialog/screen (closed): Start phrase | "start event"
+- ✅ [16] row → dialog/screen (closed): Stop phrase | "stop event"
+- ✅ [17] switch: Voice feedback
+- ✅ [18] switch: Volume button control
+- ✅ [19] switch: Save the whole drive
+- ✅ [20] row → dialog/screen (closed): Clip length | 1 min
+- ✅ [21] row → dialog/screen (closed): Max storage for drives | 16 GB
+- ✅ [22] switch: Burn date & branding into drive clips too
+- ✅ [23] row: Used | 0.02 GB • 4
+- ✅ [24] row: Used | 0.02 GB • 5
+- ✅ [25] switch: Auto delete
+- ✅ [26] row → dialog/screen (closed): Max storage for events | 8 GB
+- ✅ [27] row: Used | 0.00 GB • 2
+- ✅ [28] row → dialog/screen (closed): סיבוב הצילום | עוקב אחרי כיוון הטלפון
+- ✅ [29] switch: השאר מסך דלוק בזמן נסיעה
+- ✅ [30] switch: מצב חיסכון בסוללה
+- ✅ [31] row: Display over other apps | Granted
+- ✅ [32] row: Unrestricted battery | Granted
+- ✅ [33] row: גרסה מותקנת | 2.1.10 (56)
