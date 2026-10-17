@@ -60,29 +60,58 @@ class ContinuousAudioRecorder(private val context: Context) {
         }.getOrDefault(AudioRecord.ERROR_BAD_VALUE)
         if (minBuf <= 0) { Log.w(TAG, "min buffer size unavailable"); return }
         val bufSize = minBuf * 4
-        val rec = try {
-            AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufSize)
-        } catch (e: Exception) { Log.w(TAG, "AudioRecord create failed", e); return }
-        if (rec.state != AudioRecord.STATE_INITIALIZED) { runCatching { rec.release() }; Log.w(TAG, "AudioRecord not initialised"); return }
+        val rec = openRecord(bufSize) ?: return
 
         synchronized(lock) { chunks.clear() }
         runCatching { dir.listFiles()?.forEach { it.delete() } }
         record = rec
         running = true
-        try { rec.startRecording() } catch (e: Exception) { Log.w(TAG, "startRecording failed", e); running = false; runCatching { rec.release() }; record = null; return }
-
-        thread = Thread({ loop(rec, bufSize) }, "jeremy-audio").apply { isDaemon = true; start() }
+        thread = Thread({ loop(bufSize) }, "jeremy-audio").apply { isDaemon = true; start() }
         Log.i(TAG, "continuous audio started @${SAMPLE_RATE}Hz")
     }
 
-    private fun loop(rec: AudioRecord, bufSize: Int) {
+    /** Opens and starts one microphone capture stream, or null if the device refuses it right now. */
+    @SuppressLint("MissingPermission")
+    private fun openRecord(bufSize: Int): AudioRecord? {
+        val rec = try {
+            AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufSize)
+        } catch (e: Exception) { Log.w(TAG, "AudioRecord create failed", e); return null }
+        if (rec.state != AudioRecord.STATE_INITIALIZED) { runCatching { rec.release() }; return null }
+        return try { rec.startRecording(); rec } catch (e: Exception) { Log.w(TAG, "startRecording failed", e); runCatching { rec.release() }; null }
+    }
+
+    /**
+     * Reads the mic for the whole drive. A phone call (or any higher-priority app) can take the mic
+     * away mid-drive; Android then hands us an error or silence. We never stop the video for that and we
+     * never give up on the audio — on a hard error we release and re-open the mic (with back-off) so the
+     * sound resumes automatically once the call ends. The gap becomes silence in the exported clip.
+     */
+    private fun loop(bufSize: Int) {
         val buf = ByteArray(bufSize)
         var current: Chunk? = null
         var out: RandomAccessFile? = null
+        var idle = 0
         try {
             while (running) {
+                var rec = record
+                if (rec == null) {
+                    rec = openRecord(bufSize)
+                    if (rec == null) { Thread.sleep(1000); continue } // mic still busy (e.g. call) → keep waiting
+                    record = rec
+                    Log.i(TAG, "mic re-acquired")
+                }
                 val n = rec.read(buf, 0, buf.size)
-                if (n <= 0) { if (n == AudioRecord.ERROR_INVALID_OPERATION || n == AudioRecord.ERROR_DEAD_OBJECT) break else continue }
+                if (n <= 0) {
+                    if (n == AudioRecord.ERROR_INVALID_OPERATION || n == AudioRecord.ERROR_DEAD_OBJECT) {
+                        Log.w(TAG, "mic lost (code $n) — will re-acquire") // typically a phone call grabbed it
+                        runCatching { rec.stop() }; runCatching { rec.release() }; record = null
+                        Thread.sleep(800)
+                    } else {
+                        if (++idle % 50 == 0) Thread.sleep(20) // avoid a busy spin on repeated 0-length reads
+                    }
+                    continue
+                }
+                idle = 0
                 val now = System.currentTimeMillis()
                 var c = current
                 if (c == null || now - c.startWall >= CHUNK_MS) {
