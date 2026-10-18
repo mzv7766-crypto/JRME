@@ -99,13 +99,14 @@ service cloud.firestore {
         }
       }
 
-      // recordings backed up to the company cloud (the video itself is in Cloud Storage)
+      // recordings a guard backed up to his Google Drive (company folder shared with the managers)
       match /recordings/{id} {
         allow read: if isManager(o) || (resource != null && isSelf(resource.data.email) && isMember(o));
         allow create: if isMember(o) && org(o).seats > 0 && request.resource.data.email == me()
-          && request.resource.data.path == 'shomer_orgs/' + o + '/rec/' + me() + '/' + id + '.mp4';
+          && request.resource.data.driveId is string && request.resource.data.driveId.size() < 200;
         allow update: if isManager(o) && onlyChanges(['note', 'title', 'keep']);
-        allow delete: if isManager(o);
+        // managers remove a listing; the guard's phone removes its own after the retention period (never a kept one)
+        allow delete: if isManager(o) || (isSelf(resource.data.email) && isMember(o) && resource.data.get('keep', false) != true);
       }
 
       // timeline: shift start/end, recording saved, fall detected … (append-only)

@@ -7,15 +7,13 @@ import {
   getFirestore, connectFirestoreEmulator, doc, getDoc, onSnapshot, collection, query, orderBy, limit, where,
   setDoc, updateDoc, addDoc, writeBatch, increment, serverTimestamp, getDocs, deleteDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-import { getStorage, connectStorageEmulator, ref as sref, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import { firebaseConfig, ADMIN_EMAIL } from "./config.js";
 
 const EMU = new URLSearchParams(location.search).has("emu");   // end-to-end tests only
-const app = initializeApp(EMU ? { apiKey: "demo", projectId: "demo-shomer", authDomain: "localhost", storageBucket: "demo-shomer.appspot.com" } : firebaseConfig);
+const app = initializeApp(EMU ? { apiKey: "demo", projectId: "demo-shomer", authDomain: "localhost" } : firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
-if (EMU) { connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); connectFirestoreEmulator(db, "127.0.0.1", 8080); connectStorageEmulator(storage, "127.0.0.1", 9199); }
+if (EMU) { connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); connectFirestoreEmulator(db, "127.0.0.1", 8080); }
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -115,7 +113,7 @@ function renderRecs() {
   const guards = [...new Map(recs.map((r) => [r.email, r.name || r.email])).entries()];
   sel.innerHTML = `<option value="">כל המאבטחים</option>` + guards.map(([e, n]) => `<option value="${esc(e)}">${esc(n)}</option>`).join("");
   sel.value = guards.some(([e]) => e === cur) ? cur : "";
-  $("rec-note").textContent = `נמחקות אוטומטית אחרי ${org?.policy?.retentionDays || 30} ימים, אלא אם סומנו "שמור"`;
+  $("rec-note").textContent = `ההקלטות בדרייב של כל מאבטח, בתיקייה "Shomer – ${org?.name || ""}" ששותפה איתך. נמחקות אוטומטית אחרי ${org?.policy?.retentionDays || 30} ימים, אלא אם סומנו "שמור".`;
   const shown = recs.filter((r) => !sel.value || r.email === sel.value);
   $("rec-list").innerHTML = shown.length ? shown.map((r) => `
     <div class="item" data-rec="${esc(r.id)}">
@@ -123,7 +121,7 @@ function renderRecs() {
         <div class="s">${fmtTime(r.start)} · ${dur(r.durationMs)} · ${Math.round((r.size || 0) / 1048576)} MB${r.keep ? " · <b class='keep'>שמור</b>" : ""}</div></div>
       <button class="btn primary" data-play="${esc(r.id)}">▶ צפייה</button>
       <button class="btn" data-keep="${esc(r.id)}">${r.keep ? "בטל שמירה" : "שמור"}</button>
-      <button class="btn" data-del="${esc(r.id)}">מחק</button>
+      <button class="btn" data-del="${esc(r.id)}">הסר</button>
     </div>`).join("") : `<p class="muted">אין עדיין הקלטות בענן. תיעודים של המאבטחים יופיעו כאן אחרי שיעלו.</p>`;
   document.querySelectorAll("[data-play]").forEach((b) => (b.onclick = () => playRec(recs.find((r) => r.id === b.dataset.play))));
   document.querySelectorAll("[data-keep]").forEach((b) => (b.onclick = () => {
@@ -133,24 +131,23 @@ function renderRecs() {
   document.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => delRec(recs.find((r) => r.id === b.dataset.del))));
 }
 $("rec-guard").onchange = renderRecs;
-async function playRec(r) {
+// the video is in the guard's Google Drive (folder shared with the managers): Drive's own player, signed in as the manager
+const driveId = (r) => r.driveId || (String(r.link || "").match(/\/d\/([^/]+)/) || [])[1] || "";
+function playRec(r) {
   if (!r) return;
-  try {
-    const url = await getDownloadURL(sref(storage, r.path));
-    $("rec-player").classList.remove("hidden");
-    $("rec-video").src = url;
-    $("rec-dl").href = url;
-    $("rec-title").textContent = `${r.name || r.email} · ${fmtTime(r.start)}`;
-    $("rec-sha").textContent = r.sha256 ? "SHA-256: " + r.sha256 : "";
-    $("rec-video").play().catch(() => {});
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch (e) { console.warn("recording url", e); alert("לא הצלחנו לפתוח את ההקלטה"); }
+  const id = driveId(r);
+  if (!id) { alert("לא הצלחנו לפתוח את ההקלטה"); return; }
+  $("rec-player").classList.remove("hidden");
+  $("rec-frame").src = `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`;
+  $("rec-dl").href = r.link || `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
+  $("rec-title").textContent = `${r.name || r.email} · ${fmtTime(r.start)}`;
+  $("rec-sha").textContent = r.sha256 ? "SHA-256: " + r.sha256 : "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
-$("rec-close").onclick = () => { $("rec-video").pause(); $("rec-video").removeAttribute("src"); $("rec-player").classList.add("hidden"); };
+$("rec-close").onclick = () => { $("rec-frame").src = "about:blank"; $("rec-player").classList.add("hidden"); };
 async function delRec(r) {
-  if (!r || !confirm(`למחוק לצמיתות את ההקלטה של ${r.name || r.email} מ־${fmtTime(r.start)}?\nבטלפון של המאבטח היא נשארת.`)) return;
-  try { await deleteObject(sref(storage, r.path)); } catch (e) { /* already gone */ }
-  try { await deleteDoc(doc(db, "shomer_orgs", orgId, "recordings", r.id)); } catch (e) { alert("המחיקה נכשלה"); }
+  if (!r || !confirm(`להסיר מהרשימה את ההקלטה של ${r.name || r.email} מ־${fmtTime(r.start)}?\nהקובץ נשאר בדרייב של המאבטח עד סוף תקופת השמירה.`)) return;
+  try { await deleteDoc(doc(db, "shomer_orgs", orgId, "recordings", r.id)); } catch (e) { alert("הפעולה נכשלה"); }
 }
 
 function status(email) {

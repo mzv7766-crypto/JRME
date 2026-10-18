@@ -529,13 +529,10 @@ private fun Recordings() {
                             color = S.TextDim, fontSize = 12.sp, fontFamily = S.Mono)
                         if (r.keep) Text(stringResource(R.string.rec_keep_on), color = S.Green, fontSize = 11.sp)
                     }
+                    // opens in the Drive app / browser (the guard's company folder is shared with the managers)
                     IconButton({
-                        scope.launch {
-                            val url = OrgStore.recordingUrl(r)
-                            if (url == null) Toast.makeText(ctx, ctx.getString(R.string.action_failed), Toast.LENGTH_SHORT).show()
-                            else runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse(url), "video/mp4").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-                                .onFailure { runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }
-                        }
+                        if (r.link.isBlank()) Toast.makeText(ctx, ctx.getString(R.string.action_failed), Toast.LENGTH_SHORT).show()
+                        else runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
                     }) { Icon(Icons.Filled.PlayCircle, null, tint = S.Amber) }
                     IconButton({ OrgStore.setKeep(r, !r.keep) }) { Icon(if (r.keep) Icons.Filled.Lock else Icons.Filled.LockOpen, stringResource(R.string.rec_keep), tint = if (r.keep) S.Green else S.TextDim) }
                     IconButton({ del = r }) { Icon(Icons.Filled.Delete, null, tint = S.TextDim) }
@@ -548,7 +545,7 @@ private fun Recordings() {
             onDismissRequest = { del = null }, containerColor = S.Surface,
             title = { Text(stringResource(R.string.rec_delete_title)) },
             text = { Text(stringResource(R.string.rec_delete_body)) },
-            confirmButton = { TextButton({ del = null; scope.launch { if (!OrgStore.deleteRecording(r)) Toast.makeText(ctx, ctx.getString(R.string.action_failed), Toast.LENGTH_SHORT).show() } }) { Text(stringResource(R.string.delete), color = S.Red) } },
+            confirmButton = { TextButton({ del = null; scope.launch { if (!OrgStore.removeRecording(r)) Toast.makeText(ctx, ctx.getString(R.string.action_failed), Toast.LENGTH_SHORT).show() } }) { Text(stringResource(R.string.rec_remove), color = S.Red) } },
             dismissButton = { TextButton({ del = null }) { Text(stringResource(R.string.cancel), color = S.TextDim) } },
         )
     }

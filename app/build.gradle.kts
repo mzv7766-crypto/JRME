@@ -16,8 +16,8 @@ android {
         applicationId = "com.shomer.bodycam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.7"
+        versionCode = 9
+        versionName = "1.8"
         // -Pemulator: talk to the local Firebase emulators (end-to-end tests only)
         buildConfigField("boolean", "EMULATOR", if (project.hasProperty("emulator")) "true" else "false")
         // the local emulators speak plain HTTP; real builds never allow cleartext traffic
@@ -103,7 +103,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-functions")
     implementation("androidx.credentials:credentials:1.5.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0")

@@ -125,22 +125,22 @@ object DriveBackup {
 
     class DriveHttpException(val code: Int, msg: String) : IOException("Drive HTTP $code: $msg")
 
-    private fun folderId(context: Context, token: String): String {
+    fun folderId(context: Context, token: String, name: String = FOLDER): String {
         val prefs = context.getSharedPreferences("shomer_drive", Context.MODE_PRIVATE)
-        val key = "folder_${AccountStore.current.email}"
+        val key = "folder_${AccountStore.current.email}" + if (name == FOLDER) "" else "_$name"
         prefs.getString(key, null)?.let { id ->
             // still there (and not in the trash)?
             val c = conn("https://www.googleapis.com/drive/v3/files/$id?fields=id,trashed", "GET", token)
             if (c.responseCode == 200 && !JSONObject(c.body()).optBoolean("trashed")) return id
         }
-        val q = URLEncoder.encode("name='$FOLDER' and mimeType='application/vnd.google-apps.folder' and trashed=false", "UTF-8")
+        val q = URLEncoder.encode("name='${name.replace("'", "\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false", "UTF-8")
         val found = JSONObject(conn("https://www.googleapis.com/drive/v3/files?q=$q&fields=files(id)&spaces=drive", "GET", token).body())
             .getJSONArray("files").let { if (it.length() > 0) it.getJSONObject(0).getString("id") else null }
         val id = found ?: run {
             val c = conn("https://www.googleapis.com/drive/v3/files?fields=id", "POST", token)
             c.doOutput = true
             c.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-            c.outputStream.use { it.write(JSONObject().put("name", FOLDER).put("mimeType", "application/vnd.google-apps.folder").toString().toByteArray()) }
+            c.outputStream.use { it.write(JSONObject().put("name", name).put("mimeType", "application/vnd.google-apps.folder").toString().toByteArray()) }
             JSONObject(c.body()).getString("id")
         }
         prefs.edit().putString(key, id).apply()
@@ -153,7 +153,7 @@ object DriveBackup {
      * Resumable upload of one MP4 in 8 MB chunks. The upload session is remembered, so if the job is
      * interrupted (network loss, time limit) the next attempt continues where it stopped. Returns the Drive file id.
      */
-    fun upload(context: Context, token: String, r: Recording, onProgress: (Int) -> Unit): String {
+    fun upload(context: Context, token: String, r: Recording, folderName: String = FOLDER, onProgress: (Int) -> Unit): String {
         val file: File = r.file
         val total = file.length()
         val prefs = context.getSharedPreferences("shomer_drive", Context.MODE_PRIVATE)
@@ -169,7 +169,7 @@ object DriveBackup {
             }
         }
         if (session == null) {
-            val parent = folderId(context, token)
+            val parent = folderId(context, token, folderName)
             val start = conn("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id", "POST", token)
             start.doOutput = true
             start.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
@@ -221,6 +221,31 @@ object DriveBackup {
                 }
             }
         }
+    }
+
+    /**
+     * Lets these people see a folder (and everything in it) – no e-mail is sent. Shomer may share what it created
+     * itself (drive.file). Already-shared addresses are remembered, so this costs nothing on later uploads.
+     */
+    fun shareWith(context: Context, token: String, fileId: String, emails: Collection<String>) {
+        val prefs = context.getSharedPreferences("shomer_drive", Context.MODE_PRIVATE)
+        val key = "shared_$fileId"
+        val done = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
+        for (e in emails.map { it.lowercase() }.filter { it !in done }) {
+            val c = conn("https://www.googleapis.com/drive/v3/files/$fileId/permissions?sendNotificationEmail=false&fields=id", "POST", token)
+            c.doOutput = true
+            c.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+            c.outputStream.use { it.write(JSONObject().put("type", "user").put("role", "reader").put("emailAddress", e).toString().toByteArray()) }
+            c.body()
+            done += e
+            prefs.edit().putStringSet(key, done.toSet()).apply()
+        }
+    }
+
+    /** Deletes a file Shomer uploaded (true also when it is already gone). */
+    fun delete(token: String, fileId: String): Boolean {
+        val c = conn("https://www.googleapis.com/drive/v3/files/$fileId", "DELETE", token)
+        return c.responseCode in 200..299 || c.responseCode == 404
     }
 
     private sealed class Status {

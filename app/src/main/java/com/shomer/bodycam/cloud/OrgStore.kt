@@ -357,7 +357,7 @@ object OrgStore {
     // ------------------------------------------------------------------ company cloud recordings
 
     data class CloudRec(
-        val id: String, val email: String, val name: String, val path: String, val start: Long, val durationMs: Long,
+        val id: String, val email: String, val name: String, val link: String, val start: Long, val durationMs: Long,
         val size: Long, val trigger: String?, val sha256: String?, val lat: Double?, val lon: Double?, val uploadedAt: Long, val keep: Boolean,
     )
 
@@ -373,7 +373,8 @@ object OrgStore {
             if (e != null) { Log.w(Cloud.TAG, "recordings", e); return@addSnapshotListener }
             recordings.value = s?.documents.orEmpty().map { d ->
                 CloudRec(
-                    d.id, d.getString("email").orEmpty(), d.getString("name").orEmpty(), d.getString("path").orEmpty(),
+                    d.id, d.getString("email").orEmpty(), d.getString("name").orEmpty(),
+                    d.getString("link") ?: d.getString("driveId")?.let { DriveBackup.openUrl(it) }.orEmpty(),
                     d.getLong("start") ?: 0L, d.getLong("durationMs") ?: 0L, d.getLong("size") ?: 0L, d.getString("trigger"),
                     d.getString("sha256"), d.getDouble("lat"), d.getDouble("lon"), d.getLong("uploadedAt") ?: 0L, d.getBoolean("keep") == true,
                 )
@@ -386,21 +387,16 @@ object OrgStore {
         if (recUsers == 0) recListeners.clear()
     }
 
-    suspend fun recordingUrl(r: CloudRec): String? = runCatching { Cloud.storage.reference.child(r.path).downloadUrl.await().toString() }
-        .onFailure { Log.w(Cloud.TAG, "recording url", it) }.getOrNull()
-
     fun setKeep(r: CloudRec, keep: Boolean) {
         val org = current.org ?: return
         Cloud.org(org.id).collection("recordings").document(r.id).update("keep", keep)
     }
 
-    suspend fun deleteRecording(r: CloudRec): Boolean {
+    /** Removes the recording from the list (the video itself stays in the guard's Drive until its retention ends). */
+    suspend fun removeRecording(r: CloudRec): Boolean {
         val org = current.org ?: return false
-        return runCatching {
-            runCatching { Cloud.storage.reference.child(r.path).delete().await() }
-            Cloud.org(org.id).collection("recordings").document(r.id).delete().await()
-            true
-        }.onFailure { Log.w(Cloud.TAG, "delete recording", it) }.getOrDefault(false)
+        return runCatching { Cloud.org(org.id).collection("recordings").document(r.id).delete().await(); true }
+            .onFailure { Log.w(Cloud.TAG, "remove recording", it) }.getOrDefault(false)
     }
 
     /** start / stop a recording on a guard's phone. */

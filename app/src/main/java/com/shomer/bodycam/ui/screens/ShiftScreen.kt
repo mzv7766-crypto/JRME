@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.BatterySaver
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -205,6 +206,7 @@ private fun OnShift(onCamera: () -> Unit, onOpenRecord: (String) -> Unit) {
                 Text(stringResource(R.string.watched_banner, watcher ?: ""), color = S.Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
+        if (org.activeMember && org.org?.policy?.cloudBackup != com.shomer.bodycam.cloud.Policy.CLOUD_OFF) CompanyDriveBanner()
         if (state.onShift && state.power != com.shomer.bodycam.core.PowerGuard.Reason.NONE) {
             val p = state.power
             Row(
@@ -385,3 +387,36 @@ fun recordHoursLeft(c: Context, r: Resolution): Double {
     return (free.coerceAtLeast(0) * 8.0 / (mbps * 1_000_000) / 3600.0)
 }
 
+
+/** Company phone whose guard has not approved Drive yet: one tap to approve (recordings wait until then). */
+@Composable
+private fun CompanyDriveBanner() {
+    val ctx = LocalContext.current
+    val needsAuth by com.shomer.bodycam.cloud.DriveBackup.needsAuth.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { runCatching { com.shomer.bodycam.cloud.DriveBackup.token(ctx) } }   // silent check
+    val consent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { r ->
+        val res = com.shomer.bodycam.cloud.DriveBackup.resultFromIntent(ctx, r.data)
+        if (r.resultCode == android.app.Activity.RESULT_OK && res?.accessToken != null) {
+            com.shomer.bodycam.cloud.DriveBackup.needsAuth.value = false
+            com.shomer.bodycam.cloud.CompanyBackup.start(ctx)
+        }
+    }
+    if (!needsAuth) return
+    Row(
+        Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(12.dp)).background(S.AmberDeep).clickable {
+            val a = ctx.findActivity() ?: return@clickable
+            com.shomer.bodycam.cloud.DriveBackup.authorize(a,
+                launch = { pi -> consent.launch(androidx.activity.result.IntentSenderRequest.Builder(pi.intentSender).build()) },
+                onGranted = { com.shomer.bodycam.cloud.CompanyBackup.start(ctx) },
+                onError = { Toast.makeText(ctx, it, Toast.LENGTH_LONG).show() })
+        }.padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Filled.CloudUpload, null, tint = S.Amber)
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(stringResource(R.string.company_drive_title), color = S.Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(stringResource(R.string.company_drive_body), color = S.TextDim, fontSize = 12.sp, lineHeight = 16.sp)
+        }
+    }
+}

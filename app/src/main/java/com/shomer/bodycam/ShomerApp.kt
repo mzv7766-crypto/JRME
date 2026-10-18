@@ -32,7 +32,7 @@ class ShomerApp : Application() {
         // company phones: retry recordings that were not uploaded yet (e.g. recorded before the plan / offline)
         Cloud.scope.launch {
             com.shomer.bodycam.cloud.OrgStore.state.map { it.activeMember && it.org?.policy?.cloudBackup != com.shomer.bodycam.cloud.Policy.CLOUD_OFF }
-                .distinctUntilChanged().collect { on -> if (on) com.shomer.bodycam.cloud.CompanyBackup.enqueuePending(this@ShomerApp) }
+                .distinctUntilChanged().collect { on -> if (on) com.shomer.bodycam.cloud.CompanyBackup.start(this@ShomerApp) }
         }
         // re-check the company whenever the app comes back to the screen
         androidx.lifecycle.ProcessLifecycleOwner.get().lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {

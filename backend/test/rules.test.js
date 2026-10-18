@@ -2,7 +2,7 @@
 import { test, before, after, beforeEach } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, increment, collection, addDoc, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, increment, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 
 let env;
 const OWNER = 'boss@acme.co.il', GUARD = 'guard1@gmail.com', GUARD2 = 'guard2@gmail.com', STRANGER = 'x@gmail.com', ADMIN = 'mzv7766@gmail.com';
@@ -164,19 +164,24 @@ test('Jeremy free accounts keep working', async () => {
   await assertFails(setDoc(doc(db(STRANGER), 'freeAccounts', STRANGER), {}));
 });
 
-test('company recordings: a guard registers only his own, the manager sees and deletes them', async () => {
+test('company recordings: a guard lists only his own, the manager sees them, kept ones survive clean-up', async () => {
   await createOrg(5);
   await addMember(GUARD);
   await addMember(GUARD2);
   const g = db(GUARD);
-  const path = (e, id) => `shomer_orgs/${ORG}/rec/${e}/${id}.mp4`;
-  await assertSucceeds(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1'), { email: GUARD, path: path(GUARD, 'r1'), size: 10 }));
-  await assertFails(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r2'), { email: GUARD2, path: path(GUARD2, 'r2') }));
-  await assertFails(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r3'), { email: GUARD, path: path(GUARD, 'other') }));
-  await assertFails(setDoc(doc(db(STRANGER), 'shomer_orgs', ORG, 'recordings', 'r4'), { email: STRANGER, path: path(STRANGER, 'r4') }));
+  const rec = (email, extra = {}) => ({ email, driveId: 'drv123', size: 10, uploadedAt: 1, ...extra });
+  await assertSucceeds(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1'), rec(GUARD)));
+  await assertFails(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r2'), rec(GUARD2)));
+  await assertFails(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r3'), { email: GUARD }));
+  await assertFails(setDoc(doc(db(STRANGER), 'shomer_orgs', ORG, 'recordings', 'r4'), rec(STRANGER)));
   await assertSucceeds(getDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1')));
   await assertFails(getDoc(doc(db(GUARD2), 'shomer_orgs', ORG, 'recordings', 'r1')));
-  await assertFails(deleteDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1')));
+  await assertSucceeds(getDocs(query(collection(g, 'shomer_orgs', ORG, 'recordings'), where('email', '==', GUARD))));   // phone clean-up query
+  await assertFails(getDocs(collection(g, 'shomer_orgs', ORG, 'recordings')));
   await assertSucceeds(getDocs(collection(db(OWNER), 'shomer_orgs', ORG, 'recordings')));
-  await assertSucceeds(deleteDoc(doc(db(OWNER), 'shomer_orgs', ORG, 'recordings', 'r1')));
+  await assertFails(updateDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1'), { keep: true }));
+  await assertSucceeds(updateDoc(doc(db(OWNER), 'shomer_orgs', ORG, 'recordings', 'r1'), { keep: true }));
+  await assertFails(deleteDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1')));          // kept by the manager
+  await assertSucceeds(updateDoc(doc(db(OWNER), 'shomer_orgs', ORG, 'recordings', 'r1'), { keep: false }));
+  await assertSucceeds(deleteDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1')));       // retention clean-up
 });

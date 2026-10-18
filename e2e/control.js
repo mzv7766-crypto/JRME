@@ -1,6 +1,6 @@
 // The control room in a real (headless) browser: log in as the manager, watch the guard live, start/stop recording.
 import { chromium } from 'playwright';
-import { device, events, fakeFall, recordings } from './fs.js';
+import { device, events, fakeFall, fakeRecording } from './fs.js';
 import { writeFileSync, appendFileSync } from 'node:fs';
 
 const OUT = process.env.OUT || 'results';
@@ -53,10 +53,8 @@ try {
   saved ? pass(`recording saved and reported (sha256 ${String(saved.sha256).slice(0, 12)}…, trigger ${saved.detail})`) : fail('no rec_saved event');
   saved?.detail === 'REMOTE' ? pass('trigger recorded as REMOTE') : info('trigger: ' + saved?.detail);
 
-  // ---- company cloud backup
-  const up = await until(async () => (await recordings()).find((r) => r.email === 'guard@acme.co.il'), 240000, 4000);
-  up ? pass(`recording uploaded to the company cloud (${Math.round((up.size || 0) / 1024)} KB, sha ${String(up.sha256).slice(0, 12)}…)`) : fail('recording not uploaded to the company cloud');
-  up && up.sha256 === saved?.sha256 ? pass('cloud copy has the same SHA-256 as the phone') : info('sha phone/cloud: ' + saved?.sha256 + ' / ' + up?.sha256);
+  // ---- company Drive backup: the upload itself needs a real Google account (not in CI); the listing is seeded
+  await fakeRecording(saved?.sha256);
 
   // ---- end live view
   await page.click('#d-watch');
@@ -75,14 +73,8 @@ try {
   listed ? pass('recording listed in the dashboard') : fail('recording not listed in the dashboard');
   if (listed) {
     await page.click('[data-play]');
-    // Playwright's Chromium has no H.264 decoder, so check that the manager can actually fetch the video bytes
-    const got = await until(() => page.evaluate(async () => {
-      const src = document.getElementById('rec-video')?.src; if (!src) return null;
-      const r = await fetch(src); if (!r.ok) return null;
-      const b = new Uint8Array(await r.arrayBuffer());
-      return String.fromCharCode(...b.slice(4, 8)) === 'ftyp' ? `${b.length} bytes, MP4` : null;
-    }), 30000, 2000);
-    got ? pass(`manager downloads the cloud recording in the browser (${got})`) : fail('cloud recording could not be downloaded');
+    const src = await until(() => page.evaluate(() => document.getElementById('rec-frame')?.src || null), 10000);
+    src?.includes('drive.google.com/file/d/drv-e2e/preview') ? pass('recording opens in the Drive player') : fail('Drive player not opened: ' + src);
     await sleep(1500);
     await page.screenshot({ path: `${OUT}/web_10_recordings.png` });
   }

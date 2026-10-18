@@ -3,8 +3,6 @@
 //  verifyTeam      – the app sends the Google Play purchase token of a company plan; the server asks Google Play
 //                    whether it is really paid and only then gives the company its devices (seats).
 //  recheckPlans    – every 6 hours: renewals, cancellations and refunds update the company's seats.
-//  cleanupRecordings – every night: company cloud recordings older than the company's retention are deleted
-//                    (unless a manager marked them "keep").
 //
 // Deploy: see backend/deploy.sh (one line in Google Cloud Shell).
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
@@ -12,7 +10,6 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { setGlobalOptions, logger } from 'firebase-functions/v2';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getStorage } from 'firebase-admin/storage';
 import { google } from 'googleapis';
 import { PACKAGE, sha256, decide } from './plan.js';
 
@@ -21,7 +18,6 @@ initializeApp();
 const db = getFirestore();
 
 const ADMIN = 'mzv7766@gmail.com';
-const DEFAULT_RETENTION_DAYS = 30;
 
 let publisher;
 async function playSubscription(token) {
@@ -96,26 +92,5 @@ export const recheckPlans = onSchedule({ schedule: 'every 6 hours', timeZone: 'A
         logger.info('plan gone', { org: doc.id, reason: e.message });
       } else logger.warn('recheck failed', { org: doc.id, err: e.message });
     }
-  }
-});
-
-export const cleanupRecordings = onSchedule({ schedule: 'every day 03:30', timeZone: 'Asia/Jerusalem' }, async () => {
-  const bucket = getStorage().bucket();
-  const orgs = await db.collection('shomer_orgs').get();
-  for (const o of orgs.docs) {
-    const days = Number(o.data().policy?.retentionDays) || DEFAULT_RETENTION_DAYS;
-    const cutoff = Date.now() - days * 24 * 3600 * 1000;
-    const old = await o.ref.collection('recordings').where('uploadedAt', '<', cutoff).limit(500).get();
-    for (const r of old.docs) {
-      const rec = r.data();
-      if (rec.keep === true) continue;
-      try {
-        if (rec.path) await bucket.file(rec.path).delete({ ignoreNotFound: true });
-        await r.ref.delete();
-      } catch (e) {
-        logger.warn('cleanup', { org: o.id, rec: r.id, err: e.message });
-      }
-    }
-    if (old.size) logger.info('cleanup', { org: o.id, checked: old.size, days });
   }
 });
