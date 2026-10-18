@@ -85,6 +85,8 @@ class DashcamService : LifecycleService() {
         const val ACTION_TOGGLE_EVENT = "com.jeremy.dashcam.TOGGLE_EVENT"
         const val ACTION_DISCARD_EVENT = "com.jeremy.dashcam.DISCARD_EVENT"
         private const val TAG = "DashcamService"
+        // Keep audio inside the segments (reliable). Flip on only once on-device audio is verified.
+        private const val CONTINUOUS_AUDIO = false
         // Rolling-buffer segment length. Longer segments mean the microphone is re-opened far less often,
         // which is what caused music to stutter every few seconds while recording. Pre-event trimming stays
         // precise because the exporter clips inside the first segment.
@@ -319,9 +321,12 @@ class DashcamService : LifecycleService() {
 
         bufferDir.listFiles()?.forEach { it.delete() } // leftovers from a previous crash
         segments.clear()
-        // Open the microphone ONCE for the whole drive (continuous audio). Video segments are then
-        // recorded without audio, so the mic is never re-opened mid-drive and music stops stuttering.
-        if (settings.recordAudio && hasAudioPermission()) runCatching { audioRecorder.start() }
+        // Continuous audio (mic opened once for the whole drive, muxed in at export) removes the music
+        // stutter entirely, but on real devices it sometimes produced SILENT clips when the mic wasn't
+        // captured exactly right — unacceptable for a dashcam. It is OFF until we can verify on-device
+        // that sound is always kept. With it off, segments record their own audio (reliable), and the
+        // 60 s segment length already keeps music interruptions down to about once a minute.
+        if (CONTINUOUS_AUDIO && settings.recordAudio && hasAudioPermission()) runCatching { audioRecorder.start() }
         tripId = now; tripPending.clear(); tripClipStart = 0L
         driveRotationLocked = false; physicalRotation = null
         if (settings.lockRotation) main.postDelayed({ if (running && !driveRotationLocked) lockDriveRotation() }, 2000) // flat phone → lock to the screen
