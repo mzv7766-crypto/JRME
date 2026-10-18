@@ -43,14 +43,14 @@ test('a guard uploads only into his own folder, only videos, never overwrites', 
 });
 
 test('the manager watches and deletes; other guards cannot watch', async () => {
-  await assertSucceeds(uploadBytes(ref(ctx(GUARD).storage(), path(GUARD, 'r1')), bytes, video));
-  await assertSucceeds(getBytes(ref(ctx(OWNER).storage(), path(GUARD, 'r1'))));
-  await assertFails(getBytes(ref(ctx(GUARD2).storage(), path(GUARD, 'r1'))));
-  await assertFails(getBytes(ref(ctx(STRANGER).storage(), path(GUARD, 'r1'))));
-  await assertSucceeds(deleteObject(ref(ctx(OWNER).storage(), path(GUARD, 'r1'))));
+  await assertSucceeds(uploadBytes(ref(ctx(GUARD).storage(), path(GUARD, 'm1')), bytes, video));
+  await assertSucceeds(getBytes(ref(ctx(OWNER).storage(), path(GUARD, 'm1'))));
+  await assertFails(getBytes(ref(ctx(GUARD2).storage(), path(GUARD, 'm1'))));
+  await assertFails(getBytes(ref(ctx(STRANGER).storage(), path(GUARD, 'm1'))));
+  await assertSucceeds(deleteObject(ref(ctx(OWNER).storage(), path(GUARD, 'm1'))));
 });
 
 test('a company without a plan cannot upload', async () => {
   await env.withSecurityRulesDisabled(async (c) => setDoc(doc(c.firestore(), 'shomer_orgs', ORG), { name: 'Acme', ownerEmail: OWNER, managers: [OWNER], seats: 0, memberCount: 2 }));
-  await assertFails(uploadBytes(ref(ctx(GUARD).storage(), path(GUARD, 'r1')), bytes, video));
+  await assertFails(uploadBytes(ref(ctx(GUARD).storage(), path(GUARD, 'p1')), bytes, video));
 });
