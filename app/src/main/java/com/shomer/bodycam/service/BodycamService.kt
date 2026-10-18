@@ -45,6 +45,7 @@ import com.shomer.bodycam.core.BodySensors
 import com.shomer.bodycam.core.Exporter
 import com.shomer.bodycam.core.Haptics
 import com.shomer.bodycam.core.LocationTracker
+import com.shomer.bodycam.core.PowerGuard
 import com.shomer.bodycam.core.ShiftController
 import com.shomer.bodycam.core.ShiftPhase
 import com.shomer.bodycam.core.ShiftState
@@ -81,7 +82,9 @@ class BodycamService : LifecycleService() {
         const val ACTION_START = "com.shomer.bodycam.START"
         const val ACTION_STOP = "com.shomer.bodycam.STOP"
         const val ACTION_TOGGLE = "com.shomer.bodycam.TOGGLE"
-        private const val SEGMENT_MS = 10_000L
+        // longer segments = fewer encoder restarts (each restart costs a burst of CPU and a tiny gap)
+        private const val SEGMENT_MS = 30_000L
+        private const val LIVE_GRACE_MS = 60_000L
         private const val LOG = "Shomer"
 
         @Volatile
@@ -111,6 +114,9 @@ class BodycamService : LifecycleService() {
     private var orientationListener: OrientationEventListener? = null
     private var analysisExecutor: java.util.concurrent.ExecutorService? = null
     private var analysisUseCase: ImageAnalysis? = null
+    /** Live video is wanted → bind the extra (small) analysis stream. Off otherwise: one camera stream less. */
+    private var wantLive = false
+    private val dropLive = Runnable { if (LiveSender.watcher.value == null) { wantLive = false; applyPendingVideoChange() } }
 
     // pre-record buffer
     private val bufferDir by lazy { File(filesDir, "buffer").apply { mkdirs() } }
@@ -255,9 +261,24 @@ class BodycamService : LifecycleService() {
             }
         }
         shiftJobs += lifecycleScope.launch {
-            LiveSender.watcher.collect {
+            LiveSender.watcher.collect { w ->
                 if (running) getSystemService(NotificationManager::class.java).notify(Notifications.ID_SHIFT, Notifications.shift(this@BodycamService, state.value))
+                main.removeCallbacks(dropLive)
+                if (w != null) {
+                    wantLive = true
+                    // attach the live stream now, even mid-recording (the incident is joined from its segments)
+                    if (analysisUseCase == null && appliedVideoKey != null) requestRebind()
+                } else if (wantLive) main.postDelayed(dropLive, LIVE_GRACE_MS)
             }
+        }
+        PowerGuard.start(this)
+        shiftJobs += lifecycleScope.launch {
+            kotlinx.coroutines.flow.combine(PowerGuard.hot, PowerGuard.lowBattery, SettingsStore.state.map { it.powerSaver }.distinctUntilChanged()) { _, _, saver ->
+                PowerGuard.reason(saver)
+            }.distinctUntilChanged().collect { r -> onPowerChanged(r) }
+        }
+        shiftJobs += lifecycleScope.launch {
+            state.map { it.recording }.distinctUntilChanged().collect { rec -> LocationTracker.setRecording(rec) }
         }
         Haptics.play(this, Haptics.Pattern.SHIFT_ON)
     }
@@ -288,7 +309,8 @@ class BodycamService : LifecycleService() {
         running = false
         shiftJobs.forEach { it.cancel() }; shiftJobs.clear()
         main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable)
-        sensors.stop(); voice.stop(); LocationTracker.stop(); manDown.dismiss()
+        sensors.stop(); voice.stop(); LocationTracker.stop(); manDown.dismiss(); PowerGuard.stop()
+        main.removeCallbacks(dropLive); wantLive = false
         floating.hide()
         orientationListener?.disable(); orientationListener = null
         ProcessLifecycleOwner.get().lifecycle.removeObserver(processObserver)
@@ -322,7 +344,31 @@ class BodycamService : LifecycleService() {
 
     // ------------------------------------------------------------------ camera
 
-    private fun videoKey(s: AppSettings) = "${s.resolution}/${s.fps}/${s.recordAudio}/${state.value.lensFacing}"
+    private fun eco() = state.value.power != PowerGuard.Reason.NONE
+    /** Power saving caps the picture at 720p / 30 FPS. */
+    private fun effResolution(s: AppSettings) = if (eco() && s.resolution != Resolution.HD) Resolution.HD else s.resolution
+    private fun effFps(s: AppSettings) = if (eco()) s.fps.coerceAtMost(30) else s.fps
+    private fun videoKey(s: AppSettings) = "${effResolution(s)}/${effFps(s)}/${s.recordAudio}/${state.value.lensFacing}/$wantLive"
+
+    /** Bitrate that is plenty for a body camera but far below the phone default (less heat, less storage). */
+    private fun bitrate(r: Resolution, fps: Int): Int {
+        val base = when (r) { Resolution.HD -> 4_000_000; Resolution.FHD -> 8_000_000; Resolution.UHD -> 24_000_000 }
+        return if (fps > 30) base * 3 / 2 else base
+    }
+
+    private fun onPowerChanged(r: PowerGuard.Reason) {
+        val was = state.value.power
+        state.update { it.copy(power = r) }
+        LocationTracker.setEco(r != PowerGuard.Reason.NONE)
+        LiveSender.eco = r != PowerGuard.Reason.NONE
+        if (was == r) return
+        if (r == PowerGuard.Reason.HEAT || r == PowerGuard.Reason.BATTERY) {
+            Notifications.notice(this,
+                getString(if (r == PowerGuard.Reason.HEAT) R.string.power_hot_title else R.string.power_low_title),
+                getString(R.string.power_eco_body))
+        }
+        applyPendingVideoChange()   // between recordings only
+    }
 
     private fun displayRotation(): Int = runCatching {
         getSystemService(android.hardware.display.DisplayManager::class.java).getDisplay(android.view.Display.DEFAULT_DISPLAY).rotation
@@ -361,7 +407,9 @@ class BodycamService : LifecycleService() {
         if (!runCatching { p.hasCamera(wanted) }.getOrDefault(false)) state.update { it.copy(lensFacing = CameraSelector.LENS_FACING_BACK) }
         val selector = CameraSelector.Builder().requireLensFacing(state.value.lensFacing).build()
 
-        val quality = when (s.resolution) { Resolution.HD -> Quality.HD; Resolution.FHD -> Quality.FHD; Resolution.UHD -> Quality.UHD }
+        val res = effResolution(s)
+        val fps = effFps(s)
+        val quality = when (res) { Resolution.HD -> Quality.HD; Resolution.FHD -> Quality.FHD; Resolution.UHD -> Quality.UHD }
         val qualitySelector = QualitySelector.from(quality, FallbackStrategy.lowerQualityOrHigherThan(Quality.SD))
         val newPreview = Preview.Builder().build()
         // small frames for live video to the control room (only used while someone is watching)
@@ -376,9 +424,11 @@ class BodycamService : LifecycleService() {
         var bound: VideoCapture<Recorder>? = null
         var lastError: Exception? = null
         // richest first; a phone that can't run 3 camera streams records without live video rather than failing
-        for ((withFps, withAnalysis) in listOf(true to true, false to true, true to false, false to false)) {
-            val vc = VideoCapture.Builder(Recorder.Builder().setQualitySelector(qualitySelector).build()).apply {
-                if (withFps) setTargetFrameRate(Range(s.fps, s.fps))
+        val combos = if (wantLive) listOf(true to true, false to true, true to false, false to false) else listOf(true to false, false to false)
+        for ((withFps, withAnalysis) in combos) {
+            val recorder = Recorder.Builder().setQualitySelector(qualitySelector).setTargetVideoEncodingBitRate(bitrate(res, fps)).build()
+            val vc = VideoCapture.Builder(recorder).apply {
+                if (withFps) setTargetFrameRate(Range(fps, fps))
             }.build().also { it.targetRotation = desiredRotation() }
             val cases = mutableListOf<UseCase>(newPreview, vc)
             if (withAnalysis) cases += analysis
@@ -387,6 +437,7 @@ class BodycamService : LifecycleService() {
                 p.bindToLifecycle(this, selector, *cases.toTypedArray())
                 bound = vc
                 analysisUseCase = if (withAnalysis) analysis else null
+                state.update { it.copy(liveStream = withAnalysis) }
                 break
             } catch (e: Exception) {
                 lastError = e
@@ -670,7 +721,8 @@ class BodycamService : LifecycleService() {
         val operator = settings.operatorId.trim().ifEmpty { null }
         pendingShiftJobs++
         enqueueExport(ExportJob(isIncident = false) { done ->
-            val burn = exportQueue.count { !it.isIncident } < 2   // falling behind → plain join, never lose the shift
+            // falling behind, hot or low battery → plain join (no re-encode), never lose the shift
+            val burn = !eco() && exportQueue.count { !it.isIncident } < 2
             exporter.export(pieces, out, showTime, burn) { result ->
                 unprotect(files)
                 if (running) pruneBuffer() else cleanBuffer()

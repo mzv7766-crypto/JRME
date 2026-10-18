@@ -19,6 +19,8 @@ data class AppSettings(
     val fps: Int = 30,
     val recordAudio: Boolean = true,
     val mounting: Mounting = Mounting.PORTRAIT,
+    /** Power saving: 720p, lighter GPS and live picture (also turns on by itself when hot / low battery). */
+    val powerSaver: Boolean = false,
     // what is stamped into the picture
     val operatorId: String = "",
     val stampTime: Boolean = true,
@@ -136,6 +138,7 @@ object SettingsStore {
             fps = getInt("fps", d.fps),
             recordAudio = getBoolean("audio", d.recordAudio),
             mounting = enumOr(getString("mount", null), d.mounting),
+            powerSaver = getBoolean("saver", d.powerSaver),
             operatorId = getString("opId", "") ?: "",
             stampTime = getBoolean("stampTime", d.stampTime),
             stampLocation = getBoolean("stampLoc", d.stampLocation),
@@ -178,6 +181,7 @@ object SettingsStore {
             .putInt("fps", s.fps)
             .putBoolean("audio", s.recordAudio)
             .putString("mount", s.mounting.name)
+            .putBoolean("saver", s.powerSaver)
             .putString("opId", s.operatorId)
             .putBoolean("stampTime", s.stampTime)
             .putBoolean("stampLoc", s.stampLocation)

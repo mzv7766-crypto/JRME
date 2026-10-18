@@ -130,6 +130,7 @@ fun SettingsScreen(onOpenAccount: () -> Unit) {
                     SettingsStore.update { it.copy(recordAudio = v) }
                 }
                 ChoiceRow(stringResource(R.string.mounting), s.mounting, Mounting.entries, { stringResource(it.labelRes) }, stringResource(R.string.mounting_sub)) { v -> SettingsStore.update { it.copy(mounting = v) } }
+                SwitchRow(stringResource(R.string.power_saver), s.powerSaver, stringResource(R.string.power_saver_sub)) { v -> SettingsStore.update { it.copy(powerSaver = v) } }
                 if (shift.recording) Note(stringResource(R.string.applies_after_recording))
             }
 
@@ -146,6 +147,7 @@ fun SettingsScreen(onOpenAccount: () -> Unit) {
                     SettingsStore.update { it.copy(voiceCommands = v) }
                 }
                 if (s.voiceCommands) {
+                    Note(stringResource(R.string.voice_battery))
                     TextRow(stringResource(R.string.voice_start_phrase), s.voiceStartPhrase) { v -> if (v.isNotBlank()) SettingsStore.update { it.copy(voiceStartPhrase = v) } }
                     TextRow(stringResource(R.string.voice_stop_phrase), s.voiceStopPhrase) { v -> if (v.isNotBlank()) SettingsStore.update { it.copy(voiceStopPhrase = v) } }
                 }

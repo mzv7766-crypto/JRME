@@ -368,4 +368,13 @@
     <string name="c_web_desc">אותו חדר בקרה במחשב, עם מפה גדולה. נכנסים עם אותו חשבון Google.</string>
     <string name="c_web_open">פתח</string>
     <string name="c_web_share">שלח קישור</string>
+    <string name="power_hot_title">הטלפון התחמם</string>
+    <string name="power_low_title">סוללה חלשה</string>
+    <string name="power_eco_body">עברנו למצב חיסכון: 720p, מיקום פחות תכוף ושידור חי קל יותר. תיעוד שכבר רץ לא נקטע.</string>
+    <string name="power_saver">חיסכון בסוללה</string>
+    <string name="power_saver_sub">720p, מיקום פחות תכוף ושידור חי קל יותר. נדלק לבד כשהטלפון חם או כשהסוללה מתחת ל־15%.</string>
+    <string name="voice_battery">האזנה רציפה לפקודות קוליות צורכת הרבה סוללה</string>
+    <string name="power_banner_heat">הטלפון חם – מצב חיסכון פעיל</string>
+    <string name="power_banner_battery">סוללה חלשה – מצב חיסכון פעיל</string>
+    <string name="power_banner_saver">מצב חיסכון בסוללה פעיל</string>
 </resources>

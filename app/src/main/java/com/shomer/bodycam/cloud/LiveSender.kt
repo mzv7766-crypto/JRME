@@ -33,6 +33,10 @@ import java.nio.ByteBuffer
 object LiveSender {
     private const val TAG = "ShomerLive"
     private const val MAX_FPS = 15
+    private const val ECO_FPS = 8
+
+    /** Power saving: fewer live frames. */
+    @Volatile var eco = false
 
     /** E-mail of the person watching right now (shown to the guard), null when nobody is. */
     val watcher = MutableStateFlow<String?>(null)
@@ -154,7 +158,7 @@ object LiveSender {
             val obs = observer ?: return
             if (!wantsFrames) return
             val now = SystemClock.elapsedRealtime()
-            if (now - lastFrameAt < 1000L / MAX_FPS) return
+            if (now - lastFrameAt < 1000L / (if (eco) ECO_FPS else MAX_FPS)) return
             lastFrameAt = now
             val buffer = toI420(img)
             val frame = VideoFrame(buffer, img.imageInfo.rotationDegrees, SystemClock.elapsedRealtimeNanos())

@@ -368,4 +368,13 @@
     <string name="c_web_desc">The same control room on a computer, with a big map. Sign in with the same Google account.</string>
     <string name="c_web_open">Open</string>
     <string name="c_web_share">Send link</string>
+    <string name="power_hot_title">Phone is hot</string>
+    <string name="power_low_title">Low battery</string>
+    <string name="power_eco_body">Switched to power saving: 720p, less frequent location and a lighter live picture. A running recording is not interrupted.</string>
+    <string name="power_saver">Battery saver</string>
+    <string name="power_saver_sub">720p, less frequent location and a lighter live picture. Turns on by itself when the phone is hot or the battery is under 15%.</string>
+    <string name="voice_battery">Listening for voice commands all the time uses a lot of battery</string>
+    <string name="power_banner_heat">Phone is hot – power saving on</string>
+    <string name="power_banner_battery">Low battery – power saving on</string>
+    <string name="power_banner_saver">Battery saver on</string>
 </resources>

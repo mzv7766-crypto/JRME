@@ -36,6 +36,10 @@ data class ShiftState(
     val audioActive: Boolean = false,
     val savedThisShift: Int = 0,
     val error: String? = null,
+    /** Why the camera runs in power-saving mode right now (NONE = full quality). */
+    val power: PowerGuard.Reason = PowerGuard.Reason.NONE,
+    /** The live-video stream to the control room is attached to the camera. */
+    val liveStream: Boolean = false,
 ) {
     val onShift get() = phase != ShiftPhase.OFF
 }

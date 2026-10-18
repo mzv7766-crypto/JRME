@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.BatterySaver
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -202,6 +203,21 @@ private fun OnShift(onCamera: () -> Unit, onOpenRecord: (String) -> Unit) {
                 Icon(Icons.Filled.Videocam, null, tint = S.Red)
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.watched_banner, watcher ?: ""), color = S.Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+        }
+        if (state.onShift && state.power != com.shomer.bodycam.core.PowerGuard.Reason.NONE) {
+            val p = state.power
+            Row(
+                Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(12.dp)).background(S.Card).padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.BatterySaver, null, tint = if (p == com.shomer.bodycam.core.PowerGuard.Reason.SAVER) S.Green else S.Amber)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(when (p) {
+                    com.shomer.bodycam.core.PowerGuard.Reason.HEAT -> R.string.power_banner_heat
+                    com.shomer.bodycam.core.PowerGuard.Reason.BATTERY -> R.string.power_banner_battery
+                    else -> R.string.power_banner_saver
+                }), color = S.Text, fontSize = 13.sp)
             }
         }
         StatusBanner(now)

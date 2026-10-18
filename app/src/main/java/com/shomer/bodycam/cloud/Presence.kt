@@ -27,7 +27,8 @@ import kotlin.math.abs
  * Runs only while the shift is on AND the phone belongs to a company with a paid plan.
  */
 object Presence {
-    private const val HEARTBEAT_MS = 20_000L
+    // the control room marks a phone "no signal" after 2 minutes, so 40 s leaves room for two missed beats
+    private const val HEARTBEAT_MS = 40_000L
     private lateinit var app: Context
     private var active: Pair<String, String>? = null      // orgId, email
     private var cmdListener: ListenerRegistration? = null
@@ -54,7 +55,7 @@ object Presence {
             LocationTracker.latest.collect { f ->
                 if (active == null || f == null) return@collect
                 val moved = abs(f.lat - lastLat) > 0.0002 || abs(f.lon - lastLon) > 0.0002     // ~20 m
-                if (moved && System.currentTimeMillis() - lastWrite > 5_000) write()
+                if (moved && System.currentTimeMillis() - lastWrite > 15_000) write()
             }
         }
     }

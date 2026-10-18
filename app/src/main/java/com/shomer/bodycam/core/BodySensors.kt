@@ -49,7 +49,8 @@ class BodySensors(
         val t = HandlerThread("shomer-sensors").also { it.start() }
         thread = t
         fall.reset(); shake.reset()
-        registered = sm.registerListener(this, a, 10_000, Handler(t.looper))
+        // ~100 Hz, delivered in batches (≤ 0.4 s late) so the sensor hub buffers samples instead of waking the CPU 100×/s
+        registered = sm.registerListener(this, a, 10_000, 400_000, Handler(t.looper))
     }
 
     fun stop() {
@@ -59,7 +60,8 @@ class BodySensors(
     }
 
     override fun onSensorChanged(e: SensorEvent) {
-        val t = SystemClock.elapsedRealtime()
+        // the sample's own time (batched samples arrive together, so the arrival time would be wrong)
+        val t = if (e.timestamp > 0) e.timestamp / 1_000_000 else SystemClock.elapsedRealtime()
         val x = e.values[0]; val y = e.values[1]; val z = e.values[2]
         if (fallOn) fall.onSample(t, x, y, z)?.let(onFall)
         if (shakeOn && shake.onSample(t, x, y, z) != null) onShake()
