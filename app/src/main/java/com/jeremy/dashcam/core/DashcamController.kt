@@ -30,6 +30,10 @@ data class DashcamState(
     val backgroundSaving: Boolean = false,
     val lensFacing: Int = CameraSelector.LENS_FACING_BACK,
     val audioActive: Boolean = false,
+    /** Thermal guard: 0 = normal, 1 = hot (quality auto-reduced), 2 = very hot (warning). */
+    val thermalLevel: Int = 0,
+    /** Current battery temperature in °C while driving (0 = unknown). */
+    val batteryTempC: Float = 0f,
     val error: String? = null,
 ) {
     val driveActive get() = phase != DrivePhase.OFF

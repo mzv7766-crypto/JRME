@@ -125,6 +125,36 @@ class DashcamService : LifecycleService() {
     private var driveRotationLocked = false
     private var analysisUseCase: ImageAnalysis? = null
 
+    // Thermal guard: when the battery gets hot the recording is auto-reduced (and warned about), then
+    // restored once it cools. Hysteresis stops it flapping around a threshold.
+    private var thermalLevel = 0
+    private val thermalThrottle get() = thermalLevel >= 1
+    private val thermalTick = object : Runnable {
+        override fun run() { if (running) { sampleThermal(); main.postDelayed(this, 8_000) } }
+    }
+    private fun sampleThermal() {
+        val t = runCatching {
+            (registerReceiver(null, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                ?.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, -1) ?: -1).let { if (it > 0) it / 10f else 0f }
+        }.getOrDefault(0f)
+        if (t <= 0f) return
+        val level = when {
+            thermalLevel >= 1 && t <= 40f -> 0   // cooled: back to full quality
+            thermalLevel == 2 && t <= 45f -> 1
+            t >= 47f -> 2
+            t >= 43f -> maxOf(thermalLevel, 1)
+            else -> thermalLevel
+        }
+        val changed = level != thermalLevel
+        thermalLevel = level
+        state.update { it.copy(thermalLevel = level, batteryTempC = t) }
+        if (changed) {
+            Log.i(LOG, "thermal level=$level temp=$t")
+            motion.batterySaver = settings.batterySaver || thermalThrottle
+            if (appliedVideoKey != null && appliedVideoKey != videoKey(settings) && !state.value.eventActive) requestRebind()
+        }
+    }
+
     private fun displayRotation(): Int = runCatching {
         getSystemService(android.hardware.display.DisplayManager::class.java).getDisplay(android.view.Display.DEFAULT_DISPLAY).rotation
     }.getOrDefault(Surface.ROTATION_0)
@@ -329,6 +359,7 @@ class DashcamService : LifecycleService() {
         if (CONTINUOUS_AUDIO && settings.recordAudio && hasAudioPermission()) runCatching { audioRecorder.start() }
         tripId = now; tripPending.clear(); tripClipStart = 0L
         driveRotationLocked = false; physicalRotation = null
+        thermalLevel = 0; main.postDelayed(thermalTick, 8_000) // thermal guard
         if (settings.lockRotation) main.postDelayed({ if (running && !driveRotationLocked) lockDriveRotation() }, 2000) // flat phone → lock to the screen
 
         orientationListener = object : OrientationEventListener(this) {
@@ -412,7 +443,7 @@ class DashcamService : LifecycleService() {
     private fun teardown() {
         running = false
         driveJobs.forEach { it.cancel() }; driveJobs.clear()
-        main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable); main.removeCallbacks(autoStopRunnable)
+        main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable); main.removeCallbacks(autoStopRunnable); main.removeCallbacks(thermalTick)
         shock.stop(); motion.enabled = false; voice.stop()
         motion.aiWanted = false; runCatching { analysisExecutor?.execute { motion.release() } }
         runCatching { Thread { audioRecorder.stop() }.start() } // off the main thread (join can take up to ~1.5 s)
@@ -444,9 +475,10 @@ class DashcamService : LifecycleService() {
 
     // ---------------------------------------------------------------- camera
 
-    /** Battery saver caps the recording so the encoder and sensor run cooler. */
-    private fun effResolution(s: AppSettings) = if (s.batterySaver && s.resolution == Resolution.UHD) Resolution.FHD else s.resolution
-    private fun effFps(s: AppSettings) = if (s.batterySaver) minOf(s.fps, 30) else s.fps
+    /** Battery saver (or the thermal guard when the phone is hot) caps the recording so it runs cooler. */
+    private fun lightLoad(s: AppSettings) = s.batterySaver || thermalThrottle
+    private fun effResolution(s: AppSettings) = if (lightLoad(s) && s.resolution == Resolution.UHD) Resolution.FHD else s.resolution
+    private fun effFps(s: AppSettings) = if (lightLoad(s)) minOf(s.fps, 30) else s.fps
     /** The camera analysis stream (and the detectors it feeds) is only worth running when something consumes it. */
     private fun needAnalysis(s: AppSettings) = s.smartDetection
 
@@ -475,7 +507,7 @@ class DashcamService : LifecycleService() {
         }
 
         val newPreview = Preview.Builder().build().also { it.targetRotation = recordingRotation() }
-        motion.batterySaver = s.batterySaver
+        motion.batterySaver = s.batterySaver || thermalThrottle
         // Only build and bind the analysis stream when a detector actually consumes it. With smart
         // detection off, skipping this whole camera stream noticeably cuts CPU, heat and battery.
         val wantAnalysis = needAnalysis(s)
@@ -994,7 +1026,7 @@ class DashcamService : LifecycleService() {
         motion.sensitivity = s.smartSensitivity
         motion.enabled = s.smartDetection
         motion.aiWanted = isPro && s.proAi
-        motion.batterySaver = s.batterySaver
+        motion.batterySaver = s.batterySaver || thermalThrottle
         if (s.voiceFeedback || s.voiceCommands) voice.initTts()
         if (s.voiceCommands && hasAudioPermission()) voice.start(s.voiceStartPhrase, s.voiceStopPhrase) else voice.stop()
         if (appliedVideoKey != null && appliedVideoKey != videoKey(s) && !state.value.eventActive) requestRebind()

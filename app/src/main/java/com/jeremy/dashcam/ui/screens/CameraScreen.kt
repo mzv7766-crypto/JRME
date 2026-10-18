@@ -239,6 +239,12 @@ private fun TopInfo(s: AppSettings, eventActive: Boolean, audio: Boolean, modifi
             "${effHeight}P • ${effFps} FPS" + if (s.batterySaver) " • חיסכון" else "",
             leading = { Icon(if (audio) Icons.Filled.Mic else Icons.Filled.MicOff, null, tint = Color.White, modifier = Modifier.size(14.dp)) },
         )
+        // Thermal guard: tell the driver the phone is hot and the quality was auto-reduced.
+        val thermal = DashcamController.state.collectAsStateWithLifecycle().value.thermalLevel
+        if (thermal >= 1) Chip(
+            if (thermal >= 2) "🌡 חם מאוד" else "🌡 חם — איכות הופחתה",
+            leading = { Icon(Icons.Filled.Warning, null, tint = J.Amber, modifier = Modifier.size(14.dp)) },
+        )
     }
 }
 
