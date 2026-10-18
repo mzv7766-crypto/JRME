@@ -55,7 +55,8 @@ object Presence {
             LocationTracker.latest.collect { f ->
                 if (active == null || f == null) return@collect
                 val moved = abs(f.lat - lastLat) > 0.0002 || abs(f.lon - lastLon) > 0.0002     // ~20 m
-                if (moved && System.currentTimeMillis() - lastWrite > 15_000) write()
+                val first = lastLat == 0.0 && lastLon == 0.0                                     // first fix of the shift: show it right away
+                if (moved && (first || System.currentTimeMillis() - lastWrite > 15_000)) write()
             }
         }
     }
@@ -75,6 +76,7 @@ object Presence {
         active = target
         if (target == null) return
         sessionStart = System.currentTimeMillis()
+        lastLat = 0.0; lastLon = 0.0
         write()
         event("shift_start")
         heartbeat = Cloud.scope.launch { while (true) { delay(HEARTBEAT_MS); write() } }

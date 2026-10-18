@@ -11,7 +11,7 @@ import { getStorage, connectStorageEmulator, ref as sref, getDownloadURL, delete
 import { firebaseConfig, ADMIN_EMAIL } from "./config.js";
 
 const EMU = new URLSearchParams(location.search).has("emu");   // end-to-end tests only
-const app = initializeApp(EMU ? { apiKey: "demo", projectId: "demo-shomer", authDomain: "localhost" } : firebaseConfig);
+const app = initializeApp(EMU ? { apiKey: "demo", projectId: "demo-shomer", authDomain: "localhost", storageBucket: "demo-shomer.appspot.com" } : firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
@@ -144,7 +144,7 @@ async function playRec(r) {
     $("rec-sha").textContent = r.sha256 ? "SHA-256: " + r.sha256 : "";
     $("rec-video").play().catch(() => {});
     window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch (e) { alert("לא הצלחנו לפתוח את ההקלטה"); }
+  } catch (e) { console.warn("recording url", e); alert("לא הצלחנו לפתוח את ההקלטה"); }
 }
 $("rec-close").onclick = () => { $("rec-video").pause(); $("rec-video").removeAttribute("src"); $("rec-player").classList.add("hidden"); };
 async function delRec(r) {

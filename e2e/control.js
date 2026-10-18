@@ -49,7 +49,7 @@ try {
   await page.click('#d-rec');
   const stopped = await until(async () => (await device())?.recording === false, 30000);
   stopped ? pass('remote stop: phone stopped') : fail('remote stop did not reach the phone');
-  const saved = await until(async () => (await events()).find((e) => e.type === 'rec_saved' && e.email === 'guard@acme.co.il'), 240000, 4000);
+  const saved = await until(async () => (await events()).find((e) => e.type === 'rec_saved' && e.email === 'guard@acme.co.il'), 480000, 4000);   // software video encoder on the CI emulator is slow
   saved ? pass(`recording saved and reported (sha256 ${String(saved.sha256).slice(0, 12)}…, trigger ${saved.detail})`) : fail('no rec_saved event');
   saved?.detail === 'REMOTE' ? pass('trigger recorded as REMOTE') : info('trigger: ' + saved?.detail);
 

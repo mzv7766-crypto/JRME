@@ -36,6 +36,14 @@ if (cmd === 'device') { console.log(JSON.stringify(await device(process.argv[3])
 if (cmd === 'events') { console.log(JSON.stringify(await events())); process.exit(0); }
 if (cmd === 'fall') { await fakeFall(); process.exit(0); }
 if (cmd === 'wait-shift') {
-  for (let i = 0; i < 60; i++) { const d = await device(); if (d?.onShift) { console.log(JSON.stringify(d)); process.exit(0); } await new Promise((r) => setTimeout(r, 3000)); }
+  for (let i = 0; i < 60; i++) {
+    const d = await device();
+    if (d?.onShift) {
+      // the first report may come before the first GPS fix: give the location up to 30 s
+      for (let j = 0; j < 10 && !(await device())?.lat; j++) await new Promise((r) => setTimeout(r, 3000));
+      console.log(JSON.stringify(await device())); process.exit(0);
+    }
+    await new Promise((r) => setTimeout(r, 3000));
+  }
   console.log('timeout'); process.exit(1);
 }
