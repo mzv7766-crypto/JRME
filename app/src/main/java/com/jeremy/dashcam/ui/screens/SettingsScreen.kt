@@ -523,6 +523,12 @@ private fun ProFeaturesSection(isPro: Boolean, signedIn: Boolean, onOpenPro: () 
             if (st.smartDetection || !st.proAi) "מזהה רכבים והולכי רגל שמתקרבים מהר – בטלפון, בלי אינטרנט" else "פועל רק כש\"זיהוי חכם\" דלוק",
             isPro, st.proAi, onOpenPro,
         ) { v -> SettingsStore.update { if (v) it.copy(proAi = true, smartDetection = true) else it.copy(proAi = false) } }
+        if (isPro && st.proAi) ProRow(
+            "סריקת AI בסוף הנסיעה",
+            if (st.postDriveAiScan) "סורק את הנסיעה בטעינה וחותך אוטומטית את הרגעים החשובים – שומר על הטלפון קריר בזמן נהיגה"
+            else "ה־AI רץ בזמן אמת במהלך הנהיגה",
+            isPro, st.postDriveAiScan, onOpenPro,
+        ) { v -> SettingsStore.update { it.copy(postDriveAiScan = v) } }
         ProRow(
             "גיבוי לגוגל דרייב",
             when (st.driveMode) {

@@ -59,6 +59,9 @@ data class AppSettings(
     val sosMinG: Float = 3.5f,
     val proDual: Boolean = false,
     val proAi: Boolean = true,
+    /** PRO: run the camera AI AFTER the drive (while charging) instead of live, to keep the phone cool.
+     *  On by default; turn off to detect live during the drive. */
+    val postDriveAiScan: Boolean = true,
     val driveMode: DriveMode = DriveMode.OFF,
     val driveCellular: Boolean = false,
     // what is burned into the video (PRO)
@@ -132,6 +135,7 @@ object SettingsStore {
             sosMinG = getFloat("sosG", 3.5f),
             proDual = getBoolean("proDual", false),
             proAi = getBoolean("proAi", true),
+            postDriveAiScan = getBoolean("postAi", true),
             driveMode = enumOr(getString("driveMode", null), DriveMode.OFF),
             driveCellular = getBoolean("driveCell", false),
             burnSpeed = getBoolean("burnSpeed", true),
@@ -184,6 +188,7 @@ object SettingsStore {
             .putFloat("sosG", s.sosMinG)
             .putBoolean("proDual", s.proDual)
             .putBoolean("proAi", s.proAi)
+            .putBoolean("postAi", s.postDriveAiScan)
             .putString("driveMode", s.driveMode.name)
             .putBoolean("driveCell", s.driveCellular)
             .putBoolean("burnSpeed", s.burnSpeed)

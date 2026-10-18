@@ -397,7 +397,7 @@ class DashcamService : LifecycleService() {
         driveJobs += lifecycleScope.launch { SettingsStore.state.collect { applySettings(it) } }
         driveJobs += lifecycleScope.launch { com.jeremy.dashcam.data.ProStore.state.collect {
             applyProFeatures()
-            motion.aiWanted = isPro && settings.proAi
+            motion.aiWanted = isPro && settings.proAi && !settings.postDriveAiScan
             if (appliedVideoKey != null && appliedVideoKey != videoKey(settings) && !state.value.eventActive) requestRebind()
         } }
         // Attach / detach the on-screen preview offered by the UI (never opens the camera itself).
@@ -459,6 +459,7 @@ class DashcamService : LifecycleService() {
         } else {
             unbindCamera(); flushTrip(final = true); cleanBuffer()
         }
+        maybeEnqueueScan()
         val saving = state.value.savingCount
         val background = pendingTripJobs > 0 || exportBusy || exportQueue.isNotEmpty() || tripPending.isNotEmpty() || activeRecording != null
         state.value = DashcamState(savingCount = saving, backgroundSaving = background)
@@ -989,7 +990,7 @@ class DashcamService : LifecycleService() {
                     if (record != null) EventRepository.add(record) else out.delete()
                     main.post {
                         pendingTripJobs--
-                        if (!running && pendingTripJobs == 0) state.update { it.copy(backgroundSaving = false) }
+                        if (!running && pendingTripJobs == 0) { state.update { it.copy(backgroundSaving = false) }; maybeEnqueueScan() }
                         done()
                     }
                 }.start()
@@ -1025,7 +1026,7 @@ class DashcamService : LifecycleService() {
         onOrientationMaybeChanged()
         motion.sensitivity = s.smartSensitivity
         motion.enabled = s.smartDetection
-        motion.aiWanted = isPro && s.proAi
+        motion.aiWanted = isPro && s.proAi && !s.postDriveAiScan
         motion.batterySaver = s.batterySaver || thermalThrottle
         if (s.voiceFeedback || s.voiceCommands) voice.initTts()
         if (s.voiceCommands && hasAudioPermission()) voice.start(s.voiceStartPhrase, s.voiceStopPhrase) else voice.stop()
@@ -1045,4 +1046,11 @@ class DashcamService : LifecycleService() {
 
     private fun hasAudioPermission() =
         ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+    /** When the drive is over and its trips are saved, hand the AI a job to scan them (only while charging). */
+    private fun maybeEnqueueScan() {
+        if (!running && pendingTripJobs == 0 && settings.postDriveAiScan && isPro && settings.proAi) {
+            runCatching { com.jeremy.dashcam.core.pro.PostDriveAiScan.enqueue(this, tripId) }
+        }
+    }
 }
