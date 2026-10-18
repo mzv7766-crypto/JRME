@@ -1,0 +1,2 @@
+[warning] Allow attribute will take precedence over 'allowfullscreen'.
+[error] Failed to load resource: the server responded with a status of 404 ()
