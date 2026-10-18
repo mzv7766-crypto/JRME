@@ -32,7 +32,7 @@ jobs:
         if: always()
         run: |
           echo "::notice::rules tests: $(grep -E '^# (tests|pass|fail)' rules.log | tr '\n' ' ')"
-          grep -E "not ok|✖|Error:" rules.log | head -30 | while IFS= read -r l; do echo "::error::$l"; done
+          grep -E -A14 "^not ok|^# Subtest|✖" rules.log | grep -E "not ok|error:|message|code:|expected|actual|at .*test\.js" | head -40 | while IFS= read -r l; do echo "::error::$l"; done
   build:
     runs-on: ubuntu-24.04
     steps:
