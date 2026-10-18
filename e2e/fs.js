@@ -27,6 +27,7 @@ export async function seed() {
 
 export const device = (email = GUARD) => admin(async (db) => (await getDoc(doc(db, 'shomer_orgs', ORG, 'devices', email))).data() || null);
 export const events = () => admin(async (db) => (await getDocs(collection(db, 'shomer_orgs', ORG, 'events'))).docs.map((d) => d.data()));
+export const recordings = () => admin(async (db) => (await getDocs(collection(db, 'shomer_orgs', ORG, 'recordings'))).docs.map((d) => ({ id: d.id, ...d.data() })));
 export const fakeFall = () => admin(async (db) => addDoc(collection(db, 'shomer_orgs', ORG, 'events'), { type: 'fall', email: 'g3@acme.co.il', name: 'אבי מזרחי 5101', at: Date.now(), lat: 32.0812, lon: 34.7865, detail: '3.4g' }));
 
 const cmd = process.argv[2];

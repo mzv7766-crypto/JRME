@@ -31,9 +31,9 @@ jobs:
           cd e2e && npm install --no-audit --no-fund && npx playwright install --with-deps chromium
       - name: Start Firebase emulators + dashboard
         run: |
-          cd backend && nohup ../e2e/node_modules/.bin/firebase emulators:start --only auth,firestore --project demo-shomer > ../emulators.log 2>&1 &
+          cd backend && nohup ../e2e/node_modules/.bin/firebase emulators:start --only auth,firestore,storage --project demo-shomer > ../emulators.log 2>&1 &
           cd dashboard && nohup python3 -m http.server 8000 > ../http.log 2>&1 &
-          for i in $(seq 1 60); do curl -s http://127.0.0.1:8080 >/dev/null && curl -s http://127.0.0.1:9099 >/dev/null && break; sleep 2; done
+          for i in $(seq 1 60); do curl -s http://127.0.0.1:8080 >/dev/null && curl -s http://127.0.0.1:9099 >/dev/null && curl -s http://127.0.0.1:9199 >/dev/null && break; sleep 2; done
           curl -s -o /dev/null -w "firestore %{http_code}\n" http://127.0.0.1:8080
       - name: Enable KVM
         run: |
