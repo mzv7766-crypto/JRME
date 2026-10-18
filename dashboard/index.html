@@ -41,6 +41,7 @@
       <nav class="tabs" id="tabs">
         <button data-tab="board" class="on">מפה חיה</button>
         <button data-tab="alerts">התראות <span class="badge hidden" id="alert-count"></span></button>
+        <button data-tab="recs">הקלטות</button>
         <button data-tab="team">צוות</button>
         <button data-tab="rules">כללים</button>
         <button data-tab="plan">חבילה</button>
@@ -89,6 +90,21 @@
 
       <div class="pane" id="pane-alerts"><div class="list" id="event-list"></div></div>
 
+      <div class="pane" id="pane-recs">
+        <div class="list">
+          <div class="row wrap recs-head">
+            <select id="rec-guard"><option value="">כל המאבטחים</option></select>
+            <span class="muted small" id="rec-note"></span>
+          </div>
+          <div class="player hidden" id="rec-player">
+            <video id="rec-video" controls playsinline></video>
+            <div class="row wrap"><b id="rec-title"></b><span class="muted small mono" id="rec-sha"></span>
+              <a class="btn" id="rec-dl" download>הורדה</a><button class="btn" id="rec-close">סגור</button></div>
+          </div>
+          <div id="rec-list"></div>
+        </div>
+      </div>
+
       <div class="pane" id="pane-team">
         <div class="card form">
           <h3>הוספת מאבטח</h3>
@@ -114,6 +130,8 @@
           <label class="sw"><input type="checkbox" id="r-lock"> נעילה אוטומטית של כל תיעוד</label>
           <label class="sw"><input type="checkbox" id="r-discard"> מאבטח יכול לבטל תיעוד</label>
           <label class="sw"><input type="checkbox" id="r-delete"> מאבטח יכול למחוק תיעודים</label>
+          <label>גיבוי לענן החברה<select id="r-cloud"><option value="all">בכל רשת</option><option value="wifi">רק Wi‑Fi</option><option value="off">כבוי</option></select></label>
+          <label>מחיקה אוטומטית מהענן אחרי<select id="r-keep"><option value="7">7 ימים</option><option value="30">30 ימים</option><option value="60">60 ימים</option><option value="90">90 ימים</option><option value="180">180 ימים</option></select></label>
           <button class="btn primary" id="r-save">שמור כללים</button> <span class="muted" id="r-msg"></span>
           <p class="muted small">קבוע: מיקום פעיל במשמרת, והמאבטח תמיד מקבל הודעה כשצופים בו.</p>
         </div>

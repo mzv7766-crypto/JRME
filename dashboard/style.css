@@ -106,7 +106,17 @@ main { height: calc(100% - 56px); }
 .alarm-title { font-size: 30px; font-weight: 900; margin-bottom: 8px; }
 .alarm .row { justify-content: center; margin-top: 16px; flex-wrap: wrap; }
 
+/* cloud recordings */
+.recs-head { margin-bottom: 10px; }
+.player { background: var(--card); border: 1px solid var(--stroke); border-radius: 14px; padding: 10px; margin-bottom: 12px; }
+.player video { width: 100%; max-height: 60vh; background: #000; border-radius: 10px; }
+.player .row { margin-top: 8px; }
+.mono { font-family: var(--mono); word-break: break-all; }
+.keep { color: var(--green); }
+a.btn { text-decoration: none; display: inline-block; }
+
 @media (max-width: 760px) {
+  .item { flex-wrap: wrap; }
   .top { flex-wrap: wrap; height: auto; padding: 8px 12px; gap: 6px; }
   .tabs { order: 3; width: 100%; margin: 0; }
   .me { display: none; }

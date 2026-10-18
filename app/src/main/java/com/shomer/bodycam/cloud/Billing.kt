@@ -163,10 +163,11 @@ object Billing : PurchasesUpdatedListener {
                 val seats = seatsOf(plan)
                 if (plan != null && seats != null) {
                     AccountStore.update { it.copy(teamPurchase = TeamPurchase(plan, seats, teamP.purchaseToken, teamP.isAutoRenewing)) }
-                    if (pendingTeamPlan != null) OrgStore.applyTeamPurchase(plan, seats, teamP.purchaseToken)
                 }
+                // the server checks the payment with Google Play and sets the company's devices
+                AccountStore.update { it.copy(teamToken = teamP.purchaseToken) }
                 pendingTeamPlan = null
-            } else if (fromQuery) AccountStore.update { it.copy(teamPurchase = null) }
+            } else if (fromQuery) AccountStore.update { it.copy(teamPurchase = null, teamToken = null) }
         }
     }
 

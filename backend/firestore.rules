@@ -60,10 +60,10 @@ service cloud.firestore {
         && (request.resource.data.memberCount == resource.data.memberCount
             || request.resource.data.memberCount == resource.data.memberCount + 1
             || request.resource.data.memberCount == resource.data.memberCount - 1)
-        // seats change only through a Google Play team plan (5 / 10 / 25 / 50 devices) or by the admin
-        && (request.resource.data.seats == resource.data.seats
-            || (request.resource.data.seats in [5, 10, 25, 50] && request.resource.data.plan.source == 'play'))
-        && (!('plan' in request.resource.data) || request.resource.data.plan.source == 'play' || request.resource.data.plan == resource.data.get('plan', null)));
+        // seats and plan are written ONLY by the server after Google Play confirmed the payment
+        // (Cloud Function verifyTeam, which bypasses these rules) or by the admin
+        && request.resource.data.seats == resource.data.seats
+        && request.resource.data.get('plan', null) == resource.data.get('plan', null));
       allow delete: if isAdmin() || (signedIn() && resource.data.ownerEmail == me());
 
       match /members/{email} {
@@ -97,6 +97,15 @@ service cloud.firestore {
         match /{side}/{cand} {
           allow read, write: if isManager(o) || (isSelf(email) && isMember(o));
         }
+      }
+
+      // recordings backed up to the company cloud (the video itself is in Cloud Storage)
+      match /recordings/{id} {
+        allow read: if isManager(o) || (resource != null && isSelf(resource.data.email) && isMember(o));
+        allow create: if isMember(o) && org(o).seats > 0 && request.resource.data.email == me()
+          && request.resource.data.path == 'shomer_orgs/' + o + '/rec/' + me() + '/' + id + '.mp4';
+        allow update: if isManager(o) && onlyChanges(['note', 'title', 'keep']);
+        allow delete: if isManager(o);
       }
 
       // timeline: shift start/end, recording saved, fall detected … (append-only)

@@ -24,13 +24,23 @@ data class Policy(
     val autoLock: Boolean = true,
     val allowDiscard: Boolean = false,
     val allowDelete: Boolean = false,
+    /** Company cloud backup of every recording: "all" networks, "wifi" only, or "off". */
+    val cloudBackup: String = CLOUD_ALL,
+    /** Cloud recordings are deleted after this many days (unless marked "keep"). */
+    val retentionDays: Int = 30,
 ) {
     fun toMap() = mapOf(
         "preRecordSeconds" to preRecordSeconds, "recordAudio" to recordAudio, "fallDetection" to fallDetection,
         "autoLock" to autoLock, "allowDiscard" to allowDiscard, "allowDelete" to allowDelete,
+        "cloudBackup" to cloudBackup, "retentionDays" to retentionDays,
     )
 
     companion object {
+        const val CLOUD_ALL = "all"
+        const val CLOUD_WIFI = "wifi"
+        const val CLOUD_OFF = "off"
+        val RETENTION_OPTIONS = listOf(7, 30, 60, 90, 180)
+
         @Suppress("UNCHECKED_CAST")
         fun from(m: Any?): Policy {
             val p = m as? Map<String, Any?> ?: return Policy()
@@ -41,6 +51,8 @@ data class Policy(
                 autoLock = p["autoLock"] as? Boolean ?: true,
                 allowDiscard = p["allowDiscard"] as? Boolean ?: false,
                 allowDelete = p["allowDelete"] as? Boolean ?: false,
+                cloudBackup = (p["cloudBackup"] as? String)?.takeIf { it in listOf(CLOUD_ALL, CLOUD_WIFI, CLOUD_OFF) } ?: CLOUD_ALL,
+                retentionDays = (p["retentionDays"] as? Number)?.toInt()?.takeIf { it > 0 } ?: 30,
             )
         }
     }
@@ -57,6 +69,9 @@ data class OrgInfo(
     val planBase: String?,
     val planToken: String?,
     val policy: Policy,
+    /** Google Play confirmed the payment on the server. */
+    val planVerified: Boolean = false,
+    val planExpiry: Long = 0L,
 )
 
 data class MemberInfo(val email: String, val name: String, val badge: String) {
@@ -155,6 +170,7 @@ object OrgStore {
             seats = d.getLong("seats")?.toInt() ?: 0, memberCount = d.getLong("memberCount")?.toInt() ?: 0,
             planSource = plan?.get("source") as? String, planBase = plan?.get("basePlan") as? String, planToken = plan?.get("token") as? String,
             policy = Policy.from(d.get("policy")),
+            planVerified = plan?.get("verified") == true, planExpiry = (plan?.get("expiry") as? Number)?.toLong() ?: 0L,
         )
     }
 
@@ -186,7 +202,40 @@ object OrgStore {
         }
     }
 
-    fun applyTeamPurchase(basePlan: String, seats: Int, token: String) {
+    private var verifying: String? = null
+
+    /**
+     * The server asks Google Play whether this company plan is really paid and only then gives the company
+     * its devices. Until the server is deployed (function missing) the old client-side write is used.
+     */
+    fun verifyTeam(token: String, basePlanHint: String?) {
+        val org = current.org ?: return
+        if (!current.isManager || verifying == token) return
+        // already confirmed for this token and not near renewal
+        if (org.planVerified && org.planToken == token && org.planExpiry > System.currentTimeMillis() + 24 * 3600_000L) return
+        verifying = token
+        Cloud.scope.launch {
+            try {
+                Cloud.functions.getHttpsCallable("verifyTeam").call(mapOf("orgId" to org.id, "token" to token)).await()
+                Log.i(Cloud.TAG, "plan verified by server")
+            } catch (e: Exception) {
+                val code = (e as? com.google.firebase.functions.FirebaseFunctionsException)?.code
+                Log.w(Cloud.TAG, "verify plan: $code", e)
+                val ours = e.message?.let { it.contains("PLAY") || it.contains("NO_COMPANY") } == true
+                if (code == com.google.firebase.functions.FirebaseFunctionsException.Code.NOT_FOUND && !ours) {
+                    // no server yet → old way (the old rules allow it; the new rules don't)
+                    val seats = Billing.seatsOf(basePlanHint)
+                    if (basePlanHint != null && seats != null && org.planToken != token) applyTeamPurchase(basePlanHint, seats, token)
+                } else if (code != null) {
+                    AccountStore.messageRes(com.shomer.bodycam.R.string.plan_verify_failed, e.message ?: code.name)
+                }
+            } finally {
+                verifying = null
+            }
+        }
+    }
+
+    private fun applyTeamPurchase(basePlan: String, seats: Int, token: String) {
         val org = current.org ?: return
         if (!current.isManager) return
         Cloud.org(org.id).update(mapOf(
@@ -303,6 +352,55 @@ object OrgStore {
     fun closeBoard() {
         boardUsers = (boardUsers - 1).coerceAtLeast(0)
         if (boardUsers == 0) boardListeners.clear()
+    }
+
+    // ------------------------------------------------------------------ company cloud recordings
+
+    data class CloudRec(
+        val id: String, val email: String, val name: String, val path: String, val start: Long, val durationMs: Long,
+        val size: Long, val trigger: String?, val sha256: String?, val lat: Double?, val lon: Double?, val uploadedAt: Long, val keep: Boolean,
+    )
+
+    val recordings = MutableStateFlow<List<CloudRec>>(emptyList())
+    private val recListeners = Listeners()
+    private var recUsers = 0
+
+    fun openRecordings() {
+        recUsers++
+        val org = current.org ?: return
+        if (!recListeners.isEmpty) return
+        recListeners += Cloud.org(org.id).collection("recordings").orderBy("start", Query.Direction.DESCENDING).limit(300).addSnapshotListener { s, e ->
+            if (e != null) { Log.w(Cloud.TAG, "recordings", e); return@addSnapshotListener }
+            recordings.value = s?.documents.orEmpty().map { d ->
+                CloudRec(
+                    d.id, d.getString("email").orEmpty(), d.getString("name").orEmpty(), d.getString("path").orEmpty(),
+                    d.getLong("start") ?: 0L, d.getLong("durationMs") ?: 0L, d.getLong("size") ?: 0L, d.getString("trigger"),
+                    d.getString("sha256"), d.getDouble("lat"), d.getDouble("lon"), d.getLong("uploadedAt") ?: 0L, d.getBoolean("keep") == true,
+                )
+            }
+        }
+    }
+
+    fun closeRecordings() {
+        recUsers = (recUsers - 1).coerceAtLeast(0)
+        if (recUsers == 0) recListeners.clear()
+    }
+
+    suspend fun recordingUrl(r: CloudRec): String? = runCatching { Cloud.storage.reference.child(r.path).downloadUrl.await().toString() }
+        .onFailure { Log.w(Cloud.TAG, "recording url", it) }.getOrNull()
+
+    fun setKeep(r: CloudRec, keep: Boolean) {
+        val org = current.org ?: return
+        Cloud.org(org.id).collection("recordings").document(r.id).update("keep", keep)
+    }
+
+    suspend fun deleteRecording(r: CloudRec): Boolean {
+        val org = current.org ?: return false
+        return runCatching {
+            runCatching { Cloud.storage.reference.child(r.path).delete().await() }
+            Cloud.org(org.id).collection("recordings").document(r.id).delete().await()
+            true
+        }.onFailure { Log.w(Cloud.TAG, "delete recording", it) }.getOrDefault(false)
     }
 
     /** start / stop a recording on a guard's phone. */

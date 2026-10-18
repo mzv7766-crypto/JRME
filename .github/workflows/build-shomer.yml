@@ -22,6 +22,12 @@ jobs:
         run: |
           set -o pipefail
           npm test 2>&1 | tee rules.log
+      - name: Cloud Functions (install, load, unit tests)
+        working-directory: backend/functions
+        run: |
+          npm install --no-audit --no-fund
+          node --test plan.test.js
+          GCLOUD_PROJECT=demo-shomer node -e "import('./index.js').then(m => console.log('exports:', Object.keys(m).join(', ')))"
       - name: Summary
         if: always()
         run: |

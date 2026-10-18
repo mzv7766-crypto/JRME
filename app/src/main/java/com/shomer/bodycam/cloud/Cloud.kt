@@ -40,11 +40,15 @@ object Cloud {
             // end-to-end tests: local Firebase emulators on the test machine (10.0.2.2 = the host, seen from the Android emulator)
             FirebaseAuth.getInstance().useEmulator("10.0.2.2", 9099)
             FirebaseFirestore.getInstance().useEmulator("10.0.2.2", 8080)
+            com.google.firebase.storage.FirebaseStorage.getInstance().useEmulator("10.0.2.2", 9199)
+            com.google.firebase.functions.FirebaseFunctions.getInstance().useEmulator("10.0.2.2", 5001)
         }.onFailure { Log.w(TAG, "emulator setup", it) }
     }
 
     val db: FirebaseFirestore get() = FirebaseFirestore.getInstance()
     val auth: FirebaseAuth get() = FirebaseAuth.getInstance()
+    val storage: com.google.firebase.storage.FirebaseStorage get() = com.google.firebase.storage.FirebaseStorage.getInstance()
+    val functions: com.google.firebase.functions.FirebaseFunctions get() = com.google.firebase.functions.FirebaseFunctions.getInstance("us-central1")
     fun email(): String? = if (!configured) null else auth.currentUser?.email?.lowercase()
 
     fun org(orgId: String) = db.collection("shomer_orgs").document(orgId)

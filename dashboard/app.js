@@ -5,15 +5,17 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import {
   getFirestore, connectFirestoreEmulator, doc, getDoc, onSnapshot, collection, query, orderBy, limit, where,
-  setDoc, updateDoc, addDoc, writeBatch, increment, serverTimestamp, getDocs,
+  setDoc, updateDoc, addDoc, writeBatch, increment, serverTimestamp, getDocs, deleteDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getStorage, connectStorageEmulator, ref as sref, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import { firebaseConfig, ADMIN_EMAIL } from "./config.js";
 
 const EMU = new URLSearchParams(location.search).has("emu");   // end-to-end tests only
 const app = initializeApp(EMU ? { apiKey: "demo", projectId: "demo-shomer", authDomain: "localhost" } : firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-if (EMU) { connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); connectFirestoreEmulator(db, "127.0.0.1", 8080); }
+const storage = getStorage(app);
+if (EMU) { connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); connectFirestoreEmulator(db, "127.0.0.1", 8080); connectStorageEmulator(storage, "127.0.0.1", 9199); }
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -98,7 +100,57 @@ function start() {
     firstEvents = false;
     renderEvents(); renderDetail();
   }));
+  unsub.push(onSnapshot(query(collection(o, "recordings"), orderBy("start", "desc"), limit(300)), (qs) => {
+    recs = qs.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderRecs();
+  }, (e) => console.warn("recordings", e)));
   const t = setInterval(renderAll, 15000); unsub.push(() => clearInterval(t));
+}
+
+// ------------------------------------------------------------------ company cloud recordings
+let recs = [];
+const dur = (ms) => { const s = Math.round((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+function renderRecs() {
+  const sel = $("rec-guard"), cur = sel.value;
+  const guards = [...new Map(recs.map((r) => [r.email, r.name || r.email])).entries()];
+  sel.innerHTML = `<option value="">כל המאבטחים</option>` + guards.map(([e, n]) => `<option value="${esc(e)}">${esc(n)}</option>`).join("");
+  sel.value = guards.some(([e]) => e === cur) ? cur : "";
+  $("rec-note").textContent = `נמחקות אוטומטית אחרי ${org?.policy?.retentionDays || 30} ימים, אלא אם סומנו "שמור"`;
+  const shown = recs.filter((r) => !sel.value || r.email === sel.value);
+  $("rec-list").innerHTML = shown.length ? shown.map((r) => `
+    <div class="item" data-rec="${esc(r.id)}">
+      <div class="grow"><div class="t">${esc(r.name || r.email)} · ${esc(TRIGGER[r.trigger] || "")}</div>
+        <div class="s">${fmtTime(r.start)} · ${dur(r.durationMs)} · ${Math.round((r.size || 0) / 1048576)} MB${r.keep ? " · <b class='keep'>שמור</b>" : ""}</div></div>
+      <button class="btn primary" data-play="${esc(r.id)}">▶ צפייה</button>
+      <button class="btn" data-keep="${esc(r.id)}">${r.keep ? "בטל שמירה" : "שמור"}</button>
+      <button class="btn" data-del="${esc(r.id)}">מחק</button>
+    </div>`).join("") : `<p class="muted">אין עדיין הקלטות בענן. תיעודים של המאבטחים יופיעו כאן אחרי שיעלו.</p>`;
+  document.querySelectorAll("[data-play]").forEach((b) => (b.onclick = () => playRec(recs.find((r) => r.id === b.dataset.play))));
+  document.querySelectorAll("[data-keep]").forEach((b) => (b.onclick = () => {
+    const r = recs.find((x) => x.id === b.dataset.keep);
+    updateDoc(doc(db, "shomer_orgs", orgId, "recordings", r.id), { keep: !r.keep }).catch(() => alert("הפעולה נכשלה"));
+  }));
+  document.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => delRec(recs.find((r) => r.id === b.dataset.del))));
+}
+$("rec-guard").onchange = renderRecs;
+async function playRec(r) {
+  if (!r) return;
+  try {
+    const url = await getDownloadURL(sref(storage, r.path));
+    $("rec-player").classList.remove("hidden");
+    $("rec-video").src = url;
+    $("rec-dl").href = url;
+    $("rec-title").textContent = `${r.name || r.email} · ${fmtTime(r.start)}`;
+    $("rec-sha").textContent = r.sha256 ? "SHA-256: " + r.sha256 : "";
+    $("rec-video").play().catch(() => {});
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (e) { alert("לא הצלחנו לפתוח את ההקלטה"); }
+}
+$("rec-close").onclick = () => { $("rec-video").pause(); $("rec-video").removeAttribute("src"); $("rec-player").classList.add("hidden"); };
+async function delRec(r) {
+  if (!r || !confirm(`למחוק לצמיתות את ההקלטה של ${r.name || r.email} מ־${fmtTime(r.start)}?\nבטלפון של המאבטח היא נשארת.`)) return;
+  try { await deleteObject(sref(storage, r.path)); } catch (e) { /* already gone */ }
+  try { await deleteDoc(doc(db, "shomer_orgs", orgId, "recordings", r.id)); } catch (e) { alert("המחיקה נכשלה"); }
 }
 
 function status(email) {
@@ -114,11 +166,12 @@ function renderOrg() {
   $("org-name").textContent = org.name;
   $("org-seats").textContent = `${org.memberCount || 0}/${org.seats || 0} מכשירים`;
   $("plan-big").textContent = org.seats ? `${org.seats} מכשירים` : "אין חבילה פעילה";
-  $("plan-sub").textContent = `${org.memberCount || 0} מאבטחים מחוברים` + (org.plan?.source === "admin" ? " • הוקצה ע״י מנהל המערכת" : org.plan?.source === "play" ? " • Google Play" : "");
+  $("plan-sub").textContent = `${org.memberCount || 0} מאבטחים מחוברים` + (org.plan?.source === "admin" ? " • הוקצה ע״י מנהל המערכת" : org.plan?.source === "play" ? (org.plan.verified ? ` • התשלום אומת מול Google Play, מתחדש ${fmtTime(org.plan.expiry)}` : " • Google Play") : "");
   const p = org.policy || {};
   $("r-pre").value = p.preRecordSeconds ?? "";
   $("r-audio").checked = p.recordAudio === true; $("r-fall").checked = p.fallDetection === true;
   $("r-lock").checked = p.autoLock !== false; $("r-discard").checked = !!p.allowDiscard; $("r-delete").checked = !!p.allowDelete;
+  $("r-cloud").value = p.cloudBackup || "all"; $("r-keep").value = String(p.retentionDays || 30);
 }
 
 function renderAll() { renderGuards(); renderMarkers(); renderMembers(); renderDetail(); }
@@ -336,6 +389,7 @@ $("r-save").onclick = async () => {
   const policy = {
     preRecordSeconds: pre ? +pre : null, recordAudio: $("r-audio").checked, fallDetection: $("r-fall").checked,
     autoLock: $("r-lock").checked, allowDiscard: $("r-discard").checked, allowDelete: $("r-delete").checked,
+    cloudBackup: $("r-cloud").value, retentionDays: +$("r-keep").value,
   };
   try { await setDoc(doc(db, "shomer_orgs", orgId), { policy }, { merge: true }); $("r-msg").textContent = "נשמר ✓"; }
   catch (e) { $("r-msg").textContent = "השמירה נכשלה"; }

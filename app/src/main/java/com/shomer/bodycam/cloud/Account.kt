@@ -29,6 +29,8 @@ data class TeamOffer(val basePlan: String, val seats: Int, val price: String, va
 data class TeamPurchase(val basePlan: String, val seats: Int, val token: String, val autoRenewing: Boolean)
 
 data class AccountState(
+    /** Google Play token of the company plan this account bought (verified by the server). */
+    val teamToken: String? = null,
     val configured: Boolean = false,
     val email: String? = null,
     val name: String? = null,
@@ -92,6 +94,7 @@ object AccountStore {
 
     fun markVerified() = prefs.edit().putLong("verifiedAt", System.currentTimeMillis()).apply()
     fun message(text: String?) = update { it.copy(message = text) }
+    fun messageRes(res: Int, vararg args: Any) = message(app.getString(res, *args))
 
     private fun webClientId(): String? {
         val id = app.resources.getIdentifier("default_web_client_id", "string", app.packageName)

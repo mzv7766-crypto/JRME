@@ -54,6 +54,8 @@ data class Recording(
     val sha256: String? = null,
     /** Google Drive file id once backed up (Pro). */
     val driveId: String? = null,
+    /** Path in the company cloud once uploaded (company phones). */
+    val cloudPath: String? = null,
 ) {
     val isShift get() = kind == RecordKind.SHIFT
     val endTime get() = videoStartTime + durationMs
@@ -106,6 +108,7 @@ object RecordRepository {
     fun setNote(id: String, note: String) = mutate(id) { it.copy(note = note.trim().ifEmpty { null }) }
     fun setLocked(id: String, locked: Boolean) = mutate(id) { it.copy(locked = locked) }
     fun setDrive(id: String, driveId: String) = mutate(id) { it.copy(driveId = driveId) }
+    fun setCloud(id: String, path: String) = mutate(id) { it.copy(cloudPath = path) }
 
     /** Called (on a background thread) after a recording was saved – used for Drive auto-backup. */
     @Volatile var onAdded: ((Recording) -> Unit)? = null
@@ -196,6 +199,7 @@ object RecordRepository {
                 lon = if (o.has("lon")) o.getDouble("lon") else null,
                 sha256 = o.optString("sha256").takeIf { it.isNotEmpty() },
                 driveId = o.optString("driveId").takeIf { it.isNotEmpty() },
+                cloudPath = o.optString("cloud").takeIf { it.isNotEmpty() },
             )
         }
     }.getOrElse { Log.e(TAG, "index read failed", it); emptyList() }
@@ -213,6 +217,7 @@ object RecordRepository {
                 r.lat?.let { put("lat", it) }; r.lon?.let { put("lon", it) }
                 r.sha256?.let { put("sha256", it) }
                 r.driveId?.let { put("driveId", it) }
+                r.cloudPath?.let { put("cloud", it) }
             })
         }
         val tmp = File(indexFile.parentFile, "records.json.tmp")

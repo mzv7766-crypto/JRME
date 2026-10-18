@@ -31,6 +31,9 @@ import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Videocam
@@ -88,7 +91,7 @@ import kotlinx.coroutines.launch
 import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
 
-private enum class CTab(val label: Int) { BOARD(R.string.c_board), ALERTS(R.string.c_alerts), TEAM(R.string.c_team), PLAN(R.string.c_plan), RULES(R.string.c_rules) }
+private enum class CTab(val label: Int) { BOARD(R.string.c_board), ALERTS(R.string.c_alerts), RECORDINGS(R.string.c_recordings), TEAM(R.string.c_team), PLAN(R.string.c_plan), RULES(R.string.c_rules) }
 
 /** Manager mode inside the app: the same control room as the web dashboard, in a phone layout. */
 @Composable
@@ -135,6 +138,7 @@ fun ControlScreen() {
         when (tab) {
             CTab.BOARD -> Board()
             CTab.ALERTS -> Alerts()
+            CTab.RECORDINGS -> Recordings()
             CTab.TEAM -> Team()
             CTab.PLAN -> Plan()
             CTab.RULES -> Rules(o.policy)
@@ -414,6 +418,7 @@ private fun Plan() {
                 )
                 Text(stringResource(R.string.team_seats, o.memberCount, o.seats), color = S.TextDim, fontSize = 13.sp)
                 if (o.planSource == "admin") Text(stringResource(R.string.plan_admin), color = S.Green, fontSize = 12.sp)
+                if (o.planSource == "play" && o.planVerified) Text(stringResource(R.string.plan_verified, formatDateTime(o.planExpiry)), color = S.Green, fontSize = 12.sp)
             }
         }
         SectionLabel(stringResource(R.string.plan_choose))
@@ -465,7 +470,87 @@ private fun Rules(p: Policy) {
             RuleSwitch(stringResource(R.string.rules_allow_discard), p.allowDiscard) { save(p.copy(allowDiscard = it)) }
             RuleSwitch(stringResource(R.string.rules_allow_delete), p.allowDelete) { save(p.copy(allowDelete = it)) }
         }
+        SectionLabel(stringResource(R.string.cloud_company))
+        Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(S.Card).padding(bottom = 6.dp)) {
+            Text(stringResource(R.string.rules_cloud_sub), color = S.TextDim, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp))
+            Chips(listOf(Policy.CLOUD_ALL to R.string.rules_cloud_all, Policy.CLOUD_WIFI to R.string.rules_cloud_wifi, Policy.CLOUD_OFF to R.string.rules_cloud_off), p.cloudBackup) { save(p.copy(cloudBackup = it)) }
+            Text(stringResource(R.string.rules_retention), color = S.Text, fontSize = 15.sp, modifier = Modifier.padding(start = 16.dp, top = 6.dp))
+            Chips(Policy.RETENTION_OPTIONS.map { it to 0 }, p.retentionDays, label = { stringResource(R.string.days_n, it) }) { save(p.copy(retentionDays = it)) }
+        }
         Text(stringResource(R.string.rules_fixed), color = S.TextDim, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.padding(top = 10.dp))
+    }
+}
+
+@Composable
+private fun <T> Chips(options: List<Pair<T, Int>>, selected: T, label: (@Composable (T) -> String)? = null, onPick: (T) -> Unit) {
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        options.forEach { (v, res) ->
+            val sel = v == selected
+            Text(
+                label?.invoke(v) ?: stringResource(res), color = if (sel) S.OnAmber else S.Text, fontSize = 13.sp,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (sel) S.Amber else S.CardHi).clickable { onPick(v) }.padding(horizontal = 10.dp, vertical = 6.dp),
+            )
+        }
+    }
+}
+
+/** Company cloud: every guard's recordings, newest first – play, keep, delete. */
+@Composable
+private fun Recordings() {
+    DisposableEffect(Unit) { OrgStore.openRecordings(); onDispose { OrgStore.closeRecordings() } }
+    val recs by OrgStore.recordings.collectAsStateWithLifecycle()
+    val org by OrgStore.state.collectAsStateWithLifecycle()
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var del by remember { mutableStateOf<OrgStore.CloudRec?>(null) }
+    var filter by rememberSaveable { mutableStateOf<String?>(null) }
+    val guards = recs.map { it.email to it.name }.distinctBy { it.first }
+    Column(Modifier.fillMaxSize()) {
+        if (guards.size > 1) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            (listOf<Pair<String?, String>>(null to stringResource(R.string.all)) + guards).forEach { (e, n) ->
+                val sel = filter == e
+                Text(n.ifBlank { e ?: "" }, color = if (sel) S.OnAmber else S.Text, fontSize = 13.sp,
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (sel) S.Amber else S.Card).clickable { filter = e }.padding(horizontal = 10.dp, vertical = 6.dp))
+            }
+        }
+        val shown = recs.filter { filter == null || it.email == filter }
+        if (shown.isEmpty()) {
+            Text(stringResource(R.string.c_no_recordings, org.org?.policy?.retentionDays ?: 30), color = S.TextDim, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(32.dp))
+            return@Column
+        }
+        LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            items(shown, key = { it.id }) { r ->
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(S.Card).padding(start = 12.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        val trig = com.shomer.bodycam.data.Trigger.entries.firstOrNull { it.name == r.trigger }
+                        Text(r.name.ifBlank { r.email } + (trig?.let { "  •  " + stringResource(it.labelRes) } ?: ""),
+                            color = S.Text, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(formatDateTime(r.start) + "  •  " + "%d:%02d".format(r.durationMs / 60_000, r.durationMs / 1000 % 60) + "  •  " + "%.0f MB".format(r.size / 1_048_576.0),
+                            color = S.TextDim, fontSize = 12.sp, fontFamily = S.Mono)
+                        if (r.keep) Text(stringResource(R.string.rec_keep_on), color = S.Green, fontSize = 11.sp)
+                    }
+                    IconButton({
+                        scope.launch {
+                            val url = OrgStore.recordingUrl(r)
+                            if (url == null) Toast.makeText(ctx, ctx.getString(R.string.action_failed), Toast.LENGTH_SHORT).show()
+                            else runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse(url), "video/mp4").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                                .onFailure { runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }
+                        }
+                    }) { Icon(Icons.Filled.PlayCircle, null, tint = S.Amber) }
+                    IconButton({ OrgStore.setKeep(r, !r.keep) }) { Icon(if (r.keep) Icons.Filled.Lock else Icons.Filled.LockOpen, stringResource(R.string.rec_keep), tint = if (r.keep) S.Green else S.TextDim) }
+                    IconButton({ del = r }) { Icon(Icons.Filled.Delete, null, tint = S.TextDim) }
+                }
+            }
+        }
+    }
+    del?.let { r ->
+        AlertDialog(
+            onDismissRequest = { del = null }, containerColor = S.Surface,
+            title = { Text(stringResource(R.string.rec_delete_title)) },
+            text = { Text(stringResource(R.string.rec_delete_body)) },
+            confirmButton = { TextButton({ del = null; scope.launch { if (!OrgStore.deleteRecording(r)) Toast.makeText(ctx, ctx.getString(R.string.action_failed), Toast.LENGTH_SHORT).show() } }) { Text(stringResource(R.string.delete), color = S.Red) } },
+            dismissButton = { TextButton({ del = null }) { Text(stringResource(R.string.cancel), color = S.TextDim) } },
+        )
     }
 }
 

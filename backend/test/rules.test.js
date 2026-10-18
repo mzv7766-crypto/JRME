@@ -56,12 +56,15 @@ test('no seats → cannot add anyone', async () => {
   await assertFails(addMember(GUARD));
 });
 
-test('a manager can buy a Play team plan (5/10/25/50) but cannot invent seats', async () => {
+test('a manager cannot give himself seats – only the server (after Google Play) or the admin', async () => {
   await createOrg();
   const d = db(OWNER);
   await assertFails(updateDoc(doc(d, 'shomer_orgs', ORG), { seats: 1000 }));
   await assertFails(updateDoc(doc(d, 'shomer_orgs', ORG), { seats: 7, plan: { source: 'play', basePlan: 'team-7' } }));
-  await assertSucceeds(updateDoc(doc(d, 'shomer_orgs', ORG), { seats: 10, plan: { source: 'play', basePlan: 'team-10', token: 't' } }));
+  await assertFails(updateDoc(doc(d, 'shomer_orgs', ORG), { seats: 10, plan: { source: 'play', basePlan: 'team-10', token: 't' } }));
+  await assertFails(updateDoc(doc(d, 'shomer_orgs', ORG), { plan: { source: 'play', basePlan: 'team-10', token: 't' } }));
+  // other settings still work
+  await assertSucceeds(updateDoc(doc(d, 'shomer_orgs', ORG), { policy: { autoLock: true } }));
 });
 
 test('the admin can grant seats to any company', async () => {
@@ -159,4 +162,21 @@ test('Jeremy free accounts keep working', async () => {
   await assertSucceeds(getDoc(doc(db('friend@gmail.com'), 'freeAccounts', 'friend@gmail.com')));
   await assertFails(getDoc(doc(db(STRANGER), 'freeAccounts', 'friend@gmail.com')));
   await assertFails(setDoc(doc(db(STRANGER), 'freeAccounts', STRANGER), {}));
+});
+
+test('company recordings: a guard registers only his own, the manager sees and deletes them', async () => {
+  await createOrg(5);
+  await addMember(GUARD);
+  await addMember(GUARD2);
+  const g = db(GUARD);
+  const path = (e, id) => `shomer_orgs/${ORG}/rec/${e}/${id}.mp4`;
+  await assertSucceeds(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1'), { email: GUARD, path: path(GUARD, 'r1'), size: 10 }));
+  await assertFails(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r2'), { email: GUARD2, path: path(GUARD2, 'r2') }));
+  await assertFails(setDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r3'), { email: GUARD, path: path(GUARD, 'other') }));
+  await assertFails(setDoc(doc(db(STRANGER), 'shomer_orgs', ORG, 'recordings', 'r4'), { email: STRANGER, path: path(STRANGER, 'r4') }));
+  await assertSucceeds(getDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1')));
+  await assertFails(getDoc(doc(db(GUARD2), 'shomer_orgs', ORG, 'recordings', 'r1')));
+  await assertFails(deleteDoc(doc(g, 'shomer_orgs', ORG, 'recordings', 'r1')));
+  await assertSucceeds(getDocs(collection(db(OWNER), 'shomer_orgs', ORG, 'recordings')));
+  await assertSucceeds(deleteDoc(doc(db(OWNER), 'shomer_orgs', ORG, 'recordings', 'r1')));
 });

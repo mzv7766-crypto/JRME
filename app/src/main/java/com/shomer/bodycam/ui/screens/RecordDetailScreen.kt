@@ -178,6 +178,18 @@ private fun EvidencePanel(r: Recording) {
         }
         Line(stringResource(R.string.f_size), "%.1f MB".format(r.sizeBytes / 1_048_576.0))
         r.note?.let { Line(stringResource(R.string.note), it) }
+        val orgState by com.shomer.bodycam.cloud.OrgStore.state.collectAsStateWithLifecycle()
+        if (!r.isShift && (r.cloudPath != null || orgState.activeMember)) {
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            val st by remember(r.id) { com.shomer.bodycam.cloud.CompanyBackup.status(ctx, r.id) }.collectAsStateWithLifecycle(null)
+            Line(stringResource(R.string.cloud_company), stringResource(when {
+                r.cloudPath != null -> R.string.cloud_done
+                st == androidx.work.WorkInfo.State.RUNNING -> R.string.cloud_uploading
+                st == androidx.work.WorkInfo.State.FAILED -> R.string.cloud_failed
+                orgState.org?.policy?.cloudBackup == com.shomer.bodycam.cloud.Policy.CLOUD_OFF -> R.string.cloud_off
+                else -> R.string.cloud_waiting
+            }))
+        }
         Spacer(Modifier.height(8.dp))
         Box(Modifier.fillMaxWidth().height(1.dp).background(S.Stroke))
         Spacer(Modifier.height(8.dp))

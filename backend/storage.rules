@@ -1,0 +1,33 @@
+rules_version = '2';
+// Company recordings: shomer_orgs/{orgId}/rec/{guardEmail}/{recordingId}.mp4
+// A guard of a paying company uploads his own recordings (never overwrites or deletes);
+// the company's managers watch, download and delete them.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function me() { return request.auth.token.email.lower(); }
+    function isAdmin() { return signedIn() && me() == 'mzv7766@gmail.com'; }
+    function orgDoc(o) { return /databases/(default)/documents/shomer_orgs/$(o); }
+    function isManager(o) {
+      return signedIn() && (isAdmin() || (firestore.exists(orgDoc(o)) && me() in firestore.get(orgDoc(o)).data.managers));
+    }
+    function isActiveMember(o) {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/shomer_orgs/$(o)/members/$(me()))
+        && firestore.get(orgDoc(o)).data.seats > 0;
+    }
+
+    match /shomer_orgs/{o}/rec/{email}/{file} {
+      allow read: if isManager(o) || (signedIn() && me() == email && isActiveMember(o));
+      allow create: if signedIn() && me() == email && isActiveMember(o)
+        && resource == null
+        && request.resource.contentType == 'video/mp4'
+        && request.resource.size < 4 * 1024 * 1024 * 1024;
+      allow delete: if isManager(o);
+    }
+
+    match /{everythingElse=**} {
+      allow read, write: if false;
+    }
+  }
+}

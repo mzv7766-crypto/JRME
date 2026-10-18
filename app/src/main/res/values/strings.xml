@@ -377,4 +377,25 @@
     <string name="power_banner_heat">הטלפון חם – מצב חיסכון פעיל</string>
     <string name="power_banner_battery">סוללה חלשה – מצב חיסכון פעיל</string>
     <string name="power_banner_saver">מצב חיסכון בסוללה פעיל</string>
+    <string name="c_recordings">הקלטות</string>
+    <string name="cloud_company">גיבוי לענן החברה</string>
+    <string name="cloud_done">הועלה ✓</string>
+    <string name="cloud_uploading">מעלה…</string>
+    <string name="cloud_failed">ההעלאה נכשלה</string>
+    <string name="cloud_off">כבוי (לפי החברה)</string>
+    <string name="cloud_waiting">ממתין לרשת</string>
+    <string name="rules_cloud_sub">כל תיעוד של מאבטח עולה לענן של החברה, ורק המנהלים רואים אותו. ההקלטות לא עוברות לדרייב הפרטי של המאבטח.</string>
+    <string name="rules_cloud_all">בכל רשת</string>
+    <string name="rules_cloud_wifi">רק Wi‑Fi</string>
+    <string name="rules_cloud_off">כבוי</string>
+    <string name="rules_retention">מחיקה אוטומטית אחרי</string>
+    <string name="days_n">%1$d ימים</string>
+    <string name="all">הכל</string>
+    <string name="c_no_recordings">אין עדיין הקלטות בענן. תיעודים של המאבטחים יופיעו כאן אחרי שיעלו (נשמרים %1$d ימים).</string>
+    <string name="rec_keep">שמור לתמיד</string>
+    <string name="rec_keep_on">שמור – לא יימחק אוטומטית</string>
+    <string name="rec_delete_title">למחוק את ההקלטה?</string>
+    <string name="rec_delete_body">ההקלטה תימחק מהענן של החברה לצמיתות. בטלפון של המאבטח היא נשארת.</string>
+    <string name="plan_verified">התשלום אומת מול Google Play · מתחדש %1$s</string>
+    <string name="plan_verify_failed">לא הצלחנו לאמת את התשלום מול Google Play (%1$s). ננסה שוב אוטומטית.</string>
 </resources>

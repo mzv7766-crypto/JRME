@@ -377,4 +377,25 @@
     <string name="power_banner_heat">Phone is hot – power saving on</string>
     <string name="power_banner_battery">Low battery – power saving on</string>
     <string name="power_banner_saver">Battery saver on</string>
+    <string name="c_recordings">Recordings</string>
+    <string name="cloud_company">Company cloud backup</string>
+    <string name="cloud_done">Uploaded ✓</string>
+    <string name="cloud_uploading">Uploading…</string>
+    <string name="cloud_failed">Upload failed</string>
+    <string name="cloud_off">Off (company rule)</string>
+    <string name="cloud_waiting">Waiting for network</string>
+    <string name="rules_cloud_sub">Every guard recording is uploaded to the company cloud, visible to managers only. Recordings never go to the guard\'s private Drive.</string>
+    <string name="rules_cloud_all">Any network</string>
+    <string name="rules_cloud_wifi">Wi‑Fi only</string>
+    <string name="rules_cloud_off">Off</string>
+    <string name="rules_retention">Delete automatically after</string>
+    <string name="days_n">%1$d days</string>
+    <string name="all">All</string>
+    <string name="c_no_recordings">No cloud recordings yet. Guard recordings appear here once uploaded (kept %1$d days).</string>
+    <string name="rec_keep">Keep forever</string>
+    <string name="rec_keep_on">Kept – never deleted automatically</string>
+    <string name="rec_delete_title">Delete this recording?</string>
+    <string name="rec_delete_body">The recording is deleted from the company cloud for good. It stays on the guard\'s phone.</string>
+    <string name="plan_verified">Payment verified with Google Play · renews %1$s</string>
+    <string name="plan_verify_failed">Could not verify the payment with Google Play (%1$s). Will retry automatically.</string>
 </resources>
