@@ -5,7 +5,8 @@ plugins {
 }
 
 // Firebase config (google-services.json) is added once the Firebase project exists; without it Pro sign-in shows "not configured".
-if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+// Skipped for the side-by-side test build (-Ptestbuild): its applicationId has a .test suffix that google-services.json would reject.
+if (file("google-services.json").exists() && !project.hasProperty("testbuild")) apply(plugin = "com.google.gms.google-services")
 
 android {
     namespace = "com.jeremy.dashcam"
@@ -15,12 +16,21 @@ android {
         applicationId = "com.jeremy.dashcam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 56
-        versionName = "2.1.10"
+        versionCode = 57
+        versionName = "2.1.11"
         // test APK sent directly (not via Play): 64-bit ARM only, to keep the download small
         // Play bundle: phones only (ARM); x86 is emulators / a few Chromebooks and doubles the bundle size
         if (!project.hasProperty("smoke")) ndk {   // the emulator smoke test needs x86_64
             if (project.hasProperty("arm64Only")) abiFilters += "arm64-v8a" else abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
+        // Default app name (manifest uses ${appLabel}); the side-by-side test build renames itself.
+        manifestPlaceholders["appLabel"] = "Jeremy"
+        // -Ptestbuild → a SEPARATE app (different id + name) that installs next to any existing Jeremy,
+        // so there is never a signature/update conflict and it is obvious which one is the latest.
+        if (project.hasProperty("testbuild")) {
+            applicationIdSuffix = ".test"
+            versionNameSuffix = "-TEST"
+            manifestPlaceholders["appLabel"] = "Jeremy בדיקה"
         }
     }
 
