@@ -37,7 +37,9 @@ data class ProState(
     val freeAccounts: List<String> = emptyList(),
 ) {
     val isAdmin get() = email.equals(ProStore.ADMIN_EMAIL, ignoreCase = true)
-    val isPro get() = subscribed || (email != null && (isAdmin || isFreeAccount))
+    // TEST_PRO unlocks all Pro features in the side-by-side test build only, where Firebase/Play billing
+    // aren't registered for the .test id. Always false in the real Play build.
+    val isPro get() = com.jeremy.dashcam.BuildConfig.TEST_PRO || subscribed || (email != null && (isAdmin || isFreeAccount))
 }
 
 object ProStore {

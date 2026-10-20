@@ -16,8 +16,8 @@ android {
         applicationId = "com.jeremy.dashcam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 61
-        versionName = "2.1.15"
+        versionCode = 62
+        versionName = "2.1.16"
         // test APK sent directly (not via Play): 64-bit ARM only, to keep the download small
         // Play bundle: phones only (ARM); x86 is emulators / a few Chromebooks and doubles the bundle size
         if (!project.hasProperty("smoke")) ndk {   // the emulator smoke test needs x86_64
@@ -25,12 +25,15 @@ android {
         }
         // Default app name (manifest uses ${appLabel}); the side-by-side test build renames itself.
         manifestPlaceholders["appLabel"] = "Jeremy"
+        // Pro is unlocked only in the test build (see below); never in the real Play build.
+        buildConfigField("boolean", "TEST_PRO", "false")
         // -Ptestbuild → a SEPARATE app (different id + name) that installs next to any existing Jeremy,
         // so there is never a signature/update conflict and it is obvious which one is the latest.
         if (project.hasProperty("testbuild")) {
             applicationIdSuffix = ".test"
             versionNameSuffix = "-TEST"
             manifestPlaceholders["appLabel"] = "Jeremy בדיקה"
+            buildConfigField("boolean", "TEST_PRO", "true")
         }
     }
 
