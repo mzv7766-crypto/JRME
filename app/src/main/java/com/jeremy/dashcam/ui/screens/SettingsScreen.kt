@@ -239,9 +239,12 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
 
             Spacer(Modifier.height(10.dp))
             PermissionsCard()
+            var testReport by remember { mutableStateOf(false) }
             Section("אודות") {
-                Nav("גרסה מותקנת", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", clickable = false, last = true) {}
+                Nav("גרסה מותקנת", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", clickable = false) {}
+                Nav("דוח בדיקה — מה עבד / מה לא", "שלח אליי", last = true) { testReport = true }
             }
+            if (testReport) TestReportDialog(onDismiss = { testReport = false })
             Text(
                 stringResource(R.string.version_fmt, BuildConfig.VERSION_NAME), color = J.TextDim, fontSize = 12.sp,
                 modifier = Modifier.fillMaxWidth().padding(16.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -815,6 +818,100 @@ private fun SosDialog(st: com.jeremy.dashcam.data.AppSettings, onDismiss: () -> 
             }) { Text(stringResource(R.string.save)) }
         },
         dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+/**
+ * In-app test report: the user marks what worked / didn't, adds notes, and the app bundles that with an
+ * automatic snapshot (version, device, settings) into a text file to share back for diagnosis.
+ */
+@Composable
+private fun TestReportDialog(onDismiss: () -> Unit) {
+    val ctx = LocalContext.current
+    val items = listOf(
+        "music" to "מוזיקה לא נקטעת בזמן צילום",
+        "audio" to "יש קול בסרטון השמור",
+        "rotation" to "סיבוב הצילום נכון (עוקב/נעול)",
+        "screen" to "המסך נשאר דלוק בנסיעה",
+        "saver" to "מצב חיסכון — איכות וחום סבירים",
+        "thermal" to "מגן חום נכנס כשהתחמם (צ׳יפ \"חם\")",
+        "aiscan" to "סריקת AI בסוף — נוצרו אירועי AI",
+        "event" to "זיהוי מכה / כפתור אירוע עובד",
+        "share" to "שיתוף אירוע עובד",
+        "install" to "התקנה/עדכון בלי בעיות",
+    )
+    // 0 = not tested, 1 = worked, 2 = failed
+    val marks = remember { androidx.compose.runtime.mutableStateMapOf<String, Int>() }
+    var notes by remember { mutableStateOf("") }
+
+    fun buildReport(): String {
+        val s = SettingsStore.current
+        val p = com.jeremy.dashcam.data.ProStore.current
+        val battTemp = runCatching {
+            (ctx.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+                ?.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, -1) ?: -1).let { if (it > 0) "%.1f°C".format(it / 10f) else "?" }
+        }.getOrDefault("?")
+        val sb = StringBuilder()
+        sb.appendLine("Jeremy דוח בדיקה")
+        sb.appendLine("גרסה: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+        sb.appendLine("מכשיר: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} • Android ${android.os.Build.VERSION.RELEASE} (SDK ${android.os.Build.VERSION.SDK_INT})")
+        sb.appendLine("טמפ׳ סוללה כעת: $battTemp")
+        sb.appendLine("זמן: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US).format(java.util.Date())}")
+        sb.appendLine("Pro: ${if (p.isPro) "כן" else "לא"}")
+        sb.appendLine("הגדרות: רזולוציה=${s.resolution.name} FPS=${s.fps} שמע=${s.recordAudio} חיסכון=${s.batterySaver} AI-בסוף=${s.postDriveAiScan} זיהוי-חכם=${s.smartDetection} סיבוב=${if (s.lockRotation) "נעול" else "עוקב"} מסך-דלוק=${s.keepScreenOn}")
+        sb.appendLine("------")
+        items.forEach { (k, label) ->
+            val mark = when (marks[k]) { 1 -> "✓ עבד"; 2 -> "✗ לא עבד"; else -> "— לא נבדק" }
+            sb.appendLine("$mark — $label")
+        }
+        sb.appendLine("------")
+        sb.appendLine("הערות: ${notes.ifBlank { "—" }}")
+        return sb.toString()
+    }
+
+    fun share() {
+        runCatching {
+            val f = java.io.File(ctx.cacheDir, "jeremy_test_report_${System.currentTimeMillis()}.txt")
+            f.writeText(buildReport())
+            val uri = androidx.core.content.FileProvider.getUriForFile(ctx, "${ctx.packageName}.files", f)
+            val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                putExtra(android.content.Intent.EXTRA_TEXT, "דוח בדיקה — Jeremy")
+                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            ctx.startActivity(android.content.Intent.createChooser(send, "שתף דוח בדיקה"))
+        }.onFailure { android.widget.Toast.makeText(ctx, "לא ניתן לשתף את הדוח", android.widget.Toast.LENGTH_LONG).show() }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = J.Surface,
+        title = { Text("דוח בדיקה") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text("סמן מה עבד ומה לא (לחיצה מחליפה: עבד → לא עבד → לא נבדק), הוסף הערות, ולחץ \"שתף\" כדי לשלוח אליי. הגרסה, המכשיר וההגדרות נוספים אוטומטית.",
+                    color = J.TextDim, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
+                items.forEach { (k, label) ->
+                    val m = marks[k] ?: 0
+                    val color = when (m) { 1 -> J.Green; 2 -> J.Red; else -> J.TextDim }
+                    val mark = when (m) { 1 -> "✓"; 2 -> "✗"; else -> "—" }
+                    Row(
+                        Modifier.fillMaxWidth().clickable { marks[k] = (m + 1) % 3 }.padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(Modifier.size(28.dp).clip(RoundedCornerShape(8.dp)).background(color.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                            Text(mark, color = color, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        Text(label, color = J.Text, fontSize = 14.sp)
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                OutlinedTextField(notes, { notes = it }, label = { Text("הערות") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+            }
+        },
+        confirmButton = { TextButton({ share() }) { Text("שתף") } },
+        dismissButton = { TextButton(onDismiss) { Text("סגור") } },
     )
 }
 
