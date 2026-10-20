@@ -130,6 +130,17 @@ class DashcamService : LifecycleService() {
     private var thermalLevel = 0
     private val thermalThrottle get() = thermalLevel >= 1
     private var driveLog: File? = null
+    private var eventLog: File? = null
+    /** Human-readable log of what happened during the drive: what turned on, what was saved, what failed. */
+    fun logEvent(msg: String) {
+        val f = eventLog ?: return
+        runCatching {
+            val st = state.value
+            val elapsed = if (st.driveStartTime > 0) (System.currentTimeMillis() - st.driveStartTime) / 1000 else 0
+            val iso = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+            f.appendText("$iso  (+${elapsed}s)  $msg\n")
+        }
+    }
     private val thermalTick = object : Runnable {
         override fun run() { if (running) { sampleThermal(); main.postDelayed(this, 8_000) } }
     }
@@ -151,6 +162,11 @@ class DashcamService : LifecycleService() {
             Log.i(LOG, "thermal level=$level temp=$t")
             motion.batterySaver = settings.batterySaver || thermalThrottle
             if (appliedVideoKey != null && appliedVideoKey != videoKey(settings) && !state.value.eventActive) requestRebind()
+            logEvent(when (level) {
+                2 -> "🌡 חם מאוד (${"%.0f".format(t)}°) — אזהרה"
+                1 -> "🌡 מגן חום נכנס (${"%.0f".format(t)}°) — איכות הופחתה ל-${effResolution(settings).height}p/${effFps(settings)}"
+                else -> "❄ התקרר (${"%.0f".format(t)}°) — איכות מלאה חזרה"
+            })
         }
         logDriveRow(batt, t, if (changed) "thermal→$level" else "")
     }
@@ -178,8 +194,13 @@ class DashcamService : LifecycleService() {
         runCatching {
             val dir = File(filesDir, "drivelogs").apply { mkdirs() }
             dir.listFiles()?.sortedBy { it.lastModified() }?.dropLast(4)?.forEach { it.delete() } // keep last ~5
-            driveLog = File(dir, "drive_${System.currentTimeMillis()}.csv").apply {
+            val ts = System.currentTimeMillis()
+            driveLog = File(dir, "drive_${ts}.csv").apply {
                 appendText("time,elapsed_s,battery_pct,batt_temp_c,charging,current_mA,avail_mem_mb,thermal_level,rec_height,rec_fps,event_active,battery_saver,ai_live,note\n")
+            }
+            eventLog = File(dir, "events_${ts}.log").apply {
+                appendText("Jeremy — יומן נסיעה ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US).format(java.util.Date())}\n")
+                appendText("גרסה ${com.jeremy.dashcam.BuildConfig.VERSION_NAME} • ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n\n")
             }
         }
     }
@@ -389,6 +410,7 @@ class DashcamService : LifecycleService() {
         tripId = now; tripPending.clear(); tripClipStart = 0L
         driveRotationLocked = false; physicalRotation = null
         thermalLevel = 0; startDriveLog(); main.postDelayed(thermalTick, 8_000) // thermal guard + drive log
+        logEvent("▶ נסיעה התחילה • שמע=${if (settings.recordAudio) "כן" else "לא"} • חיסכון=${if (settings.batterySaver) "כן" else "לא"} • AI-בסוף=${if (settings.postDriveAiScan) "כן" else "לא"}")
         if (settings.lockRotation) main.postDelayed({ if (running && !driveRotationLocked) lockDriveRotation() }, 2000) // flat phone → lock to the screen
 
         orientationListener = object : OrientationEventListener(this) {
@@ -470,6 +492,7 @@ class DashcamService : LifecycleService() {
     }
 
     private fun teardown() {
+        logEvent("■ נסיעה הסתיימה")
         running = false
         driveJobs.forEach { it.cancel() }; driveJobs.clear()
         main.removeCallbacks(rotateSegment); main.removeCallbacks(startSegmentRunnable); main.removeCallbacks(autoStopRunnable); main.removeCallbacks(thermalTick)
@@ -609,6 +632,7 @@ class DashcamService : LifecycleService() {
         motion.reset()
         consecutiveFailures = 0
         state.update { it.copy(phase = DrivePhase.RUNNING, audioActive = s.recordAudio && hasAudioPermission(), error = null) }
+        logEvent("📷 מצלמה פעילה • ${effResolution(s).height}p/${effFps(s)} • ${if (DashcamController.dualActive.value) "מצלמה כפולה" else "מצלמה אחת"} • זיהוי=${if (s.smartDetection) "כן" else "לא"} • AI-חי=${if (motion.aiWanted) "כן" else "לא"}")
         startSegment()
     }
 
@@ -633,6 +657,7 @@ class DashcamService : LifecycleService() {
     }
 
     private fun onCameraError(e: Throwable) {
+        logEvent("✗ שגיאת מצלמה: ${e.message ?: e.javaClass.simpleName}")
         Log.e(TAG, "camera error", e)
         state.update { it.copy(error = getString(R.string.camera_error, e.message ?: e.javaClass.simpleName)) }
     }
@@ -789,7 +814,9 @@ class DashcamService : LifecycleService() {
         val s = settings
         if (!isPro || !s.sosEnabled || s.sosNumber.isBlank() || d.type != ImpactAlgorithm.Type.IMPACT || d.peakG < s.sosMinG) return
         Log.i(LOG, "SOS countdown (peak ${d.peakG}g)")
+        logEvent("🆘 התראת חירום הופעלה (%.1fg) — ספירה לחיוג".format(d.peakG))
         sosOverlay.show(s.sosSeconds, s.sosName, s.sosNumber, test = false, onSpeak = { voice.initTts(); voice.speak(it) }) {
+            logEvent("🆘 חיוג חירום ל-${s.sosNumber}")
             EmergencyOverlay.call(this, s.sosNumber)
         }
     }
@@ -893,6 +920,7 @@ class DashcamService : LifecycleService() {
         state.update { it.copy(eventActive = true, eventStartTime = now, eventTrigger = trigger, eventPeakG = peakG, autoStopAt = stopAt) }
         if (stopAt > 0) scheduleAutoStop(stopAt)
         Log.i(LOG, "event start trigger=$trigger")
+        logEvent("● אירוע התחיל • טריגר=$trigger${peakG?.let { " • %.1fg".format(it) } ?: ""}")
         if (settings.voiceFeedback) voice.speak(getString(R.string.tts_started))
     }
 
@@ -1036,9 +1064,11 @@ class DashcamService : LifecycleService() {
                     Notifications.eventSaved(this, record)
                     DashcamController.lastSavedEventId.value = record.id
                     if (settings.voiceFeedback) voice.speak(getString(R.string.tts_saved))
+                    logEvent("✓ אירוע נשמר • ${record.durationMs / 1000}שנ׳ • ${record.sizeBytes / 1048576}MB")
                 } else {
                     out?.delete()
                     Notifications.eventFailed(this)
+                    logEvent("✗ שמירת אירוע נכשלה")
                 }
                 maybeFinish()
             }
@@ -1079,6 +1109,7 @@ class DashcamService : LifecycleService() {
     /** When the drive is over and its trips are saved, hand the AI a job to scan them (only while charging). */
     private fun maybeEnqueueScan() {
         if (!running && pendingTripJobs == 0 && settings.postDriveAiScan && isPro && settings.proAi) {
+            logEvent("🤖 סריקת AI בסוף הנסיעה תוזמנה (תרוץ בטעינה)")
             runCatching { com.jeremy.dashcam.core.pro.PostDriveAiScan.enqueue(this, tripId) }
         }
     }

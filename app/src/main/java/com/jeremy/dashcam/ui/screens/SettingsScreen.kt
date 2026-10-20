@@ -916,17 +916,19 @@ private fun TestReportDialog(onDismiss: () -> Unit) {
     )
 }
 
-/** Shares the newest in-app drive log (temperature / battery / thermal-guard events) for analysis. */
+/** Shares the newest drive logs: telemetry CSV (temp/battery) + the events log (what happened). */
 private fun shareLastDriveLog(ctx: android.content.Context) {
-    val f = runCatching {
-        java.io.File(ctx.filesDir, "drivelogs").listFiles()?.maxByOrNull { it.lastModified() }
-    }.getOrNull()
-    if (f == null || !f.exists()) { android.widget.Toast.makeText(ctx, "עדיין אין נתוני נסיעה — צא לנסיעה קודם", android.widget.Toast.LENGTH_LONG).show(); return }
+    val files = runCatching { java.io.File(ctx.filesDir, "drivelogs").listFiles()?.toList().orEmpty() }.getOrDefault(emptyList())
+    val csv = files.filter { it.name.endsWith(".csv") }.maxByOrNull { it.lastModified() }
+    val log = files.filter { it.name.endsWith(".log") }.maxByOrNull { it.lastModified() }
+    val pick = listOfNotNull(csv, log).filter { it.exists() }
+    if (pick.isEmpty()) { android.widget.Toast.makeText(ctx, "עדיין אין נתוני נסיעה — צא לנסיעה קודם", android.widget.Toast.LENGTH_LONG).show(); return }
     runCatching {
-        val uri = androidx.core.content.FileProvider.getUriForFile(ctx, "${ctx.packageName}.files", f)
-        val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-            type = "text/csv"
-            putExtra(android.content.Intent.EXTRA_STREAM, uri)
+        val uris = ArrayList(pick.map { androidx.core.content.FileProvider.getUriForFile(ctx, "${ctx.packageName}.files", it) })
+        val send = android.content.Intent(if (uris.size > 1) android.content.Intent.ACTION_SEND_MULTIPLE else android.content.Intent.ACTION_SEND).apply {
+            type = "text/*"
+            if (uris.size > 1) putParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, uris)
+            else putExtra(android.content.Intent.EXTRA_STREAM, uris[0])
             putExtra(android.content.Intent.EXTRA_TEXT, "נתוני נסיעה — Jeremy")
             addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
