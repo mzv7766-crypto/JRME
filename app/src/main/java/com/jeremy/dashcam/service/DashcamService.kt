@@ -129,14 +129,13 @@ class DashcamService : LifecycleService() {
     // restored once it cools. Hysteresis stops it flapping around a threshold.
     private var thermalLevel = 0
     private val thermalThrottle get() = thermalLevel >= 1
+    private var driveLog: File? = null
     private val thermalTick = object : Runnable {
         override fun run() { if (running) { sampleThermal(); main.postDelayed(this, 8_000) } }
     }
     private fun sampleThermal() {
-        val t = runCatching {
-            (registerReceiver(null, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-                ?.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, -1) ?: -1).let { if (it > 0) it / 10f else 0f }
-        }.getOrDefault(0f)
+        val batt = runCatching { registerReceiver(null, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED)) }.getOrNull()
+        val t = ((batt?.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, -1) ?: -1)).let { if (it > 0) it / 10f else 0f }
         if (t <= 0f) return
         val level = when {
             thermalLevel >= 1 && t <= 40f -> 0   // cooled: back to full quality
@@ -152,6 +151,36 @@ class DashcamService : LifecycleService() {
             Log.i(LOG, "thermal level=$level temp=$t")
             motion.batterySaver = settings.batterySaver || thermalThrottle
             if (appliedVideoKey != null && appliedVideoKey != videoKey(settings) && !state.value.eventActive) requestRebind()
+        }
+        logDriveRow(batt, t, if (changed) "thermal→$level" else "")
+    }
+
+    /** Appends one row of what Jeremy itself knows about the drive, so the user can share it for analysis. */
+    private fun logDriveRow(batt: android.content.Intent?, tempC: Float, note: String) {
+        val f = driveLog ?: return
+        runCatching {
+            val s = settings
+            val bm = getSystemService(android.os.BatteryManager::class.java)
+            val pct = bm?.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: -1
+            val currentMa = (bm?.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) ?: 0) / 1000
+            val status = batt?.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1) ?: -1
+            val charging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING || status == android.os.BatteryManager.BATTERY_STATUS_FULL
+            val mi = android.app.ActivityManager.MemoryInfo()
+            getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(mi)
+            val st = state.value
+            val elapsed = (System.currentTimeMillis() - st.driveStartTime) / 1000
+            val iso = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+            f.appendText("$iso,$elapsed,$pct,${"%.1f".format(tempC)},$charging,$currentMa,${mi.availMem / 1048576},$thermalLevel,${effResolution(s).height},${effFps(s)},${st.eventActive},${s.batterySaver},${isPro && s.proAi && !s.postDriveAiScan},$note\n")
+        }
+    }
+
+    private fun startDriveLog() {
+        runCatching {
+            val dir = File(filesDir, "drivelogs").apply { mkdirs() }
+            dir.listFiles()?.sortedBy { it.lastModified() }?.dropLast(4)?.forEach { it.delete() } // keep last ~5
+            driveLog = File(dir, "drive_${System.currentTimeMillis()}.csv").apply {
+                appendText("time,elapsed_s,battery_pct,batt_temp_c,charging,current_mA,avail_mem_mb,thermal_level,rec_height,rec_fps,event_active,battery_saver,ai_live,note\n")
+            }
         }
     }
 
@@ -359,7 +388,7 @@ class DashcamService : LifecycleService() {
         if (CONTINUOUS_AUDIO && settings.recordAudio && hasAudioPermission()) runCatching { audioRecorder.start() }
         tripId = now; tripPending.clear(); tripClipStart = 0L
         driveRotationLocked = false; physicalRotation = null
-        thermalLevel = 0; main.postDelayed(thermalTick, 8_000) // thermal guard
+        thermalLevel = 0; startDriveLog(); main.postDelayed(thermalTick, 8_000) // thermal guard + drive log
         if (settings.lockRotation) main.postDelayed({ if (running && !driveRotationLocked) lockDriveRotation() }, 2000) // flat phone → lock to the screen
 
         orientationListener = object : OrientationEventListener(this) {

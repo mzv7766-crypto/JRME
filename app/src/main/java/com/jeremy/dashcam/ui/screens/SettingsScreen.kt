@@ -242,7 +242,8 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
             var testReport by remember { mutableStateOf(false) }
             Section("אודות") {
                 Nav("גרסה מותקנת", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", clickable = false) {}
-                Nav("דוח בדיקה — מה עבד / מה לא", "שלח אליי", last = true) { testReport = true }
+                Nav("דוח בדיקה — מה עבד / מה לא", "שלח אליי") { testReport = true }
+                Nav("שתף נתוני נסיעה אחרונה", "חום / סוללה", last = true) { shareLastDriveLog(ctx) }
             }
             if (testReport) TestReportDialog(onDismiss = { testReport = false })
             Text(
@@ -913,6 +914,24 @@ private fun TestReportDialog(onDismiss: () -> Unit) {
         confirmButton = { TextButton({ share() }) { Text("שתף") } },
         dismissButton = { TextButton(onDismiss) { Text("סגור") } },
     )
+}
+
+/** Shares the newest in-app drive log (temperature / battery / thermal-guard events) for analysis. */
+private fun shareLastDriveLog(ctx: android.content.Context) {
+    val f = runCatching {
+        java.io.File(ctx.filesDir, "drivelogs").listFiles()?.maxByOrNull { it.lastModified() }
+    }.getOrNull()
+    if (f == null || !f.exists()) { android.widget.Toast.makeText(ctx, "עדיין אין נתוני נסיעה — צא לנסיעה קודם", android.widget.Toast.LENGTH_LONG).show(); return }
+    runCatching {
+        val uri = androidx.core.content.FileProvider.getUriForFile(ctx, "${ctx.packageName}.files", f)
+        val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+            type = "text/csv"
+            putExtra(android.content.Intent.EXTRA_STREAM, uri)
+            putExtra(android.content.Intent.EXTRA_TEXT, "נתוני נסיעה — Jeremy")
+            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        ctx.startActivity(android.content.Intent.createChooser(send, "שתף נתוני נסיעה").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+    }.onFailure { android.widget.Toast.makeText(ctx, "לא ניתן לשתף", android.widget.Toast.LENGTH_LONG).show() }
 }
 
 @Composable
