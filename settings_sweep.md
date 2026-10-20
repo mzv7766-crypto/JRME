@@ -1,0 +1,39 @@
+# Settings sweep
+rows tapped: 36, problems: 0
+
+- ✅ [01] switch: זיהוי חכם עם בינה מלאכותית | PRO | מזהה רכבים והולכי רגל שמתקרבים מהר – בטלפון, 
+- ✅ [02] switch: סריקת AI בסוף הנסיעה | PRO | סורק את הנסיעה בטעינה וחותך אוטומטית את הרגעים החשו
+- ✅ [03] row → dialog/screen (closed): Pre-event recording (Rolling Buffer) | 15 seconds
+- ✅ [04] row → dialog/screen (closed): Resolution | 1080p (Full HD)
+- ✅ [05] row → dialog/screen (closed): FPS | 30
+- ✅ [06] switch: Record audio
+- ✅ [07] switch: Show date & time on video
+- ✅ [08] row → dialog/screen (closed): מה נשלח יחד עם הסרטון | תאריך ושעה, סיבת האירוע, שם האירוע
+- ✅ [09] switch: Impact / shake detection
+- ✅ [10] row → dialog/screen (closed): Sensor sensitivity | Medium
+- ✅ [11] switch: Smart image detection
+- ✅ [12] row → dialog/screen (closed): Smart detection sensitivity | Medium
+- ✅ [13] switch: Auto-end events that started by themselves
+- ✅ [14] row → dialog/screen (closed): End after | 20 seconds
+- ✅ [15] switch: Voice commands
+- ✅ [16] row → dialog/screen (closed): Start phrase | "start event"
+- ✅ [17] row → dialog/screen (closed): Stop phrase | "stop event"
+- ✅ [18] switch: Voice feedback
+- ✅ [19] switch: Volume button control
+- ✅ [20] switch: Save the whole drive
+- ✅ [21] row → dialog/screen (closed): Clip length | 1 min
+- ✅ [22] row → dialog/screen (closed): Max storage for drives | 16 GB
+- ✅ [23] switch: Burn date & branding into drive clips too
+- ✅ [24] row: Used | 0.02 GB • 5
+- ✅ [25] row: Used | 0.02 GB • 6
+- ✅ [26] switch: Auto delete
+- ✅ [27] row → dialog/screen (closed): Max storage for events | 8 GB
+- ✅ [28] row: Used | 0.00 GB • 2
+- ✅ [29] row → dialog/screen (closed): סיבוב הצילום | עוקב אחרי כיוון הטלפון
+- ✅ [30] switch: השאר מסך דלוק בזמן נסיעה
+- ✅ [31] switch: מצב חיסכון בסוללה
+- ✅ [32] row: Display over other apps | Granted
+- ✅ [33] row: Unrestricted battery | Granted
+- ✅ [34] row: גרסה מותקנת | 2.1.19 (65)
+- ✅ [35] row → dialog/screen (closed): דוח בדיקה — מה עבד / מה לא | שלח אליי
+- ✅ [36] row → system/other app (closed): שתף נתוני נסיעה אחרונה | חום / סוללה
