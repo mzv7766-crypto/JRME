@@ -41,10 +41,10 @@ object PostDriveAiScan {
     private const val POST_MS = 4_000L          // and this much after
     private const val GROUP_GAP_MS = 5_000L     // danger hits closer than this are one event
 
-    fun enqueue(context: Context, tripId: Long) {
+    fun enqueue(context: Context, tripId: Long, eventLogPath: String? = null) {
         if (tripId <= 0L) return
         val req = OneTimeWorkRequestBuilder<PostDriveScanWorker>()
-            .setInputData(workDataOf("tripId" to tripId))
+            .setInputData(workDataOf("tripId" to tripId, "eventLog" to (eventLogPath ?: "")))
             .setConstraints(Constraints.Builder().setRequiresCharging(true).build())
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork("scan_$tripId", ExistingWorkPolicy.KEEP, req)
@@ -195,6 +195,14 @@ class PostDriveScanWorker(context: Context, params: WorkerParameters) : Coroutin
             }
         }
         android.util.Log.i("JeremyScan", "post-drive scan done: trip $tripId → $made event(s)")
+        // Write the result back into the drive's event log so the shared report shows the scan worked.
+        runCatching {
+            val path = inputData.getString("eventLog")
+            if (!path.isNullOrBlank()) {
+                val clips = trips.size
+                java.io.File(path).appendText("🤖 סריקת AI הסתיימה: נסרקו $clips קטעי נסיעה → נוצרו $made אירועים\n")
+            }
+        }
         return Result.success()
     }
 }

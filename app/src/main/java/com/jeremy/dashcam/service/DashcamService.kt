@@ -1110,7 +1110,7 @@ class DashcamService : LifecycleService() {
     private fun maybeEnqueueScan() {
         if (!running && pendingTripJobs == 0 && settings.postDriveAiScan && isPro && settings.proAi) {
             logEvent("🤖 סריקת AI בסוף הנסיעה תוזמנה (תרוץ בטעינה)")
-            runCatching { com.jeremy.dashcam.core.pro.PostDriveAiScan.enqueue(this, tripId) }
+            runCatching { com.jeremy.dashcam.core.pro.PostDriveAiScan.enqueue(this, tripId, eventLog?.absolutePath) }
         }
     }
 }

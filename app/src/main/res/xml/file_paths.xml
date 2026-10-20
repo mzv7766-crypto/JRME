@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-files-path name="events" path="Movies/" />
+    <!-- in-app drive logs (temperature/battery + events) and the shared test report -->
+    <files-path name="drivelogs" path="drivelogs/" />
+    <cache-path name="cache" path="." />
 </paths>
