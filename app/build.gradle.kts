@@ -16,8 +16,8 @@ android {
         applicationId = "com.jeremy.dashcam"
         minSdk = 26
         targetSdk = 36
-        versionCode = 65
-        versionName = "2.1.19"
+        versionCode = 66
+        versionName = "2.1.20"
         // test APK sent directly (not via Play): 64-bit ARM only, to keep the download small
         // Play bundle: phones only (ARM); x86 is emulators / a few Chromebooks and doubles the bundle size
         if (!project.hasProperty("smoke")) ndk {   // the emulator smoke test needs x86_64

@@ -193,7 +193,7 @@ class DashcamService : LifecycleService() {
     private fun startDriveLog() {
         runCatching {
             val dir = File(filesDir, "drivelogs").apply { mkdirs() }
-            dir.listFiles()?.sortedBy { it.lastModified() }?.dropLast(4)?.forEach { it.delete() } // keep last ~5
+            dir.listFiles()?.sortedBy { it.lastModified() }?.dropLast(30)?.forEach { it.delete() } // keep ~15 recent drives (csv+log each)
             val ts = System.currentTimeMillis()
             driveLog = File(dir, "drive_${ts}.csv").apply {
                 appendText("time,elapsed_s,battery_pct,batt_temp_c,charging,current_mA,avail_mem_mb,thermal_level,rec_height,rec_fps,event_active,battery_saver,ai_live,note\n")

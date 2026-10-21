@@ -243,7 +243,7 @@ fun SettingsScreen(onOpenPro: () -> Unit = {}) {
             Section("אודות") {
                 Nav("גרסה מותקנת", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", clickable = false) {}
                 Nav("דוח בדיקה — מה עבד / מה לא", "שלח אליי") { testReport = true }
-                Nav("שתף נתוני נסיעה אחרונה", "חום / סוללה", last = true) { shareLastDriveLog(ctx) }
+                Nav("שתף נתוני נסיעות (הכל)", "חום / סוללה / אירועים", last = true) { shareLastDriveLog(ctx) }
             }
             if (testReport) TestReportDialog(onDismiss = { testReport = false })
             Text(
@@ -916,23 +916,23 @@ private fun TestReportDialog(onDismiss: () -> Unit) {
     )
 }
 
-/** Shares the newest drive logs: telemetry CSV (temp/battery) + the events log (what happened). */
+/** Shares ALL saved drive logs (every drive's telemetry CSV + events log) in one go. */
 private fun shareLastDriveLog(ctx: android.content.Context) {
-    val files = runCatching { java.io.File(ctx.filesDir, "drivelogs").listFiles()?.toList().orEmpty() }.getOrDefault(emptyList())
-    val csv = files.filter { it.name.endsWith(".csv") }.maxByOrNull { it.lastModified() }
-    val log = files.filter { it.name.endsWith(".log") }.maxByOrNull { it.lastModified() }
-    val pick = listOfNotNull(csv, log).filter { it.exists() }
-    if (pick.isEmpty()) { android.widget.Toast.makeText(ctx, "עדיין אין נתוני נסיעה — צא לנסיעה קודם", android.widget.Toast.LENGTH_LONG).show(); return }
+    val files = runCatching {
+        java.io.File(ctx.filesDir, "drivelogs").listFiles()?.filter { it.isFile && it.exists() }
+            ?.sortedByDescending { it.lastModified() }.orEmpty()
+    }.getOrDefault(emptyList())
+    if (files.isEmpty()) { android.widget.Toast.makeText(ctx, "עדיין אין נתוני נסיעה — צא לנסיעה קודם", android.widget.Toast.LENGTH_LONG).show(); return }
     runCatching {
-        val uris = ArrayList(pick.map { androidx.core.content.FileProvider.getUriForFile(ctx, "${ctx.packageName}.files", it) })
+        val uris = ArrayList(files.map { androidx.core.content.FileProvider.getUriForFile(ctx, "${ctx.packageName}.files", it) })
         val send = android.content.Intent(if (uris.size > 1) android.content.Intent.ACTION_SEND_MULTIPLE else android.content.Intent.ACTION_SEND).apply {
             type = "text/*"
             if (uris.size > 1) putParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, uris)
             else putExtra(android.content.Intent.EXTRA_STREAM, uris[0])
-            putExtra(android.content.Intent.EXTRA_TEXT, "נתוני נסיעה — Jeremy")
+            putExtra(android.content.Intent.EXTRA_TEXT, "נתוני נסיעות — Jeremy (${files.count { it.name.endsWith(".csv") }} נסיעות)")
             addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        ctx.startActivity(android.content.Intent.createChooser(send, "שתף נתוני נסיעה").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+        ctx.startActivity(android.content.Intent.createChooser(send, "שתף נתוני נסיעות").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
     }.onFailure { android.widget.Toast.makeText(ctx, "לא ניתן לשתף", android.widget.Toast.LENGTH_LONG).show() }
 }
 
