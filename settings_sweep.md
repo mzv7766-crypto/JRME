@@ -1,0 +1,42 @@
+# Settings sweep
+rows tapped: 39, problems: 0
+
+- ✅ [01] row → dialog/screen (closed): Jeremy Pro | Pro פעיל
+- ✅ [02] row → dialog/screen (closed): מה מופיע על הסרטון | תאריך, מהירות ועוד 2
+- ✅ [03] switch: הפעלה אוטומטית ברכב | PRO | מתחיל לצלם כשהטלפון מתחבר ל־Bluetooth של הרכב
+- ✅ [04] switch: התראת חירום עם חיוג | PRO | אחרי מכה חזקה – חיוג למספר שתגדיר
+- ✅ [05] switch: זיהוי חכם עם בינה מלאכותית | PRO | מזהה רכבים והולכי רגל שמתקרבים מהר – בטלפון, 
+- ✅ [06] switch: סריקת AI בסוף הנסיעה | PRO | סורק את הנסיעה בטעינה וחותך אוטומטית את הרגעים החשו
+- ✅ [07] row → dialog/screen (closed): Pre-event recording (Rolling Buffer) | 15 seconds
+- ✅ [08] row → dialog/screen (closed): Resolution | 1080p (Full HD)
+- ✅ [09] row → dialog/screen (closed): FPS | 30
+- ✅ [10] switch: Record audio
+- ✅ [11] switch: Show date & time on video
+- ✅ [12] row → dialog/screen (closed): מה נשלח יחד עם הסרטון | תאריך ושעה, סיבת האירוע, שם האירוע
+- ✅ [13] switch: Impact / shake detection
+- ✅ [14] row → dialog/screen (closed): Sensor sensitivity | Medium
+- ✅ [15] switch: Smart image detection
+- ✅ [16] row → dialog/screen (closed): Smart detection sensitivity | Medium
+- ✅ [17] switch: Auto-end events that started by themselves
+- ✅ [18] row → dialog/screen (closed): End after | 20 seconds
+- ✅ [19] switch: Voice commands
+- ✅ [20] row → dialog/screen (closed): Start phrase | "start event"
+- ✅ [21] row → dialog/screen (closed): Stop phrase | "stop event"
+- ✅ [22] switch: Voice feedback
+- ✅ [23] switch: Volume button control
+- ✅ [24] switch: Save the whole drive
+- ✅ [25] row → dialog/screen (closed): Clip length | 1 min
+- ✅ [26] row → dialog/screen (closed): Max storage for drives | 16 GB
+- ✅ [27] switch: Burn date & branding into drive clips too
+- ✅ [28] row: Used | 0.02 GB • 8
+- ✅ [29] switch: Auto delete
+- ✅ [30] row → dialog/screen (closed): Max storage for events | 8 GB
+- ✅ [31] row: Used | 0.00 GB • 2
+- ✅ [32] row → dialog/screen (closed): סיבוב הצילום | עוקב אחרי כיוון הטלפון
+- ✅ [33] switch: השאר מסך דלוק בזמן נסיעה
+- ✅ [34] switch: מצב חיסכון בסוללה
+- ✅ [35] row: Display over other apps | Granted
+- ✅ [36] row: Unrestricted battery | Granted
+- ✅ [37] row: גרסה מותקנת | 2.1.19 (65)
+- ✅ [38] row → dialog/screen (closed): דוח בדיקה — מה עבד / מה לא | שלח אליי
+- ✅ [39] row → system/other app (closed): שתף נתוני נסיעה אחרונה | חום / סוללה

@@ -1,0 +1,2 @@
+  Window #4 Window{81971b9 u0 com.jeremy.dashcam}:
+  Window #9 Window{883585a u0 com.jeremy.dashcam/com.jeremy.dashcam.MainActivity}:

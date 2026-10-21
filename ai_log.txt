@@ -1,0 +1,2 @@
+10-20 23:27:22.999  5673  6412 W dex2oat32: Verification of java.lang.String com.google.mediapipe.tasks.components.containers.Landmark.toString() took 104.021ms (721.01 bytecodes/s) (1272B approximate peak alloc)
+10-20 23:27:23.248  5673  6412 W dex2oat32: Verification of int com.google.mediapipe.tasks.vision.gesturerecognizer.AutoValue_GestureRecognizer_GestureRecognizerOptions.hashCode() took 133.786ms (635.34 bytecodes/s) (1472B approximate peak alloc)

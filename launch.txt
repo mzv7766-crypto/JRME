@@ -1,0 +1,7 @@
+Starting: Intent { cmp=com.jeremy.dashcam/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.jeremy.dashcam/.MainActivity
+TotalTime: 3336
+WaitTime: 3348
+Complete

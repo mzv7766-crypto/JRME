@@ -1,0 +1,121 @@
+--------- beginning of main
+--------- beginning of system
+--------- beginning of kernel
+10-20 23:26:51.444 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:27:51.760 I/Jeremy  ( 5241): segment seg_1792538811444.mp4 dur=57881ms gapBefore=0ms
+10-20 23:27:51.760 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:28:47.282 I/Jeremy  ( 5241): event start trigger=MANUAL
+10-20 23:29:01.690 I/Jeremy  ( 5241): segment seg_1792538871760.mp4 dur=68575ms gapBefore=1833ms
+10-20 23:29:01.691 I/Jeremy  ( 5241): trip clip queued: 2 segments, 126456ms final=false
+10-20 23:29:01.885 I/Jeremy  ( 5241): export level 0, 2 pieces
+10-20 23:29:01.961 I/Jeremy  ( 5241): export pieces=1 mediaMs=28118 spanMs=28105
+10-20 23:29:01.972 I/Jeremy  ( 5241): trip export paused for an event
+10-20 23:29:01.979 I/Jeremy  ( 5241): export level 0, 1 pieces
+10-20 23:29:01.989 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:30:02.503 I/Jeremy  ( 5241): segment seg_1792538941989.mp4 dur=59639ms gapBefore=1682ms
+10-20 23:30:02.503 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:30:47.269 I/Jeremy  ( 5241): export level 0 done: 28288ms, 1044199 bytes
+10-20 23:30:47.322 I/Jeremy  ( 5241): export level 0, 2 pieces
+10-20 23:30:53.327 I/Jeremy  ( 5241): event start trigger=MANUAL
+10-20 23:31:28.365 I/Jeremy  ( 5241): event discarded
+10-20 23:31:30.733 I/Jeremy  ( 5241): segment seg_1792539002503.mp4 dur=87304ms gapBefore=852ms
+10-20 23:31:30.733 I/Jeremy  ( 5241): trip clip queued: 2 segments, 146943ms final=false
+10-20 23:31:30.733 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:32:31.120 I/Jeremy  ( 5241): segment seg_1792539090733.mp4 dur=59938ms gapBefore=924ms
+10-20 23:32:31.121 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:32:47.485 I/Jeremy  ( 5241): event start trigger=FLOATING
+10-20 23:33:11.396 I/Jeremy  ( 5241): segment seg_1792539151121.mp4 dur=39601ms gapBefore=470ms
+10-20 23:33:11.396 I/Jeremy  ( 5241): trip clip queued: 2 segments, 99539ms final=false
+10-20 23:33:11.397 I/Jeremy  ( 5241): export pieces=1 mediaMs=38270 spanMs=38410
+10-20 23:33:11.461 I/Jeremy  ( 5241): trip export paused for an event
+10-20 23:33:11.469 I/Jeremy  ( 5241): export level 0, 1 pieces
+10-20 23:33:11.481 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:33:23.506 I/Jeremy  ( 5241): plates for 1620ca6f-07c8-4c73-b108-e38c5148532c: 0 found
+10-20 23:34:11.930 I/Jeremy  ( 5241): segment seg_1792539191481.mp4 dur=59946ms gapBefore=747ms
+10-20 23:34:11.931 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:34:31.099 I/Jeremy  ( 5241): export level 0 done: 38272ms, 1794679 bytes
+10-20 23:34:31.100 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:34:33.715 I/Jeremy  ( 5241): export level 0, 2 pieces
+10-20 23:35:13.257 I/Jeremy  ( 5241): segment seg_1792539251931.mp4 dur=59761ms gapBefore=506ms
+10-20 23:35:13.257 I/Jeremy  ( 5241): trip clip queued: 2 segments, 119707ms final=false
+10-20 23:35:13.257 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:36:13.798 I/Jeremy  ( 5241): segment seg_1792539313257.mp4 dur=59004ms gapBefore=1572ms
+10-20 23:36:13.798 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:37:14.228 I/Jeremy  ( 5241): segment seg_1792539373798.mp4 dur=59964ms gapBefore=1522ms
+10-20 23:37:14.229 I/Jeremy  ( 5241): trip clip queued: 2 segments, 118968ms final=false
+10-20 23:37:14.229 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:37:14.921 I/Jeremy  ( 5241): plates for cd22c07d-8265-4ec8-882c-e604a91bcbe7: 0 found
+10-20 23:38:14.644 I/Jeremy  ( 5241): segment seg_1792539434229.mp4 dur=59744ms gapBefore=463ms
+10-20 23:38:14.644 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:39:14.996 I/Jeremy  ( 5241): segment seg_1792539494644.mp4 dur=59526ms gapBefore=671ms
+10-20 23:39:14.996 I/Jeremy  ( 5241): trip clip queued: 2 segments, 119270ms final=false
+10-20 23:39:14.997 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:40:15.295 I/Jeremy  ( 5241): segment seg_1792539554997.mp4 dur=59811ms gapBefore=875ms
+10-20 23:40:15.295 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:40:21.815 I/Jeremy  ( 5241): export level 0 done: 147094ms, 5871120 bytes
+10-20 23:40:22.427 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:40:23.928 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:40:25.979 I/Jeremy  ( 5241): export level 0, 2 pieces
+10-20 23:41:02.726 I/Jeremy  ( 5241): segment seg_1792539615295.mp4 dur=46590ms gapBefore=448ms
+10-20 23:41:02.726 I/Jeremy  ( 5241): trip clip queued: 2 segments, 106401ms final=false
+10-20 23:41:03.023 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:41:15.031 I/Jeremy  ( 5241): segment seg_1792539663023.mp4 dur=10781ms gapBefore=1254ms
+10-20 23:41:15.275 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:42:16.497 I/Jeremy  ( 5241): segment seg_1792539675275.mp4 dur=59042ms gapBefore=1505ms
+10-20 23:42:16.497 I/Jeremy  ( 5241): trip clip queued: 2 segments, 69823ms final=false
+10-20 23:42:16.497 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:43:17.107 I/Jeremy  ( 5241): segment seg_1792539736497.mp4 dur=59610ms gapBefore=2032ms
+10-20 23:43:17.107 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:43:45.440 I/Jeremy  ( 5241): segment seg_1792539797107.mp4 dur=27413ms gapBefore=1033ms
+10-20 23:43:45.440 I/Jeremy  ( 5241): trip clip queued: 2 segments, 87023ms final=false
+10-20 23:43:45.525 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:43:57.094 I/Jeremy  ( 5241): segment seg_1792539825525.mp4 dur=10377ms gapBefore=1167ms
+10-20 23:43:57.444 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:44:57.902 I/Jeremy  ( 5241): segment seg_1792539837444.mp4 dur=58218ms gapBefore=1749ms
+10-20 23:44:57.902 I/Jeremy  ( 5241): trip clip queued: 2 segments, 68595ms final=false
+10-20 23:44:57.903 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:45:58.277 I/Jeremy  ( 5241): segment seg_1792539897903.mp4 dur=59607ms gapBefore=1838ms
+10-20 23:45:58.277 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:46:24.523 I/Jeremy  ( 5241): export level 0 done: 119111ms, 5319902 bytes
+10-20 23:46:24.764 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:46:25.814 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:46:27.253 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:46:29.010 I/Jeremy  ( 5241): export level 0, 2 pieces
+10-20 23:46:58.727 I/Jeremy  ( 5241): segment seg_1792539958277.mp4 dur=59466ms gapBefore=759ms
+10-20 23:46:58.727 I/Jeremy  ( 5241): trip clip queued: 2 segments, 119073ms final=false
+10-20 23:46:58.727 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:47:58.952 I/Jeremy  ( 5241): segment seg_1792540018727.mp4 dur=59940ms gapBefore=982ms
+10-20 23:47:58.952 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:48:59.645 I/Jeremy  ( 5241): segment seg_1792540078952.mp4 dur=59821ms gapBefore=307ms
+10-20 23:48:59.645 I/Jeremy  ( 5241): trip clip queued: 2 segments, 119761ms final=false
+10-20 23:48:59.645 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:50:00.268 I/Jeremy  ( 5241): segment seg_1792540139645.mp4 dur=59872ms gapBefore=941ms
+10-20 23:50:00.268 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:51:00.710 I/Jeremy  ( 5241): segment seg_1792540200268.mp4 dur=59721ms gapBefore=661ms
+10-20 23:51:00.710 I/Jeremy  ( 5241): trip clip queued: 2 segments, 119593ms final=false
+10-20 23:51:00.714 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:51:59.270 I/Jeremy  ( 5241): export level 0 done: 87117ms, 4443373 bytes
+10-20 23:51:59.531 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:52:01.012 I/Jeremy  ( 5241): segment seg_1792540260714.mp4 dur=59798ms gapBefore=739ms
+10-20 23:52:01.012 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:52:01.447 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:52:03.094 I/Jeremy  ( 5241): export level 0, 2 pieces
+10-20 23:53:01.579 I/Jeremy  ( 5241): segment seg_1792540321012.mp4 dur=59548ms gapBefore=492ms
+10-20 23:53:01.579 I/Jeremy  ( 5241): trip clip queued: 2 segments, 119346ms final=false
+10-20 23:53:01.580 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:54:02.013 I/Jeremy  ( 5241): segment seg_1792540381580.mp4 dur=59505ms gapBefore=1128ms
+10-20 23:54:02.014 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:55:02.581 I/Jeremy  ( 5241): segment seg_1792540442014.mp4 dur=59850ms gapBefore=809ms
+10-20 23:55:02.581 I/Jeremy  ( 5241): trip clip queued: 2 segments, 119355ms final=false
+10-20 23:55:02.581 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:56:02.844 I/Jeremy  ( 5241): segment seg_1792540502581.mp4 dur=59929ms gapBefore=745ms
+10-20 23:56:02.844 I/Jeremy  ( 5241): segment start rotation=0 physical=null display=0 setting=AUTO
+10-20 23:56:23.327 I/Jeremy  ( 5241): segment seg_1792540562844.mp4 dur=19988ms gapBefore=326ms
+10-20 23:56:23.327 I/Jeremy  ( 5241): trip clip queued: 2 segments, 79917ms final=false
+10-20 23:57:00.342 I/Jeremy  ( 5241): export level 0 done: 119936ms, 5773315 bytes
+10-20 23:57:00.395 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:57:00.631 W/Jeremy  ( 5241): export: falling back to plain join (no overlays)
+10-20 23:57:00.884 I/Jeremy  ( 5241): export level 0, 2 pieces
+10-20 23:58:30.026 I/Jeremy  ( 5241): export level 0 done: 119424ms, 6175836 bytes
+10-20 23:58:30.089 I/Jeremy  ( 5241): export level 0, 2 pieces
+10-20 23:59:36.381 I/Jeremy  ( 5241): export level 0 done: 79951ms, 4067842 bytes
