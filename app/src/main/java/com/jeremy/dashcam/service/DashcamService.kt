@@ -530,8 +530,18 @@ class DashcamService : LifecycleService() {
 
     /** Battery saver (or the thermal guard when the phone is hot) caps the recording so it runs cooler. */
     private fun lightLoad(s: AppSettings) = s.batterySaver || thermalThrottle
-    private fun effResolution(s: AppSettings) = if (lightLoad(s) && s.resolution == Resolution.UHD) Resolution.FHD else s.resolution
-    private fun effFps(s: AppSettings) = if (lightLoad(s)) minOf(s.fps, 30) else s.fps
+    private fun effResolution(s: AppSettings): Resolution {
+        var r = s.resolution
+        if (lightLoad(s) && r == Resolution.UHD) r = Resolution.FHD           // saver / warm: 4K → Full HD
+        if (thermalLevel >= 1 && r.height > Resolution.HD.height) r = Resolution.HD // hot: cap at 720p so the guard actually cuts load
+        return r
+    }
+    private fun effFps(s: AppSettings): Int {
+        var f = s.fps
+        if (lightLoad(s)) f = minOf(f, 30)
+        if (thermalLevel >= 2) f = minOf(f, 24)                               // very hot: drop to 24 fps
+        return f
+    }
     /** The camera analysis stream (and the detectors it feeds) is only worth running when something consumes it. */
     private fun needAnalysis(s: AppSettings) = s.smartDetection
 
